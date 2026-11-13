@@ -1,5 +1,6 @@
 @testable import BrievieCore
 import Foundation
+import Synchronization
 import Testing
 
 @Suite struct ConnectionStoreTests {
@@ -75,5 +76,66 @@ import Testing
         #expect(try store.load() == nil)
         #expect(try secrets.read(.deviceToken) == nil)
         #expect(try secrets.read(.serverConnection) == nil)
+    }
+
+    @Test func emptyTokenIsRefusedAndNothingIsStored() throws {
+        #expect(throws: ConnectionStoreError.emptyToken) {
+            try store.save(try connection(), token: "")
+        }
+        #expect(try store.load() == nil)
+        #expect(try secrets.read(.serverConnection) == nil)
+    }
+
+    @Test func emptyTokenKeepsExistingPairing() throws {
+        let existing = try connection()
+        try store.save(existing, token: "old-token")
+
+        #expect(throws: ConnectionStoreError.emptyToken) {
+            try store.save(try connection(), token: "")
+        }
+        #expect(try store.load()?.connection == existing)
+    }
+
+    @Test func failedTokenWriteWhileRepairingLeavesNoPairing() throws {
+        let failing = FailingTokenWriteStore()
+        let store = ConnectionStore(secrets: failing)
+        try store.save(try connection(), token: "old-server-token")
+
+        failing.failTokenWrites = true
+        #expect(throws: FailingTokenWriteStore.WriteFailed.self) {
+            try store.save(try connection(), token: "new-server-token")
+        }
+
+        #expect(try store.load() == nil)
+        #expect(try failing.read(.serverConnection) == nil)
+        #expect(try failing.read(.deviceToken) == nil)
+    }
+}
+
+/// Stores in memory, but can be told to fail every device-token write.
+private final class FailingTokenWriteStore: SecretStore {
+    struct WriteFailed: Error {}
+
+    private let inner = InMemorySecretStore()
+    private let failing = Mutex(false)
+
+    var failTokenWrites: Bool {
+        get { failing.withLock { $0 } }
+        set { failing.withLock { $0 = newValue } }
+    }
+
+    func read(_ key: SecretKey) throws -> Data? {
+        inner.read(key)
+    }
+
+    func write(_ data: Data, for key: SecretKey) throws {
+        if key == .deviceToken, failTokenWrites {
+            throw WriteFailed()
+        }
+        inner.write(data, for: key)
+    }
+
+    func delete(_ key: SecretKey) throws {
+        inner.delete(key)
     }
 }

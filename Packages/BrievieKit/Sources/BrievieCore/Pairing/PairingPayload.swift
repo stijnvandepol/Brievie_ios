@@ -53,7 +53,8 @@ public struct PairingPayload: Equatable, Sendable {
         guard
             let url = URL(string: string),
             url.scheme?.lowercased() == "https",
-            let host = url.host(), !host.isEmpty
+            let host = url.host(), !host.isEmpty,
+            url.user() == nil, url.password() == nil
         else {
             return nil
         }
@@ -101,7 +102,7 @@ public enum PairingPayloadError: Error, Equatable {
     case notBrievie
     /// `"v"` is not a version this app understands.
     case unsupportedVersion
-    /// Missing fields, no URLs, a non-https URL, a malformed code or hash.
+    /// Missing fields, no URLs, a non-https URL or one with user info, a malformed code or hash.
     case invalid
 }
 

@@ -5,19 +5,11 @@ import Testing
 
 @Suite struct ServerTrustTests {
     private func der(_ name: String) throws -> Data {
-        try CertificatePin.der(fromPEM: Fixtures.text(name))
+        try Fixtures.der(name)
     }
 
-    /// A trust object for `leaf`, as a server would present it (leaf only, no chain), evaluated one day
-    /// after the fixtures were issued so the tests do not expire with the 800-day leaves.
     private func serverTrust(leaf name: String) throws -> SecTrust {
-        let certificate = try #require(SecCertificateCreateWithData(nil, try der(name) as CFData))
-        var trust: SecTrust?
-        let status = SecTrustCreateWithCertificates(certificate, SecPolicyCreateBasicX509(), &trust)
-        #expect(status == errSecSuccess)
-        let serverTrust = try #require(trust)
-        #expect(SecTrustSetVerifyDate(serverTrust, try Fixtures.evaluationDate() as CFDate) == errSecSuccess)
-        return serverTrust
+        try Fixtures.serverTrust(leaf: name)
     }
 
     @Test(arguments: ["leaf-a.pem", "leaf-b.pem"])
@@ -59,41 +51,56 @@ import Testing
 }
 
 @Suite struct PinnedSessionDelegateTests {
-    private final class Sender: NSObject, URLAuthenticationChallengeSender {
-        func use(_ credential: URLCredential, for challenge: URLAuthenticationChallenge) {}
-        func continueWithoutCredential(for challenge: URLAuthenticationChallenge) {}
-        func cancel(_ challenge: URLAuthenticationChallenge) {}
+    private func delegate() throws -> PinnedSessionDelegate {
+        PinnedSessionDelegate(trust: ServerTrust(caCertificateDER: try Fixtures.der("ca.pem")))
     }
 
-    private func challenge(method: String) -> URLAuthenticationChallenge {
-        let space = URLProtectionSpace(
-            host: "localhost", port: 443, protocol: "https", realm: nil, authenticationMethod: method
+    @Test func trustedServerGetsCredential() throws {
+        let disposition = try delegate().disposition(
+            authenticationMethod: NSURLAuthenticationMethodServerTrust,
+            serverTrust: try Fixtures.serverTrust(leaf: "leaf-a.pem"),
+            host: "localhost"
         )
-        return URLAuthenticationChallenge(
-            protectionSpace: space, proposedCredential: nil, previousFailureCount: 0,
-            failureResponse: nil, error: nil, sender: Sender()
-        )
+
+        #expect(disposition == .useCredential)
     }
 
-    @Test func otherChallengesGetDefaultHandling() async {
-        let delegate = PinnedSessionDelegate(trust: ServerTrust(caCertificateDER: nil))
-
-        let (disposition, credential) = await delegate.urlSession(
-            URLSession.shared, didReceive: challenge(method: NSURLAuthenticationMethodHTTPBasic)
-        )
-
-        #expect(disposition == .performDefaultHandling)
-        #expect(credential == nil)
-    }
-
-    @Test func serverTrustChallengeWithoutTrustIsCancelled() async {
-        let delegate = PinnedSessionDelegate(trust: ServerTrust(caCertificateDER: nil))
-
-        let (disposition, credential) = await delegate.urlSession(
-            URLSession.shared, didReceive: challenge(method: NSURLAuthenticationMethodServerTrust)
+    @Test func serverForAnotherHostIsCancelled() throws {
+        let disposition = try delegate().disposition(
+            authenticationMethod: NSURLAuthenticationMethodServerTrust,
+            serverTrust: try Fixtures.serverTrust(leaf: "leaf-a.pem"),
+            host: "example.com"
         )
 
         #expect(disposition == .cancelAuthenticationChallenge)
-        #expect(credential == nil)
+    }
+
+    @Test func serverFromAnotherCAIsCancelled() throws {
+        let disposition = try delegate().disposition(
+            authenticationMethod: NSURLAuthenticationMethodServerTrust,
+            serverTrust: try Fixtures.serverTrust(leaf: "other-leaf.pem"),
+            host: "localhost"
+        )
+
+        #expect(disposition == .cancelAuthenticationChallenge)
+    }
+
+    @Test func serverTrustChallengeWithoutTrustIsCancelled() throws {
+        let disposition = try delegate().disposition(
+            authenticationMethod: NSURLAuthenticationMethodServerTrust, serverTrust: nil, host: "localhost"
+        )
+
+        #expect(disposition == .cancelAuthenticationChallenge)
+    }
+
+    @Test(arguments: [NSURLAuthenticationMethodHTTPBasic, NSURLAuthenticationMethodClientCertificate])
+    func otherChallengesGetDefaultHandling(method: String) throws {
+        let disposition = try delegate().disposition(
+            authenticationMethod: method,
+            serverTrust: try Fixtures.serverTrust(leaf: "other-leaf.pem"),
+            host: "localhost"
+        )
+
+        #expect(disposition == .performDefaultHandling)
     }
 }

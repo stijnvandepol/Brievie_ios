@@ -1,5 +1,10 @@
 import Foundation
 
+public enum ConnectionStoreError: Error, Equatable {
+    /// A pairing without a device token cannot be used.
+    case emptyToken
+}
+
 /// Keeps the paired server connection and its device token together in a `SecretStore`.
 ///
 /// The app is either fully paired or not paired at all: when only one of the two items is
@@ -29,8 +34,13 @@ public struct ConnectionStore: Sendable {
         return (connection, token)
     }
 
+    /// Replaces any existing pairing. The old pairing is cleared first, so a failure part-way leaves
+    /// at most one item, which `load()` cleans up: never a new connection with an old token.
     public func save(_ connection: ServerConnection, token: String) throws {
-        try secrets.write(JSONEncoder().encode(connection), for: .serverConnection)
+        guard !token.isEmpty else { throw ConnectionStoreError.emptyToken }
+        let connectionData = try JSONEncoder().encode(connection)
+        try clear()
+        try secrets.write(connectionData, for: .serverConnection)
         try secrets.write(Data(token.utf8), for: .deviceToken)
     }
 

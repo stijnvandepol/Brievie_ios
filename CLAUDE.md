@@ -13,7 +13,7 @@ Native SwiftUI app that pairs with a self-hosted Brievie server.
 | `make generate` | Generate `Brievie.xcodeproj` from `project.yml` (XcodeGen) |
 | `make test` | `swift test --package-path Packages/BrievieKit` (runs on macOS, no simulator) |
 | `make lint` | `swiftlint --strict` |
-| `make build` | Build the app for the iPhone 17 simulator |
+| `make build` | Build the app for a simulator (prefers iPhone 17 on the newest iOS runtime; override with `SIMULATOR_ID=<udid>`) |
 | `make test-keychain` | Keychain tests, hosted in the app on the simulator (they are skipped by `make test`) |
 | `make sync-api HOST=../Brievie_host` | Copy the host's `openapi.json` into `BrievieAPI` |
 

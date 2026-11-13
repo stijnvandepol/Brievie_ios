@@ -1,6 +1,9 @@
 import Foundation
 
 /// Everything the app needs to reach its paired server, apart from the device token.
+///
+/// Stored as JSON in the Keychain. New stored properties must be optional (or decode with a default):
+/// a value that no longer decodes makes `ConnectionStore.load()` clear the pairing, unpairing the user.
 public struct ServerConnection: Codable, Equatable, Sendable {
     /// Server addresses in server order: the local address first.
     public let urls: [URL]

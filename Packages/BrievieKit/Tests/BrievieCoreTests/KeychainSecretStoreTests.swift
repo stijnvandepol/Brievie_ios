@@ -4,8 +4,10 @@ import Testing
 
 /// The Keychain needs an entitled process: an unhosted package test bundle on the simulator gets
 /// `errSecMissingEntitlement` (-34018), and plain `swift test` on macOS has no entitlements either.
-/// These tests therefore only run inside the app on the simulator, via the `BrievieTests` target in
-/// `project.yml` (`make test-keychain`); everywhere else they are reported as skipped.
+/// These tests therefore run inside the app on the simulator, via the `BrievieTests` target in
+/// `project.yml` (`make test-keychain`), which compiles this file with `BRIEVIE_HOSTED_TESTS`.
+/// There they always run, and `hostIsTheAppOnSimulator` fails when the host is wrong, so that run can
+/// never pass with zero Keychain tests. Everywhere else they are reported as skipped.
 private var runsInsideAppOnSimulator: Bool {
     #if targetEnvironment(simulator)
     Bundle.main.bundleIdentifier == "nl.brievie.app"
@@ -14,8 +16,18 @@ private var runsInsideAppOnSimulator: Bool {
     #endif
 }
 
-@Suite(.enabled(if: runsInsideAppOnSimulator, "Needs the app's Keychain on the simulator (make test-keychain)"))
+#if BRIEVIE_HOSTED_TESTS
+private let keychainTestsEnabled = true
+#else
+private let keychainTestsEnabled = runsInsideAppOnSimulator
+#endif
+
+@Suite(.enabled(if: keychainTestsEnabled, "Needs the app's Keychain on the simulator (make test-keychain)"))
 struct KeychainSecretStoreTests {
+    @Test func hostIsTheAppOnSimulator() {
+        #expect(runsInsideAppOnSimulator, "Keychain tests must run hosted in nl.brievie.app on the simulator")
+    }
+
     @Test func roundTripOverwriteAndDelete() throws {
         let store = KeychainSecretStore(service: "nl.brievie.app.tests.\(UUID().uuidString)")
         defer {

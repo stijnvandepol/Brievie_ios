@@ -21,6 +21,8 @@ public struct ServerTrust: Sendable {
             guard
                 let ca = SecCertificateCreateWithData(nil, caCertificateDER as CFData),
                 SecTrustSetAnchorCertificates(trust, [ca] as CFArray) == errSecSuccess,
+                // Load-bearing: never let the system roots back in when a private CA is pinned.
+                // (Setting anchors already implies this; the explicit call guards against a default change.)
                 SecTrustSetAnchorCertificatesOnly(trust, true) == errSecSuccess
             else {
                 return false

@@ -13,12 +13,27 @@ public final class PinnedSessionDelegate: NSObject, URLSessionDelegate, Sendable
         didReceive challenge: URLAuthenticationChallenge
     ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         let space = challenge.protectionSpace
-        guard space.authenticationMethod == NSURLAuthenticationMethodServerTrust else {
-            return (.performDefaultHandling, nil)
-        }
-        guard let serverTrust = space.serverTrust, trust.evaluate(serverTrust, host: space.host) else {
-            return (.cancelAuthenticationChallenge, nil)
+        let disposition = disposition(
+            authenticationMethod: space.authenticationMethod, serverTrust: space.serverTrust, host: space.host
+        )
+        guard disposition == .useCredential, let serverTrust = space.serverTrust else {
+            return (disposition, nil)
         }
         return (.useCredential, URLCredential(trust: serverTrust))
+    }
+
+    /// The answer to an authentication challenge: only server-trust challenges are decided here.
+    func disposition(
+        authenticationMethod: String,
+        serverTrust: SecTrust?,
+        host: String
+    ) -> URLSession.AuthChallengeDisposition {
+        guard authenticationMethod == NSURLAuthenticationMethodServerTrust else {
+            return .performDefaultHandling
+        }
+        guard let serverTrust, trust.evaluate(serverTrust, host: host) else {
+            return .cancelAuthenticationChallenge
+        }
+        return .useCredential
     }
 }

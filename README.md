@@ -11,7 +11,7 @@ Nodig: Xcode 26, [XcodeGen](https://github.com/yonaskolb/XcodeGen) en [SwiftLint
 make generate   # maakt Brievie.xcodeproj uit project.yml
 make test       # tests van Packages/BrievieKit (macOS, geen simulator nodig)
 make lint       # swiftlint --strict
-make build      # bouwt de app voor de iPhone 17-simulator
+make build      # bouwt de app voor een iPhone-simulator (bij voorkeur iPhone 17)
 make test-keychain  # Keychain-tests, in de app op de simulator
 ```
 

@@ -72,6 +72,9 @@ import Testing
         #"{"v":1,"urls":["http://brievie.local"],"code":"ABCD-EFGH","ca_sha256":null}"#,
         // one https and one http URL
         #"{"v":1,"urls":["https://a.nl","http://b.nl"],"code":"ABCD-EFGH","ca_sha256":null}"#,
+        // URL with userinfo
+        #"{"v":1,"urls":["https://u:p@brievie.local"],"code":"ABCD-EFGH","ca_sha256":null}"#,
+        #"{"v":1,"urls":["https://u@brievie.local"],"code":"ABCD-EFGH","ca_sha256":null}"#,
         // URL without host
         #"{"v":1,"urls":["https://"],"code":"ABCD-EFGH","ca_sha256":null}"#,
         // empty urls
