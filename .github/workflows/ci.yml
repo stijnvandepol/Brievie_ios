@@ -17,5 +17,9 @@ jobs:
         run: make test
       - name: Generate project
         run: make generate
+      - name: Pick a simulator
+        run: echo "SIMULATOR=$(xcrun simctl list devices available | grep -m1 -oE 'iPhone [0-9]+')" >> "$GITHUB_ENV"
       - name: Simulator build
-        run: make build SIMULATOR="$(xcrun simctl list devices available | grep -m1 -oE 'iPhone [0-9]+' )"
+        run: make build
+      - name: Keychain tests (hosted in the app on the simulator)
+        run: make test-keychain

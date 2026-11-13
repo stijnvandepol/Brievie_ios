@@ -37,3 +37,29 @@ targets:
           - BrievieUI
           - FeaturePairing
           - FeatureWorkspace
+  # Tests that need an entitled app process (the Keychain). Hosted in the app on the simulator.
+  BrievieTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Packages/BrievieKit/Tests/BrievieCoreTests/KeychainSecretStoreTests.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: nl.brievie.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Brievie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Brievie
+        BUNDLE_LOADER: $(TEST_HOST)
+    dependencies:
+      - target: Brievie
+      - package: BrievieKit
+        product: BrievieCore
+        link: false
+schemes:
+  Brievie:
+    build:
+      targets:
+        Brievie: all
+    test:
+      targets:
+        - BrievieTests

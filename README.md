@@ -12,6 +12,7 @@ make generate   # maakt Brievie.xcodeproj uit project.yml
 make test       # tests van Packages/BrievieKit (macOS, geen simulator nodig)
 make lint       # swiftlint --strict
 make build      # bouwt de app voor de iPhone 17-simulator
+make test-keychain  # Keychain-tests, in de app op de simulator
 ```
 
 Het Xcode-project wordt gegenereerd en staat niet in git; pas `project.yml` aan.

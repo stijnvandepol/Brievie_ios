@@ -2,7 +2,7 @@ PACKAGE := Packages/BrievieKit
 SIMULATOR ?= iPhone 17
 HOST ?= ../Brievie_host
 
-.PHONY: generate test lint build sync-api
+.PHONY: generate test lint build test-keychain sync-api
 
 generate:
 	xcodegen generate
@@ -15,6 +15,15 @@ lint:
 
 build:
 	xcodebuild build \
+		-project Brievie.xcodeproj \
+		-scheme Brievie \
+		-destination 'platform=iOS Simulator,name=$(SIMULATOR),OS=latest' \
+		-skipPackagePluginValidation \
+		-quiet
+
+# Keychain tests need an entitled process: run them hosted in the app on the simulator.
+test-keychain:
+	xcodebuild test \
 		-project Brievie.xcodeproj \
 		-scheme Brievie \
 		-destination 'platform=iOS Simulator,name=$(SIMULATOR),OS=latest' \
