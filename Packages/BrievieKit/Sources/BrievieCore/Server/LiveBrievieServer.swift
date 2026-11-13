@@ -45,6 +45,10 @@ public struct LiveBrievieServer: BrievieServer {
                 return PairedDevice(deviceID: deviceID, token: paired.token, userName: paired.user.name)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
+            case .contentTooLarge:
+                throw ServerError(status: 413, code: nil)
+            case .unsupportedMediaType:
+                throw ServerError(status: 415, code: nil)
             case let .unprocessableContent(response):
                 throw ServerError(status: 422, code: try? response.body.json.code)
             case .tooManyRequests:
@@ -68,14 +72,15 @@ public struct LiveBrievieServer: BrievieServer {
         }
     }
 
-    /// Runs `operation` on a client whose session only trusts what `trust` accepts, then invalidates the
-    /// session. Every error comes out as a `ServerError`.
+    /// Runs `operation` on a client whose session only trusts what `trust` accepts and follows no redirects,
+    /// then invalidates the session. Errors come out as `ServerError`, or `CancellationError` when the task
+    /// was cancelled.
     private func withClient<Result>(
         _ url: URL,
         trust: ServerTrust,
         token: String?,
         _ operation: (Client) async throws -> Result
-    ) async throws(ServerError) -> Result {
+    ) async throws -> Result {
         let session = URLSession(
             configuration: SessionConfiguration.hardened(makeConfiguration()),
             delegate: PinnedSessionDelegate(trust: trust),
@@ -85,21 +90,19 @@ public struct LiveBrievieServer: BrievieServer {
         do {
             return try await operation(APIClient.make(baseURL: url, session: session, token: token))
         } catch {
-            if Task.isCancelled { throw .other("cancelled") }
-            throw ServerError(requestError: error)
+            throw ServerError.throwingCancellation(error)
         }
     }
 }
 
 private extension WorkspaceSummary {
     init(workspace: Components.Schemas.WorkspaceOut) throws(ServerError) {
-        guard
-            let id = UUID(uuidString: workspace.id),
-            let kind = Kind(rawValue: workspace.kind),
-            let role = Role(rawValue: workspace.role)
-        else {
-            throw .incompatible
-        }
-        self.init(id: id, name: workspace.name, kind: kind, role: role)
+        guard let id = UUID(uuidString: workspace.id) else { throw .incompatible }
+        self.init(
+            id: id,
+            name: workspace.name,
+            kind: Kind(rawValue: workspace.kind) ?? .unknown,
+            role: Role(rawValue: workspace.role) ?? .unknown
+        )
     }
 }

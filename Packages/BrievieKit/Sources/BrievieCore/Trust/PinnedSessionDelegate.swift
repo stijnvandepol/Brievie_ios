@@ -1,7 +1,9 @@
 import Foundation
 
-/// `URLSession` delegate that only lets TLS connections through when `ServerTrust` accepts the server.
-public final class PinnedSessionDelegate: NSObject, URLSessionDelegate, Sendable {
+/// `URLSession` delegate that only lets TLS connections through when `ServerTrust` accepts the server,
+/// and never follows a redirect: the API does not redirect, and a followed redirect could carry the
+/// `Authorization` header or a request body (the pairing code) to another host.
+public final class PinnedSessionDelegate: NSObject, URLSessionTaskDelegate, Sendable {
     private let trust: ServerTrust
 
     public init(trust: ServerTrust) {
@@ -20,6 +22,15 @@ public final class PinnedSessionDelegate: NSObject, URLSessionDelegate, Sendable
             return (decision, nil)
         }
         return (.useCredential, URLCredential(trust: serverTrust))
+    }
+
+    public func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest
+    ) async -> URLRequest? {
+        nil
     }
 
     /// The answer to an authentication challenge: only server-trust challenges are decided here.

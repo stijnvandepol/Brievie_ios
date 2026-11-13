@@ -27,15 +27,19 @@ public struct PairedDevice: Equatable, Sendable {
 }
 
 public struct WorkspaceSummary: Equatable, Sendable, Identifiable {
+    /// Raw values match the API. API v1 is additive: a value this app does not know yet is `.unknown`.
     public enum Kind: String, Sendable {
         case home
         case business
+        case unknown
     }
 
+    /// Raw values match the API. API v1 is additive: a value this app does not know yet is `.unknown`.
     public enum Role: String, Sendable {
         case admin
         case member
         case viewer
+        case unknown
     }
 
     public let id: UUID
@@ -64,6 +68,7 @@ public enum ServerError: Error, Equatable {
     case tooManyAttempts
     /// The server answered with something this app does not understand.
     case incompatible
-    /// Anything else; the associated value is the server's error code or a short description.
+    /// Anything else. The associated value is diagnostic only and never shown to the user: an error code
+    /// from a closed set known from the contract, or a fixed form such as `http_404` or `url_error_-1001`.
     case other(String)
 }

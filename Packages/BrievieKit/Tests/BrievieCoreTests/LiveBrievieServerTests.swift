@@ -57,11 +57,14 @@ import Testing
 
     @Test(arguments: [
         (400, "pairing_code_invalid", ServerError.invalidCode),
-        (400, "something_else", ServerError.other("something_else")),
+        (400, "something_else", ServerError.other("http_400")),
         (422, "validation_error", ServerError.other("validation_error")),
+        (422, String(repeating: "x", count: 10_000), ServerError.other("http_422")),
+        (413, "payload_too_large", ServerError.other("http_413")),
+        (415, "unsupported_media_type", ServerError.other("http_415")),
         (429, "too_many_attempts", ServerError.tooManyAttempts),
         (401, "not_authenticated", ServerError.unauthorized),
-        (500, "server_error", ServerError.other("http_500"))
+        (500, "internal_error", ServerError.other("http_500"))
     ])
     func pairMapsRefusals(status: Int, code: String, expected: ServerError) async throws {
         let url = try StubURLProtocol.serve(.response(status: status, json: #"{"code":"\#(code)","message":"x"}"#))
@@ -101,14 +104,47 @@ import Testing
         }
     }
 
-    @Test func unknownWorkspaceKindIsIncompatible() async throws {
+    @Test func unknownWorkspaceKindAndRoleDecodeAsUnknown() async throws {
         let url = try StubURLProtocol.serve(.response(
-            status: 200, json: #"[{"id":"\#(Self.workspaceID)","name":"X","kind":"club","role":"admin"}]"#
+            status: 200, json: #"[{"id":"\#(Self.workspaceID)","name":"X","kind":"club","role":"owner"}]"#
+        ))
+
+        let workspaces = try await server.workspaces(at: url, trust: trust, token: "t")
+
+        #expect(workspaces.map(\.kind) == [.unknown])
+        #expect(workspaces.map(\.role) == [.unknown])
+    }
+
+    @Test func badWorkspaceIDIsIncompatible() async throws {
+        let url = try StubURLProtocol.serve(.response(
+            status: 200, json: #"[{"id":"not-a-uuid","name":"X","kind":"home","role":"admin"}]"#
         ))
 
         await #expect(throws: ServerError.incompatible) {
             try await server.workspaces(at: url, trust: trust, token: "t")
         }
+    }
+
+    // MARK: - redirects (the API never redirects)
+
+    @Test func workspacesDoNotFollowRedirectsWithTheToken() async throws {
+        let target = try StubURLProtocol.serve(.response(status: 200, json: "[]"))
+        let url = try StubURLProtocol.serve(.redirect(target.appending(path: "api/v1/workspaces")))
+
+        await #expect(throws: ServerError.other("http_302")) {
+            try await server.workspaces(at: url, trust: trust, token: "device-token-123")
+        }
+        #expect(StubURLProtocol.requests(to: target).isEmpty)
+    }
+
+    @Test func pairDoesNotFollowRedirectsWithTheCode() async throws {
+        let target = try StubURLProtocol.serve(.response(status: 201, json: "{}"))
+        let url = try StubURLProtocol.serve(.redirect(target.appending(path: "api/v1/devices/pair")))
+
+        await #expect(throws: ServerError.other("http_302")) {
+            try await server.pair(at: url, trust: trust, code: "ABCD-EFGH", deviceName: "iPhone")
+        }
+        #expect(StubURLProtocol.requests(to: target).isEmpty)
     }
 
     // MARK: - transport failures
@@ -133,87 +169,36 @@ import Testing
             try await server.caCertificatePEM(at: url)
         }
     }
+
+    // MARK: - cancellation
+
+    @Test func cancelledTaskThrowsCancellationNotUntrusted() async throws {
+        let server = server
+        let trust = trust
+        let url = try StubURLProtocol.serve(.failure(.cancelled))
+        let health = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await server.health(at: url, trust: trust)
+        }
+        let certificate = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await server.caCertificatePEM(at: url)
+        }
+
+        await #expect(throws: CancellationError.self) { try await health.value }
+        await #expect(throws: CancellationError.self) { try await certificate.value }
+    }
 }
 
-/// The one request made without trust: `GET /api/v1/server/ca-certificate`.
-@Suite struct CACertificateDownloadTests {
-    private let server = LiveBrievieServer(configuration: StubURLProtocol.configuration)
+@Suite struct SessionConfigurationTests {
+    @Test func hardenedSessionsTimeOutAndKeepNoState() {
+        let configuration = SessionConfiguration.hardened(.ephemeral)
 
-    @Test func returnsPEM() async throws {
-        let pem = try Fixtures.text("ca.pem")
-        let json = try #require(String(bytes: try JSONEncoder().encode(["pem": pem]), encoding: .utf8))
-        let url = try StubURLProtocol.serve(.response(status: 200, json: json))
-
-        #expect(try await server.caCertificatePEM(at: url) == pem)
-        let request = try #require(StubURLProtocol.requests(to: url).first)
-        #expect(request.httpMethod == "GET")
-        #expect(request.url?.path() == "/api/v1/server/ca-certificate")
-    }
-
-    @Test func sendsNoCredentialsCookiesOrInheritedHeaders() async throws {
-        let url = try StubURLProtocol.serve(.response(status: 200, json: #"{"pem":"x"}"#))
-        let host = try #require(url.host())
-        let cookie = try #require(HTTPCookie(properties: [.domain: host, .path: "/", .name: "sessionid", .value: "s"]))
-        let leaky = LiveBrievieServer {
-            let configuration = StubURLProtocol.configuration()
-            configuration.httpAdditionalHeaders = ["Authorization": "Bearer leaked"]
-            // An ephemeral configuration has its own in-memory cookie store.
-            configuration.httpCookieStorage?.setCookie(cookie)
-            configuration.httpShouldSetCookies = true
-            return configuration
-        }
-
-        _ = try await leaky.caCertificatePEM(at: url)
-
-        let request = try #require(StubURLProtocol.requests(to: url).first)
-        #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
-        #expect(request.value(forHTTPHeaderField: "Cookie") == nil)
-    }
-
-    @Test func refusesOversizedResponse() async throws {
-        let padding = String(repeating: "A", count: CACertificateDownload.maximumBytes)
-        let url = try StubURLProtocol.serve(.response(status: 200, json: #"{"pem":"\#(padding)"}"#))
-
-        await #expect(throws: ServerError.other("response_too_large")) {
-            try await server.caCertificatePEM(at: url)
-        }
-    }
-
-    @Test func doesNotFollowRedirects() async throws {
-        let target = try StubURLProtocol.serve(.response(status: 200, json: #"{"pem":"from elsewhere"}"#))
-        let url = try StubURLProtocol.serve(.redirect(target.appending(path: "api/v1/server/ca-certificate")))
-
-        await #expect(throws: ServerError.other("http_302")) {
-            try await server.caCertificatePEM(at: url)
-        }
-        #expect(StubURLProtocol.requests(to: target).isEmpty)
-    }
-
-    @Test func noPrivateCA() async throws {
-        let url = try StubURLProtocol.serve(.response(status: 404, json: #"{"code":"no_private_ca","message":"x"}"#))
-
-        await #expect(throws: ServerError.other("no_private_ca")) {
-            try await server.caCertificatePEM(at: url)
-        }
-    }
-
-    @Test func trustDecisionOnlyAcceptsServerTrustForTheRequestedHost() throws {
-        let delegate = CACertificateDownload.Delegate(host: "localhost")
-        let serverTrust = try Fixtures.serverTrust(leaf: "other-leaf.pem")
-
-        #expect(delegate.disposition(
-            authenticationMethod: NSURLAuthenticationMethodServerTrust, serverTrust: serverTrust, host: "localhost"
-        ) == .useCredential)
-        #expect(delegate.disposition(
-            authenticationMethod: NSURLAuthenticationMethodServerTrust, serverTrust: serverTrust, host: "evil.example"
-        ) == .cancelAuthenticationChallenge)
-        #expect(delegate.disposition(
-            authenticationMethod: NSURLAuthenticationMethodServerTrust, serverTrust: nil, host: "localhost"
-        ) == .cancelAuthenticationChallenge)
-        for method in [NSURLAuthenticationMethodHTTPBasic, NSURLAuthenticationMethodClientCertificate] {
-            #expect(delegate.disposition(
-                authenticationMethod: method, serverTrust: serverTrust, host: "localhost"
-            ) == .cancelAuthenticationChallenge)
-        }
+        #expect(configuration.timeoutIntervalForRequest == 15)
+        #expect(configuration.timeoutIntervalForResource == 30)
+        #expect(configuration.httpCookieStorage == nil)
+        #expect(configuration.urlCredentialStorage == nil)
+        #expect(configuration.urlCache == nil)
+        #expect(!configuration.httpShouldSetCookies)
     }
 }

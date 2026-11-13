@@ -1,11 +1,17 @@
 import Foundation
 
 public enum PairingError: Error, Equatable {
+    /// No URL in the QR code could be reached.
     case noServerReachable
+    /// At least one URL answered, but none could be verified as the server from the QR code.
     case serverNotVerified
     case invalidCode
     case tooManyAttempts
+    /// A Brievie server that speaks another major API version, or answered pairing with unusable data.
     case incompatibleServer
+    /// The task was cancelled; nothing was stored.
+    case cancelled
+    /// Anything else. The associated value is diagnostic only (logs, bug reports) and never shown to the user.
     case failed(String)
 }
 
@@ -19,21 +25,32 @@ public struct PairingService: Sendable {
         self.store = store
     }
 
-    /// Tries the payload's URLs in order. Only an unreachable URL moves on to the next one: a server that
-    /// cannot be verified, or any refusal, stops pairing. Nothing is stored unless pairing succeeds.
+    /// Tries the payload's URLs in order until one is verified as the server from the QR code, then redeems
+    /// the code there and stores the pairing.
+    ///
+    /// - A URL that is unreachable, or that answers but cannot be verified (wrong CA, not a Brievie answer,
+    ///   untrusted TLS), is skipped: nothing from it is used and the code is never sent to it.
+    /// - A verified server with another major API version stops pairing (every URL is the same server).
+    /// - Once the code has been sent, any failure stops pairing: the code is never sent to a second URL.
+    /// - Nothing is stored unless pairing succeeds.
     public func pair(_ payload: PairingPayload, deviceName: String) async throws(PairingError) -> ServerConnection {
+        var sawUnverifiableAnswer = false
         for url in payload.urls {
-            let attempt: Attempt
-            do {
-                attempt = try await verify(url, caSHA256: payload.caSHA256)
-            } catch .unreachable {
+            if Task.isCancelled { throw .cancelled }
+            switch await verify(url, caSHA256: payload.caSHA256) {
+            case let .verified(attempt):
+                return try await finish(attempt, url: url, payload: payload, deviceName: deviceName)
+            case .unreachable:
                 continue
-            } catch {
-                throw PairingError(error)
+            case .unverifiable:
+                sawUnverifiableAnswer = true
+            case .incompatible:
+                throw .incompatibleServer
+            case .cancelled:
+                throw .cancelled
             }
-            return try await finish(attempt, url: url, payload: payload, deviceName: deviceName)
         }
-        throw .noServerReachable
+        throw sawUnverifiableAnswer ? .serverNotVerified : .noServerReachable
     }
 
     private struct Attempt {
@@ -41,24 +58,50 @@ public struct PairingService: Sendable {
         let trust: ServerTrust
     }
 
+    private enum Verification {
+        case verified(Attempt)
+        case unreachable
+        /// Something answered, but it is not verifiably the server from the QR code.
+        case unverifiable
+        /// The verified server speaks another major API version.
+        case incompatible
+        case cancelled
+    }
+
     /// Steps 1–3: check the CA against the QR fingerprint, build the trust, check the API version.
-    private func verify(_ url: URL, caSHA256: String?) async throws(ServerError) -> Attempt {
+    private func verify(_ url: URL, caSHA256: String?) async -> Verification {
         var caCertificateDER: Data?
         if let caSHA256 {
-            let pem = try await call { try await server.caCertificatePEM(at: url) }
+            let pem: String
+            switch await call({ try await server.caCertificatePEM(at: url) }) {
+            case let .success(value): pem = value
+            case let .failure(error): return Self.verification(after: error)
+            }
             // The PEM came over a connection nobody vouched for: it is only usable if it matches the QR code.
             guard
                 let der = try? CertificatePin.der(fromPEM: pem),
                 CertificatePin.sha256Hex(ofDER: der) == caSHA256
             else {
-                throw .untrusted
+                return .unverifiable
             }
             caCertificateDER = der
         }
         let trust = ServerTrust(caCertificateDER: caCertificateDER)
-        let apiVersion = try await call { try await server.health(at: url, trust: trust) }
-        guard Self.isSupported(apiVersion: apiVersion) else { throw .incompatible }
-        return Attempt(caCertificateDER: caCertificateDER, trust: trust)
+        switch await call({ try await server.health(at: url, trust: trust) }) {
+        case let .success(apiVersion):
+            guard Self.isSupported(apiVersion: apiVersion) else { return .incompatible }
+            return .verified(Attempt(caCertificateDER: caCertificateDER, trust: trust))
+        case let .failure(error):
+            return Self.verification(after: error)
+        }
+    }
+
+    private static func verification(after error: CallError) -> Verification {
+        switch error {
+        case .cancelled: .cancelled
+        case .server(.unreachable): .unreachable
+        case .server: .unverifiable
+        }
     }
 
     /// Steps 4–5: redeem the code and store the pairing. The code may already be spent once the request
@@ -66,14 +109,18 @@ public struct PairingService: Sendable {
     private func finish(
         _ attempt: Attempt, url: URL, payload: PairingPayload, deviceName: String
     ) async throws(PairingError) -> ServerConnection {
+        if Task.isCancelled { throw .cancelled }
         let device: PairedDevice
-        do {
-            device = try await call {
-                try await server.pair(at: url, trust: attempt.trust, code: payload.code, deviceName: deviceName)
-            }
-        } catch {
-            throw PairingError(error)
+        switch await call({
+            try await server.pair(at: url, trust: attempt.trust, code: payload.code, deviceName: deviceName)
+        }) {
+        case let .success(value): device = value
+        case .failure(.cancelled): throw .cancelled
+        case let .failure(.server(error)): throw PairingError(error)
         }
+        guard !device.token.isEmpty else { throw .incompatibleServer }
+        // The code is spent; finish storing even if the task was cancelled meanwhile, so the device the
+        // server now knows about is not lost.
         let connection = ServerConnection(
             urls: payload.urls,
             caCertificateDER: attempt.caCertificateDER,
@@ -84,18 +131,25 @@ public struct PairingService: Sendable {
             try store.save(connection, token: device.token)
         } catch {
             try? store.clear()
-            throw .failed("storage: \(error)")
+            throw .failed("storage: \(type(of: error))")
         }
         return connection
     }
 
-    private func call<T>(_ operation: () async throws -> T) async throws(ServerError) -> T {
+    private enum CallError: Error {
+        case cancelled
+        case server(ServerError)
+    }
+
+    /// Runs a server call; cancellation (a `CancellationError` or a cancelled task) is told apart from the
+    /// server's answer, because URLSession reports a cancelled task like a refused TLS challenge.
+    private func call<T>(_ operation: () async throws -> T) async -> Result<T, CallError> {
         do {
-            return try await operation()
-        } catch let error as ServerError {
-            throw error
+            return .success(try await operation())
         } catch {
-            throw .other(String(describing: error))
+            if Task.isCancelled || error is CancellationError { return .failure(.cancelled) }
+            if let error = error as? ServerError { return .failure(.server(error)) }
+            return .failure(.server(.other(String(describing: type(of: error)))))
         }
     }
 

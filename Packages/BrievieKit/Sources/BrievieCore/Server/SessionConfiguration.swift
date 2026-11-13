@@ -3,6 +3,8 @@ import Foundation
 enum SessionConfiguration {
     /// How long to wait for a server before calling it unreachable and trying the next URL.
     static let requestTimeout: TimeInterval = 15
+    /// Upper bound for a whole request, however slowly the server trickles its answer.
+    static let resourceTimeout: TimeInterval = 30
 
     /// `configuration` with everything that could carry state between requests switched off: no cookies,
     /// no stored credentials, no response cache, no extra headers. The device token is sent explicitly
@@ -17,6 +19,7 @@ enum SessionConfiguration {
         configuration.httpAdditionalHeaders = nil
         configuration.waitsForConnectivity = false
         configuration.timeoutIntervalForRequest = requestTimeout
+        configuration.timeoutIntervalForResource = resourceTimeout
         return configuration
     }
 }

@@ -18,9 +18,10 @@ enum CACertificateDownload {
     static let maximumBytes = 64 * 1024
     private static let path = "api/v1/server/ca-certificate"
 
-    static func pem(at baseURL: URL, configuration: URLSessionConfiguration) async throws(ServerError) -> String {
+    /// Errors are `ServerError`, or `CancellationError` when the task was cancelled.
+    static func pem(at baseURL: URL, configuration: URLSessionConfiguration) async throws -> String {
         guard let host = baseURL.host(), baseURL.scheme?.lowercased() == "https" else {
-            throw .other("invalid_url")
+            throw ServerError.other("invalid_url")
         }
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = "GET"
@@ -38,7 +39,7 @@ enum CACertificateDownload {
         do {
             (status, body) = try await fetch(request, on: session)
         } catch {
-            throw ServerError(requestError: error)
+            throw ServerError.throwingCancellation(error)
         }
 
         guard status == 200 else {
@@ -46,7 +47,7 @@ enum CACertificateDownload {
             throw ServerError(status: status, code: code)
         }
         guard let certificate = try? JSONDecoder().decode(Components.Schemas.CaCertificateOut.self, from: body) else {
-            throw .incompatible
+            throw ServerError.incompatible
         }
         return certificate.pem
     }
@@ -64,8 +65,26 @@ enum CACertificateDownload {
         return (response.statusCode, body)
     }
 
+    /// Server trust for the requested host is accepted without evaluation; every other challenge is cancelled.
+    static func disposition(
+        authenticationMethod: String,
+        serverTrust: SecTrust?,
+        challengeHost: String,
+        requestedHost: String
+    ) -> URLSession.AuthChallengeDisposition {
+        guard
+            authenticationMethod == NSURLAuthenticationMethodServerTrust,
+            serverTrust != nil,
+            challengeHost.caseInsensitiveCompare(requestedHost) == .orderedSame
+        else {
+            return .cancelAuthenticationChallenge
+        }
+        return .useCredential
+    }
+
     /// Accepts the server's certificate for `host` only; sends no credentials and follows no redirects.
-    final class Delegate: NSObject, URLSessionTaskDelegate, Sendable {
+    /// Private: only `pem(at:configuration:)` can create one.
+    private final class Delegate: NSObject, URLSessionTaskDelegate, Sendable {
         private let host: String
 
         init(host: String) {
@@ -100,29 +119,16 @@ enum CACertificateDownload {
             _ challenge: URLAuthenticationChallenge
         ) -> (URLSession.AuthChallengeDisposition, URLCredential?) {
             let space = challenge.protectionSpace
-            let decision = disposition(
-                authenticationMethod: space.authenticationMethod, serverTrust: space.serverTrust, host: space.host
+            let decision = CACertificateDownload.disposition(
+                authenticationMethod: space.authenticationMethod,
+                serverTrust: space.serverTrust,
+                challengeHost: space.host,
+                requestedHost: host
             )
             guard decision == .useCredential, let serverTrust = space.serverTrust else {
                 return (decision, nil)
             }
             return (.useCredential, URLCredential(trust: serverTrust))
-        }
-
-        /// Server trust for the requested host is accepted without evaluation; everything else is cancelled.
-        func disposition(
-            authenticationMethod: String,
-            serverTrust: SecTrust?,
-            host: String
-        ) -> URLSession.AuthChallengeDisposition {
-            guard
-                authenticationMethod == NSURLAuthenticationMethodServerTrust,
-                serverTrust != nil,
-                host.caseInsensitiveCompare(self.host) == .orderedSame
-            else {
-                return .cancelAuthenticationChallenge
-            }
-            return .useCredential
         }
     }
 }

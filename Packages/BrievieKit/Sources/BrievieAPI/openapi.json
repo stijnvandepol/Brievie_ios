@@ -258,6 +258,12 @@
             "title": "Password",
             "type": "string"
           },
+          "setup_token": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Setup Token",
+            "type": "string"
+          },
           "workspace_kind": {
             "enum": [
               "home",
@@ -420,6 +426,16 @@
             },
             "description": "OK"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -429,6 +445,26 @@
               }
             },
             "description": "Unauthorized"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -575,6 +611,26 @@
               }
             },
             "description": "Bad Request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -819,16 +875,6 @@
               }
             },
             "description": "OK"
-          },
-          "500": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorOut"
-                }
-              }
-            },
-            "description": "Internal Server Error"
           }
         },
         "summary": "Get Setup Status",
@@ -860,6 +906,26 @@
             },
             "description": "Created"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
           "409": {
             "content": {
               "application/json": {
@@ -870,6 +936,26 @@
             },
             "description": "Conflict"
           },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -879,6 +965,16 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
           }
         },
         "summary": "Setup Server",
@@ -1030,6 +1126,16 @@
             },
             "description": "Created"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -1069,6 +1175,26 @@
               }
             },
             "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
