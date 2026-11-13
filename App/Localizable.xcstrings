@@ -1,0 +1,18 @@
+{
+  "sourceLanguage" : "nl",
+  "strings" : {
+    "app.name" : {
+      "comment" : "App name shown on the placeholder root screen.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brievie"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

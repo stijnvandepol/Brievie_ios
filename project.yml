@@ -1,0 +1,39 @@
+name: Brievie
+options:
+  bundleIdPrefix: nl.brievie
+  developmentLanguage: nl
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+packages:
+  BrievieKit:
+    path: Packages/BrievieKit
+targets:
+  Brievie:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: nl.brievie.app
+        INFOPLIST_FILE: App/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: BrievieKit
+        products:
+          - BrievieAPI
+          - BrievieCore
+          - BrievieUI
+          - FeaturePairing
+          - FeatureWorkspace

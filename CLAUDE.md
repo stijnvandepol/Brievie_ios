@@ -1,0 +1,32 @@
+# Brievie iOS
+
+Native SwiftUI app that pairs with a self-hosted Brievie server.
+
+- Spec: `../Brievie_host/docs/SPEC.md` (sections 11, 13, 14, 16 step 1a, 18, 19)
+- Current plan: `docs/superpowers/plans/2026-11-13-ios-fundament.md`
+- Dependency and design decisions: `docs/DECISIONS.md`
+
+## Make targets
+
+| Target | What it does |
+|---|---|
+| `make generate` | Generate `Brievie.xcodeproj` from `project.yml` (XcodeGen) |
+| `make test` | `swift test --package-path Packages/BrievieKit` (runs on macOS, no simulator) |
+| `make lint` | `swiftlint --strict` |
+| `make build` | Build the app for the iPhone 17 simulator |
+| `make sync-api HOST=../Brievie_host` | Copy the host's `openapi.json` into `BrievieAPI` |
+
+## Rules (short form)
+
+- Code, comments, commits in English. Visible text in Dutch (B1, je-vorm), only via `App/Localizable.xcstrings`; no literal strings in views.
+- Swift 6, strict concurrency complete. `async/await` only: no `DispatchQueue`, no manual threads.
+- No `!`, `try!` or `as!` outside tests. SwiftLint clean (`force_unwrapping` on).
+- Secrets (device token, CA certificate, server config) only in the Keychain, `afterFirstUnlockThisDeviceOnly`. Never `UserDefaults`, never a file.
+- Views are dumb: render model state, forward actions. No networking or Keychain in views.
+- HTTPS only; no `NSAllowsArbitraryLoads`; non-`https` URLs are rejected at parse time.
+- Every screen works with VoiceOver and the largest Dynamic Type size.
+- `*.xcodeproj` is generated and git-ignored; edit `project.yml`.
+- No new dependency without a line in `docs/DECISIONS.md`.
+- Bundle id `nl.brievie.app`; App Group `group.nl.brievie.app` (reserved, unused in 1a).
+- `BrievieAPI` and `BrievieCore` must compile for macOS; guard iOS-only code with `#if canImport(UIKit)` / `#if os(iOS)`.
+- Tests use Swift Testing. Conventional commits. Never push without being asked.

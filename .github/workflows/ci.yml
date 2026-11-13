@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: brew install xcodegen swiftlint
+      - name: Lint
+        run: make lint
+      - name: Test
+        run: make test
+      - name: Generate project
+        run: make generate
+      - name: Simulator build
+        run: make build SIMULATOR="$(xcrun simctl list devices available | grep -m1 -oE 'iPhone [0-9]+' )"
