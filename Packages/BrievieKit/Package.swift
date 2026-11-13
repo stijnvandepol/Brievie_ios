@@ -31,11 +31,20 @@ let package = Package(
         ),
         .target(
             name: "BrievieCore",
-            dependencies: ["BrievieAPI", .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")]
+            dependencies: ["BrievieAPI", .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")],
+            resources: [.process("Resources")]
         ),
         .target(name: "BrievieUI"),
-        .target(name: "FeaturePairing", dependencies: ["BrievieCore", "BrievieUI"]),
-        .target(name: "FeatureWorkspace", dependencies: ["BrievieCore", "BrievieUI"]),
+        .target(
+            name: "FeaturePairing",
+            dependencies: ["BrievieCore", "BrievieUI"],
+            resources: [.process("Resources")]
+        ),
+        .target(
+            name: "FeatureWorkspace",
+            dependencies: ["BrievieCore", "BrievieUI"],
+            resources: [.process("Resources")]
+        ),
         .testTarget(
             name: "BrievieCoreTests",
             dependencies: ["BrievieCore"],
@@ -44,7 +53,7 @@ let package = Package(
             sources: ["BrievieCoreTests"],
             resources: [.copy("Fixtures")]
         ),
-        .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing"]),
-        .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace"])
+        .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing", "BrievieCore"]),
+        .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace", "BrievieCore"])
     ]
 )

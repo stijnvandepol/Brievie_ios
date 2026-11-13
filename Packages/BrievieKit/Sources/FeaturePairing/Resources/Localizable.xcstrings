@@ -1,0 +1,246 @@
+{
+  "sourceLanguage": "nl",
+  "strings": {
+    "error.generic": {
+      "comment": "Generic error; never shows server diagnostics.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.error.connectionLost": {
+      "comment": "Connection dropped after the code was sent.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De verbinding viel weg tijdens het koppelen. Maak een nieuwe code en probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.error.incompatible": {
+      "comment": "Incompatible API version.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze server en de app passen niet bij elkaar. Werk de app of de server bij."
+          }
+        }
+      }
+    },
+    "pairing.error.invalid": {
+      "comment": "QR code is broken.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze Brievie-code is niet geldig. Maak een nieuwe code."
+          }
+        }
+      }
+    },
+    "pairing.error.invalidCode": {
+      "comment": "Pairing code rejected.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze code is verlopen of al gebruikt. Maak een nieuwe code."
+          }
+        }
+      }
+    },
+    "pairing.error.notBrievie": {
+      "comment": "QR code is not a Brievie code.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit is geen Brievie-code. Open in de webinterface 'App koppelen' en scan de code daar."
+          }
+        }
+      }
+    },
+    "pairing.error.notVerified": {
+      "comment": "Server could not be verified.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We konden niet controleren of dit jouw Brievie-server is. Maak een nieuwe code en probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.error.tooManyAttempts": {
+      "comment": "Server throttled pairing.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er zijn te veel pogingen gedaan. Wacht even en probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.error.unreachable": {
+      "comment": "No server reachable.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We kunnen je Brievie-server niet bereiken. Zit je op hetzelfde netwerk?"
+          }
+        }
+      }
+    },
+    "pairing.error.unsupportedVersion": {
+      "comment": "QR code has a newer format.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze code komt van een nieuwere versie van Brievie. Werk de app bij en probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.instructions": {
+      "comment": "Pairing screen instructions.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in de webinterface 'App koppelen' en scan de code met de camera."
+          }
+        }
+      }
+    },
+    "pairing.instructions.manual": {
+      "comment": "Pairing screen instructions when the camera is not used.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in de webinterface 'App koppelen' en plak de code hier."
+          }
+        }
+      }
+    },
+    "pairing.manual.field": {
+      "comment": "Label and placeholder of the manual code field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plak de koppelcode"
+          }
+        }
+      }
+    },
+    "pairing.manual.submit": {
+      "comment": "Button that pairs with the pasted code.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppelen"
+          }
+        }
+      }
+    },
+    "pairing.paste.hide": {
+      "comment": "Button that hides the manual code field and returns to the camera.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera gebruiken"
+          }
+        }
+      }
+    },
+    "pairing.paste.show": {
+      "comment": "Button that shows the manual code field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code plakken"
+          }
+        }
+      }
+    },
+    "pairing.progress": {
+      "comment": "Shown while pairing.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezig met koppelen..."
+          }
+        }
+      }
+    },
+    "pairing.retry": {
+      "comment": "Retry button after a failed pairing.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw proberen"
+          }
+        }
+      }
+    },
+    "pairing.scanner.label": {
+      "comment": "VoiceOver label of the camera view.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera om de koppelcode te scannen"
+          }
+        }
+      }
+    },
+    "pairing.title": {
+      "comment": "Pairing screen title.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppel met je Brievie-server"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

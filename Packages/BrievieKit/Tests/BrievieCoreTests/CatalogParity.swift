@@ -1,0 +1,16 @@
+import Foundation
+
+/// Reads a String Catalog straight from the source tree. `swift test` does not compile catalogs, so tests
+/// compare the catalog's Dutch value with what the code resolves.
+enum CatalogParity {
+    static func dutchValue(forKey key: String, target: String, sourceFile: String = #filePath) throws -> String? {
+        var url = URL(fileURLWithPath: sourceFile)
+        for _ in 0..<3 { url.deleteLastPathComponent() } // Tests/BrievieCoreTests -> package root
+        url.append(path: "Sources/\(target)/Resources/Localizable.xcstrings")
+        let object = try JSONSerialization.jsonObject(with: Data(contentsOf: url))
+        let strings = (object as? [String: Any])?["strings"] as? [String: Any]
+        let entry = strings?[key] as? [String: Any]
+        let dutch = (entry?["localizations"] as? [String: Any])?["nl"] as? [String: Any]
+        return (dutch?["stringUnit"] as? [String: Any])?["value"] as? String
+    }
+}

@@ -1,0 +1,174 @@
+{
+  "sourceLanguage": "nl",
+  "strings": {
+    "error.generic": {
+      "comment": "Generic error; never shows server diagnostics.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "workspaces.empty": {
+      "comment": "Shown when the list is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt nog geen werkruimtes."
+          }
+        }
+      }
+    },
+    "workspaces.error.notVerified": {
+      "comment": "Server certificate refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We konden niet controleren of dit jouw Brievie-server is. Koppel de app opnieuw als dit blijft gebeuren."
+          }
+        }
+      }
+    },
+    "workspaces.error.unreachable": {
+      "comment": "Server unreachable.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We kunnen je Brievie-server niet bereiken. Zit je op hetzelfde netwerk?"
+          }
+        }
+      }
+    },
+    "workspaces.kind.business": {
+      "comment": "Kind of workspace: business.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakelijk"
+          }
+        }
+      }
+    },
+    "workspaces.kind.home": {
+      "comment": "Kind of workspace: home.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thuis"
+          }
+        }
+      }
+    },
+    "workspaces.kind.unknown": {
+      "comment": "Kind of workspace the app does not know.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkruimte"
+          }
+        }
+      }
+    },
+    "workspaces.loading": {
+      "comment": "Shown while loading.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkruimtes laden..."
+          }
+        }
+      }
+    },
+    "workspaces.noPasscode": {
+      "comment": "Warning shown when the device cannot lock the app.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit apparaat heeft geen toegangscode. Stel een toegangscode in om je post te beschermen."
+          }
+        }
+      }
+    },
+    "workspaces.retry": {
+      "comment": "Retry button after a failed load.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw proberen"
+          }
+        }
+      }
+    },
+    "workspaces.role.admin": {
+      "comment": "Role badge.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beheerder"
+          }
+        }
+      }
+    },
+    "workspaces.role.member": {
+      "comment": "Role badge.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lid"
+          }
+        }
+      }
+    },
+    "workspaces.role.viewer": {
+      "comment": "Role badge.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kijker"
+          }
+        }
+      }
+    },
+    "workspaces.title": {
+      "comment": "Workspaces screen title.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkruimtes"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

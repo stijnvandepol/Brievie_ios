@@ -1,0 +1,42 @@
+{
+  "sourceLanguage": "nl",
+  "strings": {
+    "error.generic": {
+      "comment": "Generic error; never shows server diagnostics.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "lock.reason": {
+      "comment": "Reason shown in the Face ID / passcode prompt.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel Brievie om je post te zien."
+          }
+        }
+      }
+    },
+    "session.revoked": {
+      "comment": "Notice on the pairing screen after the server revoked this device.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit apparaat is ontkoppeld. Koppel het opnieuw om verder te gaan."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

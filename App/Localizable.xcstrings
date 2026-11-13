@@ -1,18 +1,54 @@
 {
-  "sourceLanguage" : "nl",
-  "strings" : {
-    "app.name" : {
-      "comment" : "App name shown on the placeholder root screen.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Brievie"
+  "sourceLanguage": "nl",
+  "strings": {
+    "app.name": {
+      "comment": "App name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie"
+          }
+        }
+      }
+    },
+    "lock.title": {
+      "comment": "Lock screen title.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie is vergrendeld"
+          }
+        }
+      }
+    },
+    "lock.unlock": {
+      "comment": "Button that asks for Face ID or the passcode.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel"
+          }
+        }
+      }
+    },
+    "lock.unlock.hint": {
+      "comment": "VoiceOver hint of the unlock button.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vraagt om Face ID of je toegangscode"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
