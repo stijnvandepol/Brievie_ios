@@ -65,6 +65,7 @@ final class StubServer: BrievieServer {
     private let server = StubServer()
     private let secrets = InMemorySecretStore()
     private let paired = Paired()
+    private let camera = FakeCamera(.authorized)
 
     @MainActor
     final class Paired {
@@ -75,7 +76,9 @@ final class StubServer: BrievieServer {
         let paired = paired
         return PairingModel(
             service: PairingService(server: server, store: ConnectionStore(secrets: secrets)),
+            camera: camera,
             deviceName: { deviceName },
+            openSettings: {},
             onPaired: { paired.connections.append($0) }
         )
     }
@@ -279,6 +282,24 @@ final class StubServer: BrievieServer {
     }
 
     // MARK: - copy
+
+    @Test func viewTextsInTheCatalogUseTheNewWording() throws {
+        let expected = [
+            "pairing.instructions":
+                "Open in de webinterface 'App koppelen'. Scan de QR-code, "
+                + "of kopieer daar de koppelgegevens en plak ze hier.",
+            "pairing.instructions.manual":
+                "Open in de webinterface 'App koppelen'. Kopieer daar de koppelgegevens en plak ze hier.",
+            "pairing.manual.field": "Plak de koppelgegevens",
+            "pairing.paste.show": "Koppelgegevens plakken",
+            "pairing.camera.denied":
+                "Brievie mag de camera niet gebruiken. Zet dit aan in Instellingen, of plak de koppelgegevens.",
+            "pairing.camera.openSettings": "Open Instellingen"
+        ]
+        for (key, value) in expected {
+            #expect(try CatalogParity.dutchValue(forKey: key, target: "FeaturePairing") == value, "\(key)")
+        }
+    }
 
     @Test func catalogAndCodeAgree() throws {
         for (key, resolved) in PairingStrings.all {

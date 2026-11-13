@@ -14,3 +14,6 @@ xcuserdata/
 .swiftpm/
 
 .DS_Store
+
+# Local signing settings (team id)
+Local.xcconfig

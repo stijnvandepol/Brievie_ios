@@ -1,0 +1,3 @@
+// Copy to Local.xcconfig (git-ignored) and fill in your Apple developer team id.
+// `make generate` picks it up; without the file the project builds for the simulator only.
+DEVELOPMENT_TEAM = XXXXXXXXXX

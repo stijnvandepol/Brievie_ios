@@ -22,7 +22,7 @@ struct RootView: View {
                 case .background:
                     appModel.didEnterBackground()
                 case .active:
-                    Task { await appModel.didBecomeActive() }
+                    appModel.sceneActivated()
                 default:
                     break
                 }
@@ -34,7 +34,7 @@ struct RootView: View {
         case .unpaired(let notice):
             PairingScreen(appModel: appModel, environment: environment, notice: notice)
         case .locked:
-            LockView(unlock: { Task { await appModel.unlock() } })
+            LockView(unlock: { appModel.requestUnlock() })
         case .ready(let connection):
             WorkspacesScreen(appModel: appModel, environment: environment, connection: connection)
         }
@@ -55,7 +55,13 @@ private struct PairingScreen: View {
     init(appModel: AppModel, environment: AppEnvironment, notice: String?) {
         _model = State(initialValue: PairingModel(
             service: PairingService(server: environment.server, store: environment.store),
+            camera: LiveCameraAccess(),
             deviceName: { UIDevice.current.name },
+            openSettings: {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            },
             onPaired: { appModel.didPair($0) }
         ))
         self.notice = notice

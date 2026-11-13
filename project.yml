@@ -1,4 +1,9 @@
 name: Brievie
+# `Base.xcconfig` includes the optional, git-ignored `Local.xcconfig` (`DEVELOPMENT_TEAM = <team id>`, see
+# `Local.xcconfig.example`) so that `make generate` keeps the developer team for real devices.
+configFiles:
+  Debug: Base.xcconfig
+  Release: Base.xcconfig
 options:
   bundleIdPrefix: nl.brievie
   developmentLanguage: nl

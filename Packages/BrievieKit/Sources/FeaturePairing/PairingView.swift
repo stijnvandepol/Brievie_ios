@@ -3,11 +3,13 @@ import BrievieUI
 import SwiftUI
 
 /// The pairing screen: camera scanner, with a paste field as fallback (simulator, no camera access, VoiceOver).
+/// The model decides what the camera does; this view renders it.
 public struct PairingView: View {
     private let model: PairingModel
     /// Why the user is here again, for example "this device was disconnected".
     private let notice: String?
 
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showsManualEntry = false
     @State private var manualText = ""
 
@@ -16,8 +18,8 @@ public struct PairingView: View {
         self.notice = notice
     }
 
-    private var scannerIsAvailable: Bool { QRScannerView.isAvailable }
-    private var isManual: Bool { showsManualEntry || !scannerIsAvailable }
+    private var cameraIsUsable: Bool { model.camera == .scanning }
+    private var isManual: Bool { showsManualEntry || model.camera == .denied || model.camera == .unavailable }
     private var isPairing: Bool { model.phase == .pairing }
 
     public var body: some View {
@@ -36,13 +38,25 @@ public struct PairingView: View {
                         message,
                         actionTitle: canRetry ? String(localized: "pairing.retry", bundle: .module) : nil
                     ) {
-                        Task { await model.retry() }
+                        model.startRetry()
+                    }
+                }
+                if model.camera == .denied {
+                    ErrorBanner(
+                        String(localized: "pairing.camera.denied", bundle: .module),
+                        style: .warning,
+                        actionTitle: String(localized: "pairing.camera.openSettings", bundle: .module)
+                    ) {
+                        model.openSettings()
                     }
                 }
                 if isManual {
                     manualEntry
-                } else {
+                } else if cameraIsUsable {
                     scanner
+                } else {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                 }
                 if isPairing {
                     HStack(spacing: 12) {
@@ -51,7 +65,7 @@ public struct PairingView: View {
                     }
                     .accessibilityElement(children: .combine)
                 }
-                if scannerIsAvailable {
+                if cameraIsUsable {
                     Button {
                         showsManualEntry.toggle()
                     } label: {
@@ -63,12 +77,20 @@ public struct PairingView: View {
             }
             .padding()
         }
+        // Runs when the screen appears and again whenever the app becomes active (the permission may have
+        // been changed in Settings). Cancelled with the view; it never touches a pairing.
+        .task(id: scenePhase) {
+            if scenePhase == .active {
+                await model.prepareCamera()
+            }
+        }
     }
 
     private var scanner: some View {
-        QRScannerView { text in
-            Task { await model.scanned(text) }
-        }
+        QRScannerView(
+            onScan: { model.startPairing(scanned: $0) },
+            onFailure: { model.scannerFailed() }
+        )
         .frame(height: 320)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .accessibilityLabel(Text("pairing.scanner.label", bundle: .module))
@@ -88,12 +110,12 @@ public struct PairingView: View {
             .keyboardType(.asciiCapable)
             .accessibilityLabel(Text("pairing.manual.field", bundle: .module))
             PrimaryButton(String(localized: "pairing.manual.submit", bundle: .module)) {
-                Task { await model.submitManual(manualText) }
+                model.startPairing(pasted: manualText)
             }
             .disabled(manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isPairing)
             PasteButton(payloadType: String.self) { strings in
                 guard let text = strings.first else { return }
-                Task { await model.submitManual(text) }
+                model.startPairing(pasted: text)
             }
             .disabled(isPairing)
         }

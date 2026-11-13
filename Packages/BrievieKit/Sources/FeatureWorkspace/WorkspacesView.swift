@@ -26,6 +26,7 @@ public struct WorkspacesView: View {
             .navigationTitle(Text("workspaces.title", bundle: .module))
             .refreshable { await model.load() }
             .task { await model.load() }
+            .onDisappear { model.stop() }
         }
     }
 
@@ -47,7 +48,7 @@ public struct WorkspacesView: View {
             }
         case .failed(let message):
             ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module)) {
-                Task { await model.load() }
+                model.retry()
             }
             .listRowSeparator(.hidden)
         }

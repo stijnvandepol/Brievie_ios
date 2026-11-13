@@ -3,49 +3,6 @@ import Foundation
 import Synchronization
 import Testing
 
-/// An authenticator whose answers are set per test. `onAuthenticate` runs while the prompt is "on screen".
-final class FakeAuthenticator: DeviceAuthenticator {
-    private struct State {
-        var canAuthenticate = true
-        var succeeds = true
-        var prompts = 0
-        var reasons: [String] = []
-    }
-
-    private let state = Mutex(State())
-    private let onAuthenticate: @Sendable () async -> Void
-
-    init(onAuthenticate: @escaping @Sendable () async -> Void = {}) {
-        self.onAuthenticate = onAuthenticate
-    }
-
-    var canAuthenticateValue: Bool {
-        get { state.withLock { $0.canAuthenticate } }
-        set { state.withLock { $0.canAuthenticate = newValue } }
-    }
-
-    var succeeds: Bool {
-        get { state.withLock { $0.succeeds } }
-        set { state.withLock { $0.succeeds = newValue } }
-    }
-
-    var prompts: Int { state.withLock { $0.prompts } }
-    var reasons: [String] { state.withLock { $0.reasons } }
-
-    func canAuthenticate() -> Bool {
-        state.withLock { $0.canAuthenticate }
-    }
-
-    func authenticate(reason: String) async -> Bool {
-        state.withLock {
-            $0.prompts += 1
-            $0.reasons.append(reason)
-        }
-        await onAuthenticate()
-        return state.withLock { $0.succeeds }
-    }
-}
-
 @MainActor
 @Suite struct AppModelTests {
     private let secrets = InMemorySecretStore()
@@ -66,10 +23,18 @@ final class FakeAuthenticator: DeviceAuthenticator {
         return connection
     }
 
+    private func makeModel(
+        _ authenticator: FakeAuthenticator = FakeAuthenticator(),
+        store: ConnectionStore? = nil,
+        launchFlag: InMemoryLaunchFlag = InMemoryLaunchFlag(hasLaunchedBefore: true)
+    ) -> AppModel {
+        AppModel(store: store ?? self.store, authenticator: authenticator, launchFlag: launchFlag)
+    }
+
     // MARK: - start
 
     @Test func startIsUnpairedWithAnEmptyStore() {
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let model = makeModel()
 
         model.start()
 
@@ -78,7 +43,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
 
     @Test func startIsLockedWithAStoredConnection() throws {
         _ = try pairedStore()
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let model = makeModel()
 
         model.start()
 
@@ -90,7 +55,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
     @Test func unlockSuccessOpensTheApp() async throws {
         let connection = try pairedStore()
         let authenticator = FakeAuthenticator()
-        let model = AppModel(store: store, authenticator: authenticator)
+        let model = makeModel(authenticator)
         model.start()
 
         await model.unlock()
@@ -104,7 +69,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
         _ = try pairedStore()
         let authenticator = FakeAuthenticator()
         authenticator.succeeds = false
-        let model = AppModel(store: store, authenticator: authenticator)
+        let model = makeModel(authenticator)
         model.start()
 
         await model.unlock()
@@ -117,8 +82,8 @@ final class FakeAuthenticator: DeviceAuthenticator {
     @Test func withoutAPasscodeTheAppOpensWithAWarning() async throws {
         let connection = try pairedStore()
         let authenticator = FakeAuthenticator()
-        authenticator.canAuthenticateValue = false
-        let model = AppModel(store: store, authenticator: authenticator)
+        authenticator.availabilityValue = .noPasscode
+        let model = makeModel(authenticator)
         model.start()
 
         await model.unlock()
@@ -131,12 +96,12 @@ final class FakeAuthenticator: DeviceAuthenticator {
     @Test func theWarningGoesAwayOnceTheDeviceHasAPasscode() async throws {
         _ = try pairedStore()
         let authenticator = FakeAuthenticator()
-        authenticator.canAuthenticateValue = false
-        let model = AppModel(store: store, authenticator: authenticator)
+        authenticator.availabilityValue = .noPasscode
+        let model = makeModel(authenticator)
         model.start()
         await model.unlock()
         model.didEnterBackground()
-        authenticator.canAuthenticateValue = true
+        authenticator.availabilityValue = .available
 
         await model.unlock()
 
@@ -145,8 +110,8 @@ final class FakeAuthenticator: DeviceAuthenticator {
 
     @Test func pairingOnADeviceWithoutPasscodeShowsTheWarning() throws {
         let authenticator = FakeAuthenticator()
-        authenticator.canAuthenticateValue = false
-        let model = AppModel(store: store, authenticator: authenticator)
+        authenticator.availabilityValue = .noPasscode
+        let model = makeModel(authenticator)
         model.start()
 
         model.didPair(try connection())
@@ -158,7 +123,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
 
     @Test func pairingOpensTheAppWithoutAPrompt() throws {
         let authenticator = FakeAuthenticator()
-        let model = AppModel(store: store, authenticator: authenticator)
+        let model = makeModel(authenticator)
         model.start()
         let connection = try connection()
 
@@ -170,7 +135,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
 
     @Test func goingToTheBackgroundLocksTheApp() async throws {
         _ = try pairedStore()
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let model = makeModel()
         model.start()
         await model.unlock()
 
@@ -180,7 +145,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
     }
 
     @Test func backgroundDoesNotLockAnUnpairedApp() {
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let model = makeModel()
         model.start()
 
         model.didEnterBackground()
@@ -192,7 +157,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
         // Face ID's own sheet makes the scene inactive but never backgrounds it: nothing but the
         // background callback may lock, so a finished unlock stays unlocked.
         let connection = try pairedStore()
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let model = makeModel()
         model.start()
 
         await model.didBecomeActive()
@@ -205,7 +170,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
         _ = try pairedStore()
         let box = ModelBox()
         let authenticator = FakeAuthenticator { await box.model?.didEnterBackground() }
-        let model = AppModel(store: store, authenticator: authenticator)
+        let model = makeModel(authenticator)
         box.model = model
         model.start()
 
@@ -218,7 +183,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
         _ = try pairedStore()
         let authenticator = FakeAuthenticator()
         authenticator.succeeds = false
-        let model = AppModel(store: store, authenticator: authenticator)
+        let model = makeModel(authenticator)
         model.start()
 
         await model.didBecomeActive()
@@ -234,7 +199,7 @@ final class FakeAuthenticator: DeviceAuthenticator {
     @Test func twoUnlocksAtOnceShowOnePrompt() async throws {
         _ = try pairedStore()
         let authenticator = FakeAuthenticator { await Task.yield() }
-        let model = AppModel(store: store, authenticator: authenticator)
+        let model = makeModel(authenticator)
         model.start()
 
         async let first: Void = model.unlock()
@@ -247,12 +212,12 @@ final class FakeAuthenticator: DeviceAuthenticator {
     // MARK: - Review Focus 6: revoked
 
     @Test func sessionRevokedClearsTheStoreAndExplains() async throws {
-        _ = try pairedStore()
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let connection = try pairedStore()
+        let model = makeModel()
         model.start()
         await model.unlock()
 
-        model.sessionRevoked()
+        model.sessionRevoked(deviceID: connection.deviceID)
 
         #expect(model.state == .unpaired(
             notice: "Dit apparaat is ontkoppeld. Koppel het opnieuw om verder te gaan."
@@ -263,10 +228,10 @@ final class FakeAuthenticator: DeviceAuthenticator {
     }
 
     @Test func pairingAfterARevocationLeavesTheNoticeBehind() throws {
-        _ = try pairedStore()
-        let model = AppModel(store: store, authenticator: FakeAuthenticator())
+        let old = try pairedStore()
+        let model = makeModel()
         model.start()
-        model.sessionRevoked()
+        model.sessionRevoked(deviceID: old.deviceID)
         let connection = try connection()
 
         model.didPair(connection)
@@ -275,23 +240,10 @@ final class FakeAuthenticator: DeviceAuthenticator {
     }
 
     @Test func aStoreThatCannotBeReadKeepsTheAppLockedInsteadOfUnpairing() {
-        let model = AppModel(store: ConnectionStore(secrets: UnreadableStore()), authenticator: FakeAuthenticator())
+        let model = makeModel(store: ConnectionStore(secrets: UnreadableStore()))
 
         model.start()
 
         #expect(model.state == .locked)
     }
-}
-
-@MainActor
-private final class ModelBox {
-    var model: AppModel?
-}
-
-private struct UnreadableStore: SecretStore {
-    struct Unreadable: Error {}
-
-    func read(_ key: SecretKey) throws -> Data? { throw Unreadable() }
-    func write(_ data: Data, for key: SecretKey) throws {}
-    func delete(_ key: SecretKey) throws {}
 }

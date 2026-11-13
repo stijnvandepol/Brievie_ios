@@ -9,7 +9,11 @@ struct BrievieApp: App {
     init() {
         let environment = AppEnvironment.live
         self.environment = environment
-        let model = AppModel(store: environment.store, authenticator: LocalAuthenticator())
+        let model = AppModel(
+            store: environment.store,
+            authenticator: LocalAuthenticator(),
+            launchFlag: environment.launchFlag
+        )
         model.start()
         _appModel = State(initialValue: model)
     }

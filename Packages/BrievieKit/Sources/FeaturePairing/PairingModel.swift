@@ -13,26 +13,94 @@ public final class PairingModel {
         case failed(message: String, canRetry: Bool)
     }
 
+    /// What the screen does with the camera.
+    public enum Camera: Equatable {
+        /// Permission and support are being looked at.
+        case checking
+        case scanning
+        /// Access was refused: the screen explains, offers Settings and the paste route.
+        case denied
+        /// No scanner on this device, or it failed to start: the paste route only.
+        case unavailable
+    }
+
     public private(set) var phase: Phase = .scanning
+    public private(set) var camera: Camera = .checking
 
     private let service: PairingService
+    private let access: any CameraAccess
     private let deviceName: @MainActor () -> String
+    private let settingsOpener: @MainActor () -> Void
     private let onPaired: @MainActor (ServerConnection) -> Void
+    /// A pairing started for a view. The model owns it and nothing cancels it when the screen goes away:
+    /// once the server has accepted the code the pairing must be stored and reported, whatever the view does.
+    @ObservationIgnored private(set) var pairingTask: Task<Void, Never>?
+    private var isPreparingCamera = false
     /// The last valid payload, kept for `retry()`.
     private var lastPayload: PairingPayload?
 
     /// - Parameters:
+    ///   - camera: the camera permission and scanner support.
     ///   - deviceName: the name the server shows for this device (the app passes the device's name).
+    ///   - openSettings: opens the app's page in the Settings app (for a refused camera permission).
     ///   - onPaired: called with the stored connection, also when the task was cancelled after the server
     ///     accepted the code: the pairing then exists and must not be dropped.
     public init(
         service: PairingService,
+        camera: any CameraAccess,
         deviceName: @escaping @MainActor () -> String,
+        openSettings: @escaping @MainActor () -> Void,
         onPaired: @escaping @MainActor (ServerConnection) -> Void
     ) {
         self.service = service
+        self.access = camera
         self.deviceName = deviceName
+        self.settingsOpener = openSettings
         self.onPaired = onPaired
+    }
+
+    /// Looks at the camera permission and, the first time, asks for it. Called when the screen appears and
+    /// when the app becomes active again (the user may have changed the permission in Settings).
+    public func prepareCamera() async {
+        guard !isPreparingCamera else { return }
+        isPreparingCamera = true
+        defer { isPreparingCamera = false }
+        if access.status() == .notDetermined {
+            _ = await access.requestAccess()
+        }
+        switch access.status() {
+        case .authorized: camera = .scanning
+        // Still undetermined after asking: treat it as a refusal rather than waiting for ever.
+        case .denied, .notDetermined: camera = .denied
+        case .unsupported: camera = .unavailable
+        }
+    }
+
+    /// The scanner could not start: pasting is the way forward.
+    public func scannerFailed() {
+        camera = .unavailable
+        phase = .failed(message: PairingStrings.generic, canRetry: false)
+    }
+
+    public func openSettings() {
+        settingsOpener()
+    }
+
+    // MARK: - Entry points for views
+
+    /// Pairs with scanned text. Not cancelled when the view goes away (see `pairingTask`).
+    public func startPairing(scanned text: String) {
+        pairingTask = Task { await scanned(text) }
+    }
+
+    /// Pairs with pasted text. Not cancelled when the view goes away (see `pairingTask`).
+    public func startPairing(pasted text: String) {
+        pairingTask = Task { await submitManual(text) }
+    }
+
+    /// Retries the last payload. Not cancelled when the view goes away (see `pairingTask`).
+    public func startRetry() {
+        pairingTask = Task { await retry() }
     }
 
     /// Text from the camera or the paste field. Anything that is not a Brievie code is explained and the

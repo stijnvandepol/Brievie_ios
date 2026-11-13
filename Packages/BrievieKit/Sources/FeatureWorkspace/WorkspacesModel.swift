@@ -26,6 +26,8 @@ public final class WorkspacesModel {
     private let store: ConnectionStore
     private let server: any BrievieServer
     private let appModel: AppModel
+    /// The load started by `retry()`; `stop()` cancels it when the screen goes away. Tests await it.
+    @ObservationIgnored private(set) var retryTask: Task<Void, Never>?
 
     public init(connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel) {
         self.connection = connection
@@ -34,13 +36,25 @@ public final class WorkspacesModel {
         self.appModel = appModel
     }
 
+    /// For the retry button: loads again, tied to this model so that `stop()` can cancel it.
+    public func retry() {
+        retryTask?.cancel()
+        retryTask = Task { await load() }
+    }
+
+    /// The screen went away: a load that is still running is no longer wanted.
+    public func stop() {
+        retryTask?.cancel()
+        retryTask = nil
+    }
+
     /// Tries the connection's URLs in order. A 401 means the device was revoked: the app returns to pairing.
     public func load() async {
         if case .failed = state { state = .loading }
         let token: String
         do {
             guard let stored = try store.load() else {
-                appModel.sessionRevoked()
+                appModel.connectionMissing()
                 return
             }
             token = stored.token
@@ -53,7 +67,7 @@ public final class WorkspacesModel {
         case .workspaces(let workspaces):
             state = .loaded(workspaces.map(Row.init(workspace:)))
         case .revoked:
-            appModel.sessionRevoked()
+            appModel.sessionRevoked(deviceID: connection.deviceID)
         case .cancelled:
             break
         case .failed(let message):

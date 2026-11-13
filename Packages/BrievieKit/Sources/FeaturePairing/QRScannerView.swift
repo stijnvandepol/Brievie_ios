@@ -2,18 +2,14 @@
 import SwiftUI
 import VisionKit
 
-/// Scans QR codes with the camera and reports their text. Only usable when `isAvailable`: not in the
-/// simulator, and not when camera access was denied.
+/// Scans QR codes with the camera and reports their text. Only shown once the pairing model has found
+/// the camera usable (`CameraAccess`); `onFailure` reports a scanner that still cannot start.
 struct QRScannerView: UIViewControllerRepresentable {
     let onScan: @MainActor (String) -> Void
-
-    @MainActor
-    static var isAvailable: Bool {
-        DataScannerViewController.isSupported && DataScannerViewController.isAvailable
-    }
+    let onFailure: @MainActor () -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onScan: onScan)
+        Coordinator(onScan: onScan, onFailure: onFailure)
     }
 
     func makeUIViewController(context: Context) -> DataScannerViewController {
@@ -32,9 +28,8 @@ struct QRScannerView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ scanner: DataScannerViewController, context: Context) {
         context.coordinator.onScan = onScan
-        if !scanner.isScanning {
-            try? scanner.startScanning()
-        }
+        context.coordinator.onFailure = onFailure
+        context.coordinator.startIfNeeded(scanner)
     }
 
     static func dismantleUIViewController(_ scanner: DataScannerViewController, coordinator: Coordinator) {
@@ -44,9 +39,23 @@ struct QRScannerView: UIViewControllerRepresentable {
     @MainActor
     final class Coordinator: NSObject, DataScannerViewControllerDelegate {
         var onScan: @MainActor (String) -> Void
+        var onFailure: @MainActor () -> Void
+        private var reportedFailure = false
 
-        init(onScan: @escaping @MainActor (String) -> Void) {
+        init(onScan: @escaping @MainActor (String) -> Void, onFailure: @escaping @MainActor () -> Void) {
             self.onScan = onScan
+            self.onFailure = onFailure
+        }
+
+        func startIfNeeded(_ scanner: DataScannerViewController) {
+            guard !scanner.isScanning, !reportedFailure else { return }
+            do {
+                try scanner.startScanning()
+            } catch {
+                reportedFailure = true
+                // The model changes state, and this runs inside a view update: report on the next turn.
+                Task { @MainActor [onFailure] in onFailure() }
+            }
         }
 
         func dataScanner(

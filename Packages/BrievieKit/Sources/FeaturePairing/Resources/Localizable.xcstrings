@@ -13,6 +13,30 @@
         }
       }
     },
+    "pairing.camera.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie mag de camera niet gebruiken. Zet dit aan in Instellingen, of plak de koppelgegevens."
+          }
+        }
+      },
+      "comment": "Shown when camera access was refused."
+    },
+    "pairing.camera.openSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Instellingen"
+          }
+        }
+      },
+      "comment": "Button that opens the app's page in the Settings app."
+    },
     "pairing.error.connectionLost": {
       "comment": "Connection dropped after the code was sent.",
       "extractionState": "manual",
@@ -128,7 +152,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open in de webinterface 'App koppelen' en scan de code met de camera."
+            "value": "Open in de webinterface 'App koppelen'. Scan de QR-code, of kopieer daar de koppelgegevens en plak ze hier."
           }
         }
       }
@@ -140,7 +164,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open in de webinterface 'App koppelen' en plak de code hier."
+            "value": "Open in de webinterface 'App koppelen'. Kopieer daar de koppelgegevens en plak ze hier."
           }
         }
       }
@@ -152,7 +176,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plak de koppelcode"
+            "value": "Plak de koppelgegevens"
           }
         }
       }
@@ -188,7 +212,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Code plakken"
+            "value": "Koppelgegevens plakken"
           }
         }
       }
@@ -224,7 +248,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera om de koppelcode te scannen"
+            "value": "Camera om de QR-code te scannen"
           }
         }
       }

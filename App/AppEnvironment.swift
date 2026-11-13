@@ -4,8 +4,13 @@ import BrievieCore
 struct AppEnvironment {
     let store: ConnectionStore
     let server: any BrievieServer
+    let launchFlag: any LaunchFlag
 
     static var live: AppEnvironment {
-        AppEnvironment(store: ConnectionStore(secrets: KeychainSecretStore()), server: LiveBrievieServer())
+        AppEnvironment(
+            store: ConnectionStore(secrets: KeychainSecretStore()),
+            server: LiveBrievieServer(),
+            launchFlag: UserDefaultsLaunchFlag()
+        )
     }
 }

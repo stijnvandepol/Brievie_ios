@@ -26,3 +26,16 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - Every session `LiveBrievieServer` uses refuses redirects (`PinnedSessionDelegate` and the one-off CA delegate): the API never redirects, and a followed redirect could carry the `Authorization` header or the pairing code to another host.
 - Server error codes reach the app only from a closed set (`ServerError.passThroughCodes`, plus the codes mapped to their own cases); anything else becomes `http_<status>`. `ServerError.other` and `PairingError.failed` are diagnostic only and never shown to the user.
 
+
+## Storage
+
+- **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again.
+
+## Open items
+
+- In-app unpair (until then, reinstalling the app is the way to forget a pairing).
+- App icon.
+- A clear message when the server's API major version becomes newer after pairing (today it surfaces as a generic error).
+- A hint when local-network access is denied (today it looks like an unreachable server).
+- The device name is always "iPhone" on iOS 16+ without the user-assigned-device-name entitlement.
+- Not verified on a real device: the VoiceOver pass, the Face ID success path, the no-passcode warning and the camera scanner (including the first-time permission prompt and the denied state).

@@ -39,7 +39,7 @@ final class WorkspaceServer: BrievieServer {
 }
 
 private struct NoAuthentication: DeviceAuthenticator {
-    func canAuthenticate() -> Bool { true }
+    func availability() -> AuthenticationAvailability { .available }
     func authenticate(reason: String) async -> Bool { true }
 }
 
@@ -58,7 +58,11 @@ private struct NoAuthentication: DeviceAuthenticator {
         connection = ServerConnection(urls: urls, caCertificateDER: nil, deviceID: UUID(), userName: "Beheerder")
         let store = ConnectionStore(secrets: secrets)
         try store.save(connection, token: "device-token")
-        appModel = AppModel(store: store, authenticator: NoAuthentication())
+        appModel = AppModel(
+            store: store,
+            authenticator: NoAuthentication(),
+            launchFlag: InMemoryLaunchFlag(hasLaunchedBefore: true)
+        )
         appModel.didPair(connection)
         model = WorkspacesModel(connection: connection, store: store, server: server, appModel: appModel)
     }
@@ -198,16 +202,54 @@ private struct NoAuthentication: DeviceAuthenticator {
         #expect(secrets.read(.deviceToken) == nil)
     }
 
-    @Test func aMissingTokenCountsAsRevoked() async throws {
+    @Test func aMissingTokenSendsTheAppBackToPairingWithTheGenericMessage() async throws {
         try ConnectionStore(secrets: secrets).clear()
 
         await model.load()
 
-        guard case .unpaired = appModel.state else {
-            Issue.record("Expected unpaired, got \(appModel.state)")
-            return
-        }
+        #expect(appModel.state == .unpaired(notice: "Er ging iets mis. Probeer het opnieuw."))
         #expect(server.urls.isEmpty)
+    }
+
+    @Test func aStaleModelCannotWipeANewPairing() async throws {
+        // The old connection's screen is still loading when a new pairing is made.
+        let fresh = ServerConnection(
+            urls: try [#require(home)], caCertificateDER: nil, deviceID: UUID(), userName: "Nieuw"
+        )
+        try ConnectionStore(secrets: secrets).save(fresh, token: "fresh-token")
+        appModel.didPair(fresh)
+        server.answer = { _ in throw ServerError.unauthorized }
+
+        await model.load()
+
+        #expect(appModel.state == .ready(fresh))
+        #expect(secrets.read(.deviceToken) == Data("fresh-token".utf8))
+    }
+
+    // MARK: - lifecycle
+
+    @Test func stoppingCancelsARetryThatIsStillRunning() async {
+        server.answer = { _ in
+            if Task.isCancelled { throw CancellationError() }
+            return []
+        }
+
+        model.retry()
+        model.stop()
+
+        #expect(model.state == .loading)
+        #expect(model.retryTask == nil)
+    }
+
+    @Test func retryLoadsAgain() async {
+        server.answer = { _ in throw ServerError.unreachable }
+        await model.load()
+        server.answer = { _ in [] }
+
+        model.retry()
+        await model.retryTask?.value
+
+        #expect(model.state == .loaded([]))
     }
 
     // MARK: - copy
