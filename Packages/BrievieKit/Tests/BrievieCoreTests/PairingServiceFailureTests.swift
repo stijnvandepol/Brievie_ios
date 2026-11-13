@@ -74,8 +74,8 @@ import Testing
     @Test(arguments: [
         (ServerError.invalidCode, PairingError.invalidCode),
         (.tooManyAttempts, .tooManyAttempts),
-        (.unreachable, .noServerReachable),
-        (.untrusted, .serverNotVerified)
+        (.unreachable, .connectionLostWhilePairing),
+        (.untrusted, .connectionLostWhilePairing)
     ])
     func failedPairNeverSendsTheCodeToAnotherURL(error: ServerError, expected: PairingError) async throws {
         server.pair = { _ in throw error }
@@ -132,6 +132,21 @@ import Testing
         await #expect(throws: PairingError.cancelled) { try await harness.pair() }
 
         #expect(server.calls == [.caCertificate(home), .health(home)])
+        try harness.expectNothingStored()
+    }
+
+    @Test func cancellationAfterTheLastURLIsCancelledNotNotVerified() async throws {
+        // The cancel lands while the last URL answers with a CA that does not match: the answer itself is a
+        // success for the transport, so only the check after the loop can tell this is a cancelled pairing.
+        let away = away
+        let otherCA = try Fixtures.text("other-ca.pem")
+        server.caPEM = { url in
+            if url == away { withUnsafeCurrentTask { $0?.cancel() } }
+            return otherCA
+        }
+
+        await #expect(throws: PairingError.cancelled) { try await harness.pair() }
+
         try harness.expectNothingStored()
     }
 

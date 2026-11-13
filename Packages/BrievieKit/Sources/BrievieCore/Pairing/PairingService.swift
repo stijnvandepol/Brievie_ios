@@ -7,6 +7,9 @@ public enum PairingError: Error, Equatable {
     case serverNotVerified
     case invalidCode
     case tooManyAttempts
+    /// The connection dropped, or stopped being trusted, after the code may have been sent. The code can be
+    /// spent: the user needs a new one (unlike `.noServerReachable`, where the code was never sent).
+    case connectionLostWhilePairing
     /// A Brievie server that speaks another major API version, or answered pairing with unusable data.
     case incompatibleServer
     /// The task was cancelled; nothing was stored.
@@ -50,6 +53,8 @@ public struct PairingService: Sendable {
                 throw .cancelled
             }
         }
+        // A cancel that landed during the last URL looks like "unreachable" or "untrusted" to the loop.
+        if Task.isCancelled { throw .cancelled }
         throw sawUnverifiableAnswer ? .serverNotVerified : .noServerReachable
     }
 
@@ -116,7 +121,7 @@ public struct PairingService: Sendable {
         }) {
         case let .success(value): device = value
         case .failure(.cancelled): throw .cancelled
-        case let .failure(.server(error)): throw PairingError(error)
+        case let .failure(.server(error)): throw PairingError(pairing: error)
         }
         guard !device.token.isEmpty else { throw .incompatibleServer }
         // The code is spent; finish storing even if the task was cancelled meanwhile, so the device the
@@ -160,10 +165,11 @@ public struct PairingService: Sendable {
 }
 
 extension PairingError {
-    init(_ error: ServerError) {
+    /// The answer to the call that sends the code. Unlike the checks before it, a lost or untrusted connection
+    /// here may have happened after the server accepted the code.
+    init(pairing error: ServerError) {
         switch error {
-        case .unreachable: self = .noServerReachable
-        case .untrusted: self = .serverNotVerified
+        case .unreachable, .untrusted: self = .connectionLostWhilePairing
         case .invalidCode: self = .invalidCode
         case .tooManyAttempts: self = .tooManyAttempts
         case .incompatible: self = .incompatibleServer
