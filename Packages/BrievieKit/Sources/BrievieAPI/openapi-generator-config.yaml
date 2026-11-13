@@ -1,0 +1,12 @@
+generate:
+  - types
+  - client
+accessModifier: public
+namingStrategy: idiomatic
+# Only the operations the app calls; add an operation here when a feature starts using it.
+filter:
+  operations:
+    - getHealth
+    - getCaCertificate
+    - pairDevice
+    - listWorkspaces

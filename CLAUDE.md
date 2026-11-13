@@ -15,7 +15,7 @@ Native SwiftUI app that pairs with a self-hosted Brievie server.
 | `make lint` | `swiftlint --strict` |
 | `make build` | Build the app for a simulator (prefers iPhone 17 on the newest iOS runtime; override with `SIMULATOR_ID=<udid>`) |
 | `make test-keychain` | Keychain tests, hosted in the app on the simulator (they are skipped by `make test`) |
-| `make sync-api HOST=../Brievie_host` | Copy the host's `openapi.json` into `BrievieAPI` |
+| `make sync-api HOST=../Brievie_host` | Copy the host's `openapi.json` into `BrievieAPI` and write its `info.version` to `API_VERSION` |
 
 ## Rules (short form)
 

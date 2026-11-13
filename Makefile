@@ -40,3 +40,4 @@ test-keychain:
 sync-api:
 	@test -f "$(HOST)/docs/api/openapi.json" || { echo "No openapi.json at $(HOST)/docs/api"; exit 1; }
 	cp "$(HOST)/docs/api/openapi.json" $(PACKAGE)/Sources/BrievieAPI/openapi.json
+	plutil -extract info.version raw -o - $(PACKAGE)/Sources/BrievieAPI/openapi.json > $(PACKAGE)/Sources/BrievieAPI/API_VERSION

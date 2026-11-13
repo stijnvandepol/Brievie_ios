@@ -12,9 +12,25 @@ let package = Package(
         .library(name: "FeaturePairing", targets: ["FeaturePairing"]),
         .library(name: "FeatureWorkspace", targets: ["FeatureWorkspace"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-openapi-generator", exact: "1.12.2"),
+        .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.13.4"),
+        .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.4.0")
+    ],
     targets: [
-        .target(name: "BrievieAPI"),
-        .target(name: "BrievieCore", dependencies: ["BrievieAPI"]),
+        .target(
+            name: "BrievieAPI",
+            dependencies: [
+                .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+                .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession")
+            ],
+            exclude: ["API_VERSION"],
+            plugins: [.plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")]
+        ),
+        .target(
+            name: "BrievieCore",
+            dependencies: ["BrievieAPI", .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")]
+        ),
         .target(name: "BrievieUI"),
         .target(name: "FeaturePairing", dependencies: ["BrievieCore", "BrievieUI"]),
         .target(name: "FeatureWorkspace", dependencies: ["BrievieCore", "BrievieUI"]),
