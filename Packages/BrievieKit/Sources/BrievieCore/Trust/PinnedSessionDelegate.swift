@@ -13,11 +13,11 @@ public final class PinnedSessionDelegate: NSObject, URLSessionDelegate, Sendable
         didReceive challenge: URLAuthenticationChallenge
     ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         let space = challenge.protectionSpace
-        let disposition = disposition(
+        let decision = disposition(
             authenticationMethod: space.authenticationMethod, serverTrust: space.serverTrust, host: space.host
         )
-        guard disposition == .useCredential, let serverTrust = space.serverTrust else {
-            return (disposition, nil)
+        guard decision == .useCredential, let serverTrust = space.serverTrust else {
+            return (decision, nil)
         }
         return (.useCredential, URLCredential(trust: serverTrust))
     }
