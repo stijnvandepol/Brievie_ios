@@ -95,6 +95,16 @@ final class FakeCamera: CameraAccess {
         #expect(settings.count == 1)
     }
 
+    @Test func aRestrictedCameraHasItsOwnStateWithoutSettings() async {
+        camera.current = .restricted
+        let model = makeModel()
+
+        await model.prepareCamera()
+
+        #expect(model.camera == .restricted)
+        #expect(camera.requests == 0)
+    }
+
     @Test func aDeviceWithoutAScannerFallsBackToPasting() async {
         camera.current = .unsupported
         let model = makeModel()

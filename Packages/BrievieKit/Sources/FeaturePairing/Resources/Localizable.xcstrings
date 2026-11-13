@@ -37,6 +37,18 @@
       },
       "comment": "Button that opens the app's page in the Settings app."
     },
+    "pairing.camera.restricted": {
+      "comment": "Shown when the device forbids camera use (Screen Time, MDM).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De camera is op dit toestel uitgeschakeld. Plak de koppelgegevens."
+          }
+        }
+      }
+    },
     "pairing.error.connectionLost": {
       "comment": "Connection dropped after the code was sent.",
       "extractionState": "manual",

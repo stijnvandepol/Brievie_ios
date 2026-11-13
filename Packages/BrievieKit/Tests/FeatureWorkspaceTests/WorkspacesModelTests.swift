@@ -61,7 +61,8 @@ private struct NoAuthentication: DeviceAuthenticator {
         appModel = AppModel(
             store: store,
             authenticator: NoAuthentication(),
-            launchFlag: InMemoryLaunchFlag(hasLaunchedBefore: true)
+            launchFlag: InMemoryLaunchFlag(hasLaunchedBefore: true),
+            isProtectedDataAvailable: { true }
         )
         appModel.didPair(connection)
         model = WorkspacesModel(connection: connection, store: store, server: server, appModel: appModel)

@@ -20,6 +20,9 @@ public final class AppModel {
     private let store: ConnectionStore
     private let authenticator: any DeviceAuthenticator
     private let launchFlag: any LaunchFlag
+    private let isProtectedDataAvailable: @MainActor () -> Bool
+    /// The first-launch check has run (or a pairing made it moot) in this process.
+    private var launchCheckDone = false
     private var isAuthenticating = false
     private var wentToBackgroundWhileAuthenticating = false
     /// Prompt automatically on the next activation: at launch and after every trip to the background, but not
@@ -31,20 +34,27 @@ public final class AppModel {
     /// The task started by `requestUnlock()` or `sceneActivated()`; tests await it.
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
 
-    public init(store: ConnectionStore, authenticator: any DeviceAuthenticator, launchFlag: any LaunchFlag) {
+    /// - Parameter isProtectedDataAvailable: `false` before the first unlock after a reboot (prewarm or
+    ///   background launch), when the Keychain and `UserDefaults` may not be readable yet.
+    public init(
+        store: ConnectionStore,
+        authenticator: any DeviceAuthenticator,
+        launchFlag: any LaunchFlag,
+        isProtectedDataAvailable: @escaping @MainActor () -> Bool
+    ) {
         self.store = store
         self.authenticator = authenticator
         self.launchFlag = launchFlag
+        self.isProtectedDataAvailable = isProtectedDataAvailable
     }
 
     /// Unpaired when nothing is stored, locked otherwise. A store that cannot be read does not unpair the
     /// user (that would invite pairing over a valid pairing): the app stays locked and `unlock()` reads again.
     ///
-    /// The first start after an install clears the store first: Keychain items outlive the app, and a
-    /// pairing left behind by a previous install must not open the new one.
+    /// Never clears anything: this runs from `App.init`, possibly before the device was unlocked. The
+    /// first-launch clear waits for the first activation (see `didBecomeActive()`).
     public func start() {
         promptsOnActivation = true
-        clearLeftoversOfAPreviousInstall()
         do {
             state = try store.load() == nil ? .unpaired(notice: nil) : .locked
         } catch {
@@ -81,6 +91,13 @@ public final class AppModel {
     /// The scene became active. Prompts once per launch or return from the background.
     public func didBecomeActive() async {
         isInBackground = false
+        await activate()
+    }
+
+    private func activate() async {
+        // The scene may have gone to the background again before this ran.
+        guard !isInBackground else { return }
+        clearLeftoversOfAPreviousInstall()
         guard promptsOnActivation, state == .locked else { return }
         promptsOnActivation = false
         await unlock()
@@ -88,6 +105,9 @@ public final class AppModel {
 
     /// A pairing that completes while the app is in the background leaves it locked: the user unlocks on return.
     public func didPair(_ connection: ServerConnection) {
+        // A pairing made now must never be taken for a leftover of an earlier install.
+        launchFlag.markLaunched()
+        launchCheckDone = true
         showsNoPasscodeWarning = authenticator.availability() == .noPasscode
         state = isInBackground ? .locked : .ready(connection)
     }
@@ -127,7 +147,9 @@ public final class AppModel {
 
     /// For views: the scene became active. The model owns the task; a screen going away must not cancel it.
     public func sceneActivated() {
-        pendingTask = Task { await didBecomeActive() }
+        // Synchronously, so that a background callback in the same turn wins; the task re-checks it.
+        isInBackground = false
+        pendingTask = Task { await activate() }
     }
 
     private func finishUnlock() {
@@ -143,13 +165,22 @@ public final class AppModel {
         }
     }
 
+    /// On the first activation after an install, clears the store: Keychain items outlive the app, and a pairing
+    /// left behind by a previous install must not open the new one. Runs at most once per process, and not while
+    /// protected data is unavailable (the flag would read `false` for a device that was merely not unlocked yet).
     private func clearLeftoversOfAPreviousInstall() {
-        guard !launchFlag.hasLaunchedBefore else { return }
+        guard !launchCheckDone, isProtectedDataAvailable() else { return }
+        if launchFlag.hasLaunchedBefore {
+            launchCheckDone = true
+            return
+        }
         do {
             try store.clear()
             launchFlag.markLaunched()
+            launchCheckDone = true
+            state = .unpaired(notice: nil)
         } catch {
-            // Try again next launch; meanwhile the normal load decides.
+            // Try again at the next activation; meanwhile the normal load decides.
         }
     }
 }

@@ -294,7 +294,8 @@ final class StubServer: BrievieServer {
             "pairing.paste.show": "Koppelgegevens plakken",
             "pairing.camera.denied":
                 "Brievie mag de camera niet gebruiken. Zet dit aan in Instellingen, of plak de koppelgegevens.",
-            "pairing.camera.openSettings": "Open Instellingen"
+            "pairing.camera.openSettings": "Open Instellingen",
+            "pairing.camera.restricted": "De camera is op dit toestel uitgeschakeld. Plak de koppelgegevens."
         ]
         for (key, value) in expected {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeaturePairing") == value, "\(key)")

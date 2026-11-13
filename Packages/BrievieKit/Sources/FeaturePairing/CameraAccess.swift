@@ -9,8 +9,10 @@ public enum CameraStatus: Sendable, Equatable {
     /// The user has not been asked yet.
     case notDetermined
     case authorized
-    /// The user said no, or the device restricts camera access (Screen Time).
+    /// The user said no: Settings can change that.
     case denied
+    /// The device restricts camera access (Screen Time, MDM): the user cannot change it in the app's Settings.
+    case restricted
     /// This device cannot scan QR codes in the app (simulator, no camera).
     case unsupported
 }
@@ -36,8 +38,10 @@ public struct LiveCameraAccess: CameraAccess {
         case .authorized:
             // Authorized but still not available: the scanner cannot run on this device right now.
             return DataScannerViewController.isAvailable ? .authorized : .unsupported
-        case .denied, .restricted:
+        case .denied:
             return .denied
+        case .restricted:
+            return .restricted
         @unknown default:
             return .denied
         }

@@ -20,6 +20,8 @@ public final class PairingModel {
         case scanning
         /// Access was refused: the screen explains, offers Settings and the paste route.
         case denied
+        /// The device forbids camera use (Screen Time, MDM): explained, no Settings button.
+        case restricted
         /// No scanner on this device, or it failed to start: the paste route only.
         case unavailable
     }
@@ -72,6 +74,7 @@ public final class PairingModel {
         case .authorized: camera = .scanning
         // Still undetermined after asking: treat it as a refusal rather than waiting for ever.
         case .denied, .notDetermined: camera = .denied
+        case .restricted: camera = .restricted
         case .unsupported: camera = .unavailable
         }
     }

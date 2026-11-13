@@ -26,9 +26,15 @@ import Testing
     private func makeModel(
         _ authenticator: FakeAuthenticator = FakeAuthenticator(),
         store: ConnectionStore? = nil,
-        launchFlag: InMemoryLaunchFlag = InMemoryLaunchFlag(hasLaunchedBefore: true)
+        launchFlag: InMemoryLaunchFlag = InMemoryLaunchFlag(hasLaunchedBefore: true),
+        protectedDataAvailable: Bool = true
     ) -> AppModel {
-        AppModel(store: store ?? self.store, authenticator: authenticator, launchFlag: launchFlag)
+        AppModel(
+            store: store ?? self.store,
+            authenticator: authenticator,
+            launchFlag: launchFlag,
+            isProtectedDataAvailable: { protectedDataAvailable }
+        )
     }
 
     // MARK: - start

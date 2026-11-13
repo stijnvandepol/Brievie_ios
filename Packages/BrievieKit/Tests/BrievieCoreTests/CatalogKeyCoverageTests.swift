@@ -16,6 +16,25 @@ import Testing
         }
     }
 
+    @Test func theAppTargetsKeysHaveADutchValueInTheAppCatalog() throws {
+        let used = try CatalogKeyScan.usedAppKeys()
+        let catalog = try CatalogKeyScan.appCatalogKeys()
+
+        #expect(used.contains("lock.title"), "The scan found no keys in App/: the patterns or the path are wrong")
+        for key in used.sorted() {
+            #expect(catalog[key]?.isEmpty == false, "App: key \(key) has no Dutch value in App/Localizable.xcstrings")
+        }
+    }
+
+    @Test func theScanFindsBothKeysOfATernary() {
+        let source = """
+            Text(isManual ? "pairing.instructions.manual" : "pairing.instructions", bundle: .module)
+            Text(flag ? "plain text" : "other text")
+            """
+
+        #expect(CatalogKeyScan.keys(in: source) == ["pairing.instructions.manual", "pairing.instructions"])
+    }
+
     @Test func theScanSeesViewKeysAndStringKeysAlike() throws {
         let pairing = try CatalogKeyScan.usedKeys(target: "FeaturePairing")
 

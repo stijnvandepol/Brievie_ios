@@ -1,5 +1,6 @@
 import BrievieCore
 import SwiftUI
+import UIKit
 
 @main
 struct BrievieApp: App {
@@ -12,7 +13,9 @@ struct BrievieApp: App {
         let model = AppModel(
             store: environment.store,
             authenticator: LocalAuthenticator(),
-            launchFlag: environment.launchFlag
+            launchFlag: environment.launchFlag,
+            // False before the first unlock after a reboot (prewarm, background launch).
+            isProtectedDataAvailable: { UIApplication.shared.isProtectedDataAvailable }
         )
         model.start()
         _appModel = State(initialValue: model)

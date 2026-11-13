@@ -19,7 +19,9 @@ public struct PairingView: View {
     }
 
     private var cameraIsUsable: Bool { model.camera == .scanning }
-    private var isManual: Bool { showsManualEntry || model.camera == .denied || model.camera == .unavailable }
+    private var isManual: Bool {
+        showsManualEntry || model.camera == .denied || model.camera == .restricted || model.camera == .unavailable
+    }
     private var isPairing: Bool { model.phase == .pairing }
 
     public var body: some View {
@@ -49,6 +51,9 @@ public struct PairingView: View {
                     ) {
                         model.openSettings()
                     }
+                }
+                if model.camera == .restricted {
+                    ErrorBanner(String(localized: "pairing.camera.restricted", bundle: .module), style: .warning)
                 }
                 if isManual {
                     manualEntry
