@@ -259,8 +259,8 @@
             "type": "string"
           },
           "setup_token": {
-            "default": "",
             "maxLength": 200,
+            "minLength": 1,
             "title": "Setup Token",
             "type": "string"
           },
@@ -280,6 +280,7 @@
           }
         },
         "required": [
+          "setup_token",
           "email",
           "password",
           "name",
