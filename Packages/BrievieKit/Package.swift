@@ -18,7 +18,14 @@ let package = Package(
         .target(name: "BrievieUI"),
         .target(name: "FeaturePairing", dependencies: ["BrievieCore", "BrievieUI"]),
         .target(name: "FeatureWorkspace", dependencies: ["BrievieCore", "BrievieUI"]),
-        .testTarget(name: "BrievieCoreTests", dependencies: ["BrievieCore"]),
+        .testTarget(
+            name: "BrievieCoreTests",
+            dependencies: ["BrievieCore"],
+            path: "Tests",
+            exclude: ["FeaturePairingTests", "FeatureWorkspaceTests", "Fixtures/make-certs.sh"],
+            sources: ["BrievieCoreTests"],
+            resources: [.copy("Fixtures")]
+        ),
         .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing"]),
         .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace"])
     ]
