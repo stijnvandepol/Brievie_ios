@@ -32,7 +32,9 @@ let package = Package(
         ),
         .target(
             name: "BrievieCore",
-            dependencies: ["BrievieAPI", .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")],
+            dependencies: [
+                "BrievieAPI", "BrievieScan", .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")
+            ],
             resources: [.process("Resources")]
         ),
         .target(name: "BrievieScan"),
@@ -49,7 +51,7 @@ let package = Package(
         ),
         .testTarget(
             name: "BrievieCoreTests",
-            dependencies: ["BrievieCore", "BrievieAPI"],
+            dependencies: ["BrievieCore", "BrievieAPI", "BrievieScan"],
             path: "Tests",
             exclude: ["BrievieScanTests", "FeaturePairingTests", "FeatureWorkspaceTests", "Fixtures/make-certs.sh"],
             sources: ["BrievieCoreTests"],

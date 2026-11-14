@@ -37,6 +37,13 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - `PhotoImportButton` (PhotosPicker) is the way in where the scanner is unavailable (simulator, no camera).
 - The test letter (`Tests/BrievieScanTests/Fixtures/letter-nl.png`) is drawn by `make-letter.swift` next to it.
 
+## Upload queue (phase 1b)
+
+- **One directory per queued document, not SwiftData.** `Application Support/Uploads/<id>/` holds `item.json` (the record) and `body.multipart` (the ready-to-send request body). The spec names SwiftData for the queue; a record next to its body is less code, the two disappear together, and a background upload needs the body as a file anyway. Reconsider for the document cache (1c).
+- An item is written under `.incoming-<id>` and renamed when complete, so a crash never leaves half an item; leftovers are removed at start. The queue is excluded from backup and readable after the first unlock (the background upload reads it while the phone is locked).
+- The item's id is the document's `client_id` on the server: a repeated upload finds the same document.
+- Server limits are checked on the phone (`UploadLimits.server`: 30 pages, 32 MiB, 20000 characters of text per page; longer text is cut), so a scan that cannot succeed is never queued.
+
 ## Storage
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.
