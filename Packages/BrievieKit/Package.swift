@@ -47,7 +47,7 @@ let package = Package(
         ),
         .testTarget(
             name: "BrievieCoreTests",
-            dependencies: ["BrievieCore"],
+            dependencies: ["BrievieCore", "BrievieAPI"],
             path: "Tests",
             exclude: ["FeaturePairingTests", "FeatureWorkspaceTests", "Fixtures/make-certs.sh"],
             sources: ["BrievieCoreTests"],

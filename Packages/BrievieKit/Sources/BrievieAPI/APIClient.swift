@@ -14,6 +14,7 @@ public enum APIClient {
     public static func make(baseURL: URL, session: URLSession, token: String?) -> Client {
         Client(
             serverURL: baseURL,
+            configuration: Configuration(dateTranscoder: FlexibleDateTranscoder()),
             transport: URLSessionTransport(configuration: .init(session: session)),
             middlewares: token.map { [BearerTokenMiddleware(token: $0)] } ?? []
         )
@@ -34,5 +35,25 @@ struct BearerTokenMiddleware: ClientMiddleware {
         var request = request
         request.headerFields[.authorization] = "Bearer \(token)"
         return try await next(request, body, baseURL)
+    }
+}
+
+/// Reads ISO 8601 timestamps with or without fractional seconds; the host sends both (a timestamp that
+/// falls on a whole second has no fraction). Writes them without a fraction.
+struct FlexibleDateTranscoder: DateTranscoder {
+    func encode(_ date: Date) throws -> String {
+        date.formatted(.iso8601)
+    }
+
+    func decode(_ dateString: String) throws -> Date {
+        if let date = try? Date(dateString, strategy: .iso8601) {
+            return date
+        }
+        if let date = try? Date(dateString, strategy: Date.ISO8601FormatStyle(includingFractionalSeconds: true)) {
+            return date
+        }
+        throw DecodingError.dataCorrupted(
+            .init(codingPath: [], debugDescription: "Expected an ISO 8601 timestamp.")
+        )
     }
 }
