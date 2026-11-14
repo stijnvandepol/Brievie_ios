@@ -1,33 +1,35 @@
+import BrievieUI
 import SwiftUI
 
-/// Shown while the app is locked: one button that asks for Face ID or the device passcode.
+/// Shown while the app is locked: the brand, one short line and one button that asks for Face ID or the
+/// device passcode.
 struct LockView: View {
     let unlock: () -> Void
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 16) {
+                BrandMark(name: String(localized: "app.name"))
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 56))
-                    .foregroundStyle(.tint)
+                    .font(.largeTitle)
+                    .foregroundStyle(BrievieColor.brand)
                     .accessibilityHidden(true)
                 Text("lock.title")
                     .font(.title.bold())
                     .multilineTextAlignment(.center)
                     .accessibilityAddTraits(.isHeader)
-                Button(action: unlock) {
-                    Text("lock.unlock")
-                        .frame(maxWidth: .infinity)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .accessibilityHint(Text("lock.unlock.hint"))
+                Text("lock.subtitle")
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                PrimaryButton(String(localized: "lock.unlock"), action: unlock)
+                    .padding(.top, 8)
+                    .accessibilityHint(Text("lock.unlock.hint"))
             }
-            .padding()
+            .padding(24)
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
+        .background(Color(.systemGroupedBackground))
     }
 }
 
