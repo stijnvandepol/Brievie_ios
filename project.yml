@@ -41,6 +41,7 @@ targets:
         products:
           - BrievieAPI
           - BrievieCore
+          - BrievieScan
           - BrievieUI
           - FeaturePairing
           - FeatureWorkspace

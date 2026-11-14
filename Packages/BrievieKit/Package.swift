@@ -8,6 +8,7 @@ let package = Package(
     products: [
         .library(name: "BrievieAPI", targets: ["BrievieAPI"]),
         .library(name: "BrievieCore", targets: ["BrievieCore"]),
+        .library(name: "BrievieScan", targets: ["BrievieScan"]),
         .library(name: "BrievieUI", targets: ["BrievieUI"]),
         .library(name: "FeaturePairing", targets: ["FeaturePairing"]),
         .library(name: "FeatureWorkspace", targets: ["FeatureWorkspace"])
@@ -34,6 +35,7 @@ let package = Package(
             dependencies: ["BrievieAPI", .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime")],
             resources: [.process("Resources")]
         ),
+        .target(name: "BrievieScan"),
         .target(name: "BrievieUI"),
         .target(
             name: "FeaturePairing",
@@ -49,8 +51,14 @@ let package = Package(
             name: "BrievieCoreTests",
             dependencies: ["BrievieCore", "BrievieAPI"],
             path: "Tests",
-            exclude: ["FeaturePairingTests", "FeatureWorkspaceTests", "Fixtures/make-certs.sh"],
+            exclude: ["BrievieScanTests", "FeaturePairingTests", "FeatureWorkspaceTests", "Fixtures/make-certs.sh"],
             sources: ["BrievieCoreTests"],
+            resources: [.copy("Fixtures")]
+        ),
+        .testTarget(
+            name: "BrievieScanTests",
+            dependencies: ["BrievieScan"],
+            exclude: ["Fixtures/make-letter.swift"],
             resources: [.copy("Fixtures")]
         ),
         .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing", "BrievieCore"]),

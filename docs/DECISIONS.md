@@ -29,6 +29,14 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - Server error codes reach the app only from a closed set (`ServerError.passThroughCodes`, plus the codes mapped to their own cases); anything else becomes `http_<status>`. `ServerError.other` and `PairingError.failed` are diagnostic only and never shown to the user.
 
 
+## Scanning (phase 1b)
+
+- **VisionKit document scanner + Apple Vision text recognition, on the device** (owner decision 2026-11-14): the app is the only intake in 1b and the server runs no OCR. No new package dependency: VisionKit, Vision, ImageIO and PhotosUI ship with iOS.
+- `VisionTextRecognizer` uses `RecognizeTextRequest` (accurate, language correction) with Dutch when the system lists a language with code `nl` (it does on macOS 26 / iOS 26: `nl-Latn-NL`), otherwise automatic detection. Lines are ordered top to bottom, then left to right.
+- Pages are uploaded as JPEG, longest edge 2400 px, quality 0.7 (`PageImageEncoder`). Scanner pages and library photos are handed over as compressed data and decoded one at a time, already scaled down (ImageIO thumbnail with transform, which also applies the EXIF orientation), so a 30-page scan never sits in memory as full-size bitmaps.
+- `PhotoImportButton` (PhotosPicker) is the way in where the scanner is unavailable (simulator, no camera).
+- The test letter (`Tests/BrievieScanTests/Fixtures/letter-nl.png`) is drawn by `make-letter.swift` next to it.
+
 ## Storage
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.

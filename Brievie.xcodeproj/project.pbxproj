@@ -9,17 +9,18 @@
 /* Begin PBXBuildFile section */
 		10638E1F3ADCC18E5E4BC16B /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EDD481B988C592B8AB5985 /* AppEnvironment.swift */; };
 		1EFB106964A887B3CBD23CE9 /* LockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E769481337554AD9D9A19289 /* LockView.swift */; };
-		2BC8580EFBC0C5FB3630B790 /* FeaturePairing in Frameworks */ = {isa = PBXBuildFile; productRef = 0B45DF0CF293642976E1BE91 /* FeaturePairing */; };
+		2BC8580EFBC0C5FB3630B790 /* BrievieUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3A414E82B33B8E01E7F5B270 /* BrievieUI */; };
 		430FC3893B1FE057A5649B0F /* KeychainSecretStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F612DDD396EF350CFF2F5 /* KeychainSecretStoreTests.swift */; };
+		5315EFED4FE2CDA21C526A39 /* FeatureWorkspace in Frameworks */ = {isa = PBXBuildFile; productRef = 5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */; };
 		5558758FF9A3883A58298B70 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2764E1ACC49558A4678F3A6C /* Assets.xcassets */; };
 		5FAF97D61D1EE19F66222550 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 5980CF85820FFDF8E486834C /* Localizable.xcstrings */; };
 		6C22E267FBEB9377BA0CA2D0 /* BrievieCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7EC3D56DAD31FB51E8C621A /* BrievieCore */; };
 		83849713F5D0AE0BB469B866 /* BrievieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DBF496F60D6A8E9350BE5C1 /* BrievieApp.swift */; };
 		854EB0B47F21ECB5D7BF38B8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */; };
 		8FD67E2BD4045DF0422F9F5E /* BrievieAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F4F6CDC3CC7341669371F61F /* BrievieAPI */; };
-		A1D64F3A7EE0B914996A1478 /* BrievieUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3A414E82B33B8E01E7F5B270 /* BrievieUI */; };
+		A1D64F3A7EE0B914996A1478 /* BrievieScan in Frameworks */ = {isa = PBXBuildFile; productRef = 81E7AED597F7C8EAFA572429 /* BrievieScan */; };
 		A5D1EA6800F994EBAB91506A /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC4F2726ED10E34A3AC655A /* RootView.swift */; };
-		C58ADCFC8218ED0056055571 /* FeatureWorkspace in Frameworks */ = {isa = PBXBuildFile; productRef = 5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */; };
+		C58ADCFC8218ED0056055571 /* FeaturePairing in Frameworks */ = {isa = PBXBuildFile; productRef = 0B45DF0CF293642976E1BE91 /* FeaturePairing */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,9 +56,10 @@
 			files = (
 				8FD67E2BD4045DF0422F9F5E /* BrievieAPI in Frameworks */,
 				6C22E267FBEB9377BA0CA2D0 /* BrievieCore in Frameworks */,
-				A1D64F3A7EE0B914996A1478 /* BrievieUI in Frameworks */,
-				2BC8580EFBC0C5FB3630B790 /* FeaturePairing in Frameworks */,
-				C58ADCFC8218ED0056055571 /* FeatureWorkspace in Frameworks */,
+				A1D64F3A7EE0B914996A1478 /* BrievieScan in Frameworks */,
+				2BC8580EFBC0C5FB3630B790 /* BrievieUI in Frameworks */,
+				C58ADCFC8218ED0056055571 /* FeaturePairing in Frameworks */,
+				5315EFED4FE2CDA21C526A39 /* FeatureWorkspace in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,6 +164,7 @@
 			packageProductDependencies = (
 				F4F6CDC3CC7341669371F61F /* BrievieAPI */,
 				E7EC3D56DAD31FB51E8C621A /* BrievieCore */,
+				81E7AED597F7C8EAFA572429 /* BrievieScan */,
 				3A414E82B33B8E01E7F5B270 /* BrievieUI */,
 				0B45DF0CF293642976E1BE91 /* FeaturePairing */,
 				5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */,
@@ -513,6 +516,10 @@
 		5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = FeatureWorkspace;
+		};
+		81E7AED597F7C8EAFA572429 /* BrievieScan */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BrievieScan;
 		};
 		E7EC3D56DAD31FB51E8C621A /* BrievieCore */ = {
 			isa = XCSwiftPackageProductDependency;
