@@ -157,6 +157,83 @@
         }
       }
     },
+    "workspaces.section.server": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        }
+      }
+    },
+    "workspaces.section.workspaces": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jouw werkruimtes"
+          }
+        }
+      }
+    },
+    "workspaces.server.address": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adres"
+          }
+        }
+      }
+    },
+    "workspaces.server.connection": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinding"
+          }
+        }
+      }
+    },
+    "workspaces.server.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De app praat alleen met deze server en controleert zijn certificaat bij elke verbinding."
+          }
+        }
+      }
+    },
+    "workspaces.server.secure": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beveiligd"
+          }
+        }
+      }
+    },
+    "workspaces.server.user": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingelogd als"
+          }
+        }
+      }
+    },
     "workspaces.title": {
       "comment": "Workspaces screen title.",
       "extractionState": "manual",

@@ -22,6 +22,11 @@ public final class WorkspacesModel {
 
     public private(set) var state: State = .loading
 
+    /// Host of the first stored server address, for the Server section; `nil` if it has none.
+    public var serverAddress: String? { connection.urls.first?.host() }
+    /// The paired user's name, as stored at pairing.
+    public var userName: String { connection.userName }
+
     private let connection: ServerConnection
     private let store: ConnectionStore
     private let server: any BrievieServer
@@ -132,5 +137,22 @@ extension WorkspacesModel.Row {
         case .viewer: WorkspaceStrings.roleViewer
         case .unknown: nil
         }
+    }
+}
+
+extension WorkspacesModel.Row {
+    /// SF Symbol for the workspace kind. Compares the Dutch labels, which come from the same source as the
+    /// `kind` mapping above.
+    public var iconName: String {
+        switch kindLabel {
+        case WorkspaceStrings.kindHome: "house.fill"
+        case WorkspaceStrings.kindBusiness: "briefcase.fill"
+        default: "tray.full.fill"
+        }
+    }
+
+    /// "Thuis · Beheerder"; just the kind when the role is unknown.
+    public var subtitle: String {
+        [kindLabel, roleLabel].compactMap { $0 }.joined(separator: " · ")
     }
 }

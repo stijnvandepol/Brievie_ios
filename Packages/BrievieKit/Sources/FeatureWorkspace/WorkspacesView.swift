@@ -2,7 +2,7 @@
 import BrievieUI
 import SwiftUI
 
-/// The paired user's workspaces.
+/// The paired user's workspaces, and the server they come from.
 public struct WorkspacesView: View {
     private let model: WorkspacesModel
     /// The device has no passcode, so the app cannot lock itself.
@@ -17,12 +17,18 @@ public struct WorkspacesView: View {
         NavigationStack {
             List {
                 if showsNoPasscodeWarning {
-                    ErrorBanner(String(localized: "workspaces.noPasscode", bundle: .module), style: .warning)
-                        .listRowSeparator(.hidden)
+                    Section {
+                        ErrorBanner(String(localized: "workspaces.noPasscode", bundle: .module), style: .warning)
+                    }
                 }
-                content
+                Section {
+                    content
+                } header: {
+                    Text("workspaces.section.workspaces", bundle: .module)
+                }
+                serverSection
             }
-            .listStyle(.plain)
+            .listStyle(.insetGrouped)
             .navigationTitle(Text("workspaces.title", bundle: .module))
             .refreshable { await model.load() }
             .task { await model.load() }
@@ -50,7 +56,37 @@ public struct WorkspacesView: View {
             ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module)) {
                 model.retry()
             }
-            .listRowSeparator(.hidden)
+        }
+    }
+
+    private var serverSection: some View {
+        Section {
+            if let address = model.serverAddress {
+                LabeledContent {
+                    Text(address)
+                } label: {
+                    Text("workspaces.server.address", bundle: .module)
+                }
+            }
+            LabeledContent {
+                Label {
+                    Text("workspaces.server.secure", bundle: .module)
+                } icon: {
+                    Image(systemName: "lock.fill")
+                        .foregroundStyle(.green)
+                }
+            } label: {
+                Text("workspaces.server.connection", bundle: .module)
+            }
+            LabeledContent {
+                Text(model.userName)
+            } label: {
+                Text("workspaces.server.user", bundle: .module)
+            }
+        } header: {
+            Text("workspaces.section.server", bundle: .module)
+        } footer: {
+            Text("workspaces.server.footer", bundle: .module)
         }
     }
 }
@@ -58,22 +94,25 @@ public struct WorkspacesView: View {
 private struct WorkspaceRowView: View {
     let row: WorkspacesModel.Row
 
+    @ScaledMetric(relativeTo: .body) private var tileSize: CGFloat = 40
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(row.name)
-                .font(.headline)
-            Text(row.kindLabel)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if let roleLabel = row.roleLabel {
-                Text(roleLabel)
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 2)
-                    .background(.tint.opacity(0.15), in: Capsule())
+        HStack(spacing: 12) {
+            Image(systemName: row.iconName)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(BrievieColor.onBrand)
+                .frame(width: tileSize, height: tileSize)
+                .background(BrievieColor.brand, in: RoundedRectangle(cornerRadius: tileSize / 4, style: .continuous))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(row.name)
+                    .font(.headline)
+                Text(row.subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 }
