@@ -11,7 +11,7 @@ public struct KeychainError: Error, Equatable {
 public struct KeychainSecretStore: SecretStore {
     private let service: String
 
-    public init(service: String = "nl.brievie.app") {
+    public init(service: String = "nl.stijnvdpol.brievie") {
         self.service = service
     }
 

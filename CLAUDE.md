@@ -28,6 +28,6 @@ Native SwiftUI app that pairs with a self-hosted Brievie server.
 - Every screen works with VoiceOver and the largest Dynamic Type size.
 - `*.xcodeproj` is generated and git-ignored; edit `project.yml`.
 - No new dependency without a line in `docs/DECISIONS.md`.
-- Bundle id `nl.brievie.app`; App Group `group.nl.brievie.app` (reserved, unused in 1a).
+- Bundle id `nl.stijnvdpol.brievie`; App Group `group.nl.stijnvdpol.brievie` (reserved, unused in 1a).
 - `BrievieAPI` and `BrievieCore` must compile for macOS; guard iOS-only code with `#if canImport(UIKit)` / `#if os(iOS)`.
 - Tests use Swift Testing. Conventional commits. Never push without being asked.

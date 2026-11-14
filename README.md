@@ -29,8 +29,8 @@ Het app-icoon is een tijdelijke placeholder (`scripts/make-app-icon.swift` gener
 
 Handmatige stappen voor de eigenaar (de upload gaat altijd via Xcode, nooit via een script):
 
-1. Registreer de bundle id `nl.brievie.app` in het Apple Developer-portaal.
-2. Maak in App Store Connect een app aan: naam Brievie, primaire taal Nederlands, bundle id `nl.brievie.app`.
+1. Registreer de bundle id `nl.stijnvdpol.brievie` in het Apple Developer-portaal.
+2. Maak in App Store Connect een app aan: naam Brievie, primaire taal Nederlands, bundle id `nl.stijnvdpol.brievie`.
 3. Zet je team-id in `Local.xcconfig` (`DEVELOPMENT_TEAM = <team id>`, zie `Local.xcconfig.example`).
 4. Draai `make archive`. Zonder `Local.xcconfig` stopt het target meteen met een melding.
 5. Open het archief met `open build/Brievie.xcarchive`, kies in Xcode Organizer **Distribute App** en dan **TestFlight Internal Only**.

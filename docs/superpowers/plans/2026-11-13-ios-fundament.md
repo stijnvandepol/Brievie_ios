@@ -21,7 +21,7 @@
 - Every screen works with VoiceOver and at the largest Dynamic Type size.
 - The Xcode project is generated (`project.yml`); `*.xcodeproj` is git-ignored.
 - No new dependency without a line in `docs/DECISIONS.md`.
-- Bundle id `nl.brievie.app`; App Group `group.nl.brievie.app` (reserved for the share extension and widget, not used in 1a).
+- Bundle id `nl.stijnvdpol.brievie`; App Group `group.nl.stijnvdpol.brievie` (reserved for the share extension and widget, not used in 1a).
 - Work on branch `feat/fundament`. Conventional commits. Do not push.
 
 ## Review Focus
@@ -168,7 +168,7 @@ public struct ConnectionStore: Sendable {
 }
 ```
 
-- `KeychainSecretStore(service: String = "nl.brievie.app")`: generic password items, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, not synchronisable.
+- `KeychainSecretStore(service: String = "nl.stijnvdpol.brievie")`: generic password items, `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, not synchronisable.
 - `load()` returns `nil` when either item is missing, and clears the leftover item (never a half-paired state).
 
 - [ ] **Step 1:** Failing tests against `InMemorySecretStore`: save → load round-trip; clear → `nil`; only the token present → `nil` and the token is gone afterwards. One Keychain test (round-trip, overwrite, delete) guarded to run on the simulator only.
