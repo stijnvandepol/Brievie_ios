@@ -21,7 +21,8 @@ public final class AppModel {
     private let authenticator: any DeviceAuthenticator
     private let launchFlag: any LaunchFlag
     private let isProtectedDataAvailable: @MainActor () -> Bool
-    /// The first-launch check has run (or a pairing made it moot) in this process.
+    /// The first-launch check has completed (or a pairing made it moot) in this process. Until then nothing
+    /// unlocks: a stored connection may be a leftover of a previous install.
     private var launchCheckDone = false
     private var isAuthenticating = false
     private var wentToBackgroundWhileAuthenticating = false
@@ -64,8 +65,11 @@ public final class AppModel {
 
     /// Asks for Face ID or the passcode; `.locked` becomes `.ready` on success. Without a passcode there is
     /// nothing to ask: the app opens and `showsNoPasscodeWarning` is set.
+    ///
+    /// Gated by the first-launch check: while it has not completed, the app stays locked.
     public func unlock() async {
-        guard state == .locked, !isAuthenticating else { return }
+        clearLeftoversOfAPreviousInstall()
+        guard launchCheckDone, state == .locked, !isAuthenticating else { return }
         isAuthenticating = true
         wentToBackgroundWhileAuthenticating = false
         defer { isAuthenticating = false }
@@ -98,7 +102,8 @@ public final class AppModel {
         // The scene may have gone to the background again before this ran.
         guard !isInBackground else { return }
         clearLeftoversOfAPreviousInstall()
-        guard promptsOnActivation, state == .locked else { return }
+        // A pending check keeps the prompt for the activation that completes it.
+        guard launchCheckDone, promptsOnActivation, state == .locked else { return }
         promptsOnActivation = false
         await unlock()
     }
@@ -152,7 +157,15 @@ public final class AppModel {
         pendingTask = Task { await activate() }
     }
 
+    /// For the app: the device was unlocked for the first time since a reboot, so a first-launch check that
+    /// had to wait can run now. Acts as an activation when the scene is in the foreground.
+    public func protectedDataDidBecomeAvailable() {
+        guard !isInBackground else { return }
+        pendingTask = Task { await activate() }
+    }
+
     private func finishUnlock() {
+        guard launchCheckDone else { return }
         do {
             guard let paired = try store.load() else {
                 connectionMissing()
@@ -166,8 +179,9 @@ public final class AppModel {
     }
 
     /// On the first activation after an install, clears the store: Keychain items outlive the app, and a pairing
-    /// left behind by a previous install must not open the new one. Runs at most once per process, and not while
-    /// protected data is unavailable (the flag would read `false` for a device that was merely not unlocked yet).
+    /// left behind by a previous install must not open the new one. Completes at most once per process, and not
+    /// while protected data is unavailable (the flag would read `false` for a device that was merely not unlocked
+    /// yet). Until it completes, `unlock()` does nothing; every activation and unlock attempt retries it.
     private func clearLeftoversOfAPreviousInstall() {
         guard !launchCheckDone, isProtectedDataAvailable() else { return }
         if launchFlag.hasLaunchedBefore {
@@ -180,7 +194,7 @@ public final class AppModel {
             launchCheckDone = true
             state = .unpaired(notice: nil)
         } catch {
-            // Try again at the next activation; meanwhile the normal load decides.
+            // Stay locked; the next activation or unlock attempt tries again.
         }
     }
 }

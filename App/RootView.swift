@@ -27,6 +27,12 @@ struct RootView: View {
                     break
                 }
             }
+            // The first-launch check waits for protected data; run it as soon as the device is unlocked.
+            .onReceive(NotificationCenter.default.publisher(
+                for: UIApplication.protectedDataDidBecomeAvailableNotification
+            )) { _ in
+                appModel.protectedDataDidBecomeAvailable()
+            }
     }
 
     @ViewBuilder private var content: some View {

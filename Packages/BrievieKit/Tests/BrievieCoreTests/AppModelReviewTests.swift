@@ -3,7 +3,7 @@ import Foundation
 import Testing
 
 /// Behaviour added by the final review: background pairing, authenticator availability, unlock failures,
-/// stale revocations, first launch and the tasks the model owns for views.
+/// stale revocations and the tasks the model owns for views (first launch: `AppModelLaunchCheckTests`).
 @MainActor
 @Suite struct AppModelReviewTests {
     private let secrets = InMemorySecretStore()
@@ -27,7 +27,7 @@ import Testing
     private func makeModel(
         _ authenticator: FakeAuthenticator = FakeAuthenticator(),
         store: ConnectionStore? = nil,
-        launchFlag: InMemoryLaunchFlag = InMemoryLaunchFlag(hasLaunchedBefore: true),
+        launchFlag: any LaunchFlag = InMemoryLaunchFlag(hasLaunchedBefore: true),
         protectedDataAvailable: Bool = true
     ) -> AppModel {
         AppModel(
@@ -173,109 +173,6 @@ import Testing
         model.sessionRevoked(deviceID: connection.deviceID)
 
         #expect(model.state == .ready(connection))
-    }
-
-    // MARK: - Final review: first launch after an install
-
-    @Test func startNeverClearsAnything() throws {
-        // `start()` runs from App.init, possibly in a prewarm before the first unlock: the flag may read false.
-        _ = try pairedStore()
-        let flag = InMemoryLaunchFlag(hasLaunchedBefore: false)
-        let model = makeModel(launchFlag: flag)
-
-        model.start()
-
-        #expect(model.state == .locked)
-        #expect(secrets.read(.deviceToken) != nil)
-        #expect(!flag.hasLaunchedBefore)
-    }
-
-    @Test func theFirstActivationOfAFreshInstallClearsLeftoversAndUnpairs() async throws {
-        _ = try pairedStore()
-        let flag = InMemoryLaunchFlag(hasLaunchedBefore: false)
-        let authenticator = FakeAuthenticator()
-        let model = makeModel(authenticator, launchFlag: flag)
-        model.start()
-
-        await model.didBecomeActive()
-
-        #expect(model.state == .unpaired(notice: nil))
-        #expect(secrets.read(.deviceToken) == nil)
-        #expect(secrets.read(.serverConnection) == nil)
-        #expect(flag.hasLaunchedBefore)
-        #expect(authenticator.prompts == 0)
-    }
-
-    @Test func theFirstActivationWithTheFlagPresentKeepsThePairing() async throws {
-        let connection = try pairedStore()
-        let model = makeModel(launchFlag: InMemoryLaunchFlag(hasLaunchedBefore: true))
-        model.start()
-
-        await model.didBecomeActive()
-
-        #expect(model.state == .ready(connection))
-        #expect(try store.load()?.connection == connection)
-    }
-
-    @Test func withoutProtectedDataNothingIsClearedAndNoFlagIsWritten() async throws {
-        _ = try pairedStore()
-        let flag = InMemoryLaunchFlag(hasLaunchedBefore: false)
-        let model = makeModel(FakeAuthenticator(), launchFlag: flag, protectedDataAvailable: false)
-        model.start()
-
-        await model.didBecomeActive()
-
-        #expect(secrets.read(.deviceToken) != nil)
-        #expect(!flag.hasLaunchedBefore)
-        #expect(model.state != .unpaired(notice: nil))
-    }
-
-    @Test func aSecondActivationDoesNothing() async throws {
-        let flag = InMemoryLaunchFlag(hasLaunchedBefore: false)
-        let model = makeModel(launchFlag: flag)
-        model.start()
-        await model.didBecomeActive()
-        let connection = try connection()
-        try store.save(connection, token: "device-token")
-        model.didPair(connection)
-        model.didEnterBackground()
-
-        await model.didBecomeActive()
-
-        #expect(try store.load()?.connection == connection)
-    }
-
-    @Test func aPairingMadeBeforeTheCheckCouldRunIsNotCleared() async throws {
-        // Protected data was unavailable at the first activation; the user pairs later.
-        let flag = InMemoryLaunchFlag(hasLaunchedBefore: false)
-        var available = false
-        let model = AppModel(
-            store: store,
-            authenticator: FakeAuthenticator(),
-            launchFlag: flag,
-            isProtectedDataAvailable: { available }
-        )
-        model.start()
-        await model.didBecomeActive()
-        let connection = try connection()
-        try store.save(connection, token: "device-token")
-        model.didPair(connection)
-        available = true
-        model.didEnterBackground()
-
-        await model.didBecomeActive()
-
-        #expect(try store.load()?.connection == connection)
-    }
-
-    @Test func aFreshInstallThatCannotClearTheStoreDoesNotMarkTheLaunch() async {
-        let flag = InMemoryLaunchFlag(hasLaunchedBefore: false)
-        let model = makeModel(store: ConnectionStore(secrets: UndeletableStore()), launchFlag: flag)
-        model.start()
-
-        await model.didBecomeActive()
-
-        #expect(!flag.hasLaunchedBefore)
     }
 
     // MARK: - Final review: activation and background in the same turn

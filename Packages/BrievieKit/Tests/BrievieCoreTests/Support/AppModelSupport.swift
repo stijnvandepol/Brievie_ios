@@ -65,3 +65,42 @@ struct UndeletableStore: SecretStore {
     func write(_ data: Data, for key: SecretKey) throws {}
     func delete(_ key: SecretKey) throws { throw Undeletable() }
 }
+
+/// An in-memory store whose deletes fail while `deleteFails` is set.
+final class FlakyDeleteStore: SecretStore {
+    struct Undeletable: Error {}
+
+    private let inner = InMemorySecretStore()
+    private let failing = Mutex(false)
+
+    var deleteFails: Bool {
+        get { failing.withLock { $0 } }
+        set { failing.withLock { $0 = newValue } }
+    }
+
+    func read(_ key: SecretKey) throws -> Data? { inner.read(key) }
+    func write(_ data: Data, for key: SecretKey) throws { inner.write(data, for: key) }
+
+    func delete(_ key: SecretKey) throws {
+        if deleteFails { throw Undeletable() }
+        inner.delete(key)
+    }
+}
+
+/// A launch flag whose reading the test controls, so it can "forget" a launch it was told about.
+final class ScriptedLaunchFlag: LaunchFlag {
+    private let value: Mutex<Bool>
+
+    init(hasLaunchedBefore: Bool) {
+        value = Mutex(hasLaunchedBefore)
+    }
+
+    var hasLaunchedBefore: Bool {
+        get { value.withLock { $0 } }
+        set { value.withLock { $0 = newValue } }
+    }
+
+    func markLaunched() {
+        value.withLock { $0 = true }
+    }
+}
