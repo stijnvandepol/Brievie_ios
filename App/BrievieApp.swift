@@ -7,18 +7,24 @@ struct BrievieApp: App {
     @State private var appModel: AppModel
     private let environment: AppEnvironment
 
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
     init() {
-        let environment = AppEnvironment.live
-        self.environment = environment
+        let store = ConnectionStore(secrets: KeychainSecretStore())
+        let launchFlag = UserDefaultsLaunchFlag()
         let model = AppModel(
-            store: environment.store,
+            store: store,
             authenticator: LocalAuthenticator(),
-            launchFlag: environment.launchFlag,
+            launchFlag: launchFlag,
             // False before the first unlock after a reboot (prewarm, background launch).
             isProtectedDataAvailable: { UIApplication.shared.isProtectedDataAvailable }
         )
         model.start()
         _appModel = State(initialValue: model)
+        // An upload that gets a 401 sends the user back to pairing, like any other call.
+        environment = AppEnvironment.live(store: store) { [model] deviceID in
+            await model.sessionRevoked(deviceID: deviceID)
+        }
     }
 
     var body: some Scene {

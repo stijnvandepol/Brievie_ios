@@ -27,6 +27,12 @@ struct RootView: View {
                     break
                 }
             }
+            // Queued scans go out as soon as there is a usable pairing (at launch, after pairing again).
+            .onChange(of: isReady, initial: true) { _, ready in
+                if ready {
+                    Task { await environment.uploads.resume() }
+                }
+            }
             // The first-launch check waits for protected data; run it as soon as the device is unlocked.
             .onReceive(NotificationCenter.default.publisher(
                 for: UIApplication.protectedDataDidBecomeAvailableNotification
@@ -44,6 +50,11 @@ struct RootView: View {
         case .ready(let connection):
             WorkspacesScreen(appModel: appModel, environment: environment, connection: connection)
         }
+    }
+
+    private var isReady: Bool {
+        if case .ready = appModel.state { return true }
+        return false
     }
 
     /// The app switcher takes its snapshot when the scene leaves the foreground: nothing from a paired app
