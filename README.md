@@ -25,7 +25,7 @@ Wie met een ander team wil signeren, kopieert `Local.xcconfig.example` naar `Loc
 
 ## TestFlight
 
-Het app-icoon is een tijdelijke placeholder (`scripts/make-app-icon.swift` genereert het); vervang het voor een publieke release.
+Het app-icoon is een envelop met een vinkje als flap (`scripts/make-app-icon.swift` genereert het).
 
 Eenmalig bij Apple (door de eigenaar):
 
