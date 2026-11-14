@@ -85,7 +85,7 @@ private struct NoAuthentication: DeviceAuthenticator {
         await model.load()
 
         #expect(model.state == .loaded([
-            WorkspacesModel.Row(id: thuis.id, name: "Thuis", kindLabel: "Thuis", roleLabel: "Beheerder")
+            WorkspacesModel.Row(id: thuis.id, name: "Thuis", kind: .home, kindLabel: "Thuis", roleLabel: "Beheerder")
         ]))
         #expect(server.tokens == ["device-token"])
     }
@@ -104,8 +104,8 @@ private struct NoAuthentication: DeviceAuthenticator {
         await model.load()
 
         #expect(model.state == .loaded([
-            WorkspacesModel.Row(id: mystery.id, name: "Nieuw", kindLabel: "Werkruimte", roleLabel: nil),
-            WorkspacesModel.Row(id: member.id, name: "Werk", kindLabel: "Zakelijk", roleLabel: "Lid")
+            WorkspacesModel.Row(id: mystery.id, name: "Nieuw", kind: .unknown, kindLabel: "Werkruimte", roleLabel: nil),
+            WorkspacesModel.Row(id: member.id, name: "Werk", kind: .business, kindLabel: "Zakelijk", roleLabel: "Lid")
         ]))
     }
 
@@ -259,5 +259,17 @@ private struct NoAuthentication: DeviceAuthenticator {
         for (key, resolved) in WorkspaceStrings.all {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeatureWorkspace") == resolved, "\(key)")
         }
+    }
+}
+
+@Suite struct WorkspaceRowIconTests {
+    @Test func iconFollowsTheKindNotTheLabel() {
+        func icon(_ kind: WorkspaceSummary.Kind) -> String {
+            WorkspacesModel.Row(id: UUID(), name: "x", kind: kind, kindLabel: "anders", roleLabel: nil).iconName
+        }
+
+        #expect(icon(.home) == "house.fill")
+        #expect(icon(.business) == "briefcase.fill")
+        #expect(icon(.unknown) == "square.grid.2x2.fill")
     }
 }

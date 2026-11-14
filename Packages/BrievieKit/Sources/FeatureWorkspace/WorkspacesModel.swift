@@ -9,6 +9,7 @@ public final class WorkspacesModel {
     public struct Row: Equatable, Identifiable {
         public let id: UUID
         public let name: String
+        public let kind: WorkspaceSummary.Kind
         public let kindLabel: String
         /// `nil` for a role this app does not know: no badge.
         public let roleLabel: String?
@@ -117,6 +118,7 @@ extension WorkspacesModel.Row {
         self.init(
             id: workspace.id,
             name: workspace.name,
+            kind: workspace.kind,
             kindLabel: Self.label(for: workspace.kind),
             roleLabel: Self.label(for: workspace.role)
         )
@@ -141,13 +143,12 @@ extension WorkspacesModel.Row {
 }
 
 extension WorkspacesModel.Row {
-    /// SF Symbol for the workspace kind. Compares the Dutch labels, which come from the same source as the
-    /// `kind` mapping above.
+    /// SF Symbol for the workspace kind; a neutral one for a kind this app does not know.
     public var iconName: String {
-        switch kindLabel {
-        case WorkspaceStrings.kindHome: "house.fill"
-        case WorkspaceStrings.kindBusiness: "briefcase.fill"
-        default: "tray.full.fill"
+        switch kind {
+        case .home: "house.fill"
+        case .business: "briefcase.fill"
+        case .unknown: "square.grid.2x2.fill"
         }
     }
 

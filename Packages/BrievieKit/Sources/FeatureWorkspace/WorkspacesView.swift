@@ -15,29 +15,48 @@ public struct WorkspacesView: View {
 
     public var body: some View {
         NavigationStack {
-            List {
-                if showsNoPasscodeWarning {
-                    Section {
-                        ErrorBanner(String(localized: "workspaces.noPasscode", bundle: .module), style: .warning)
-                    }
-                }
-                Section {
-                    content
-                } header: {
-                    Text("workspaces.section.workspaces", bundle: .module)
-                }
-                serverSection
-            }
-            .listStyle(.insetGrouped)
-            .navigationTitle(Text("workspaces.title", bundle: .module))
+            WorkspacesList(
+                state: model.state,
+                serverAddress: model.serverAddress,
+                userName: model.userName,
+                showsNoPasscodeWarning: showsNoPasscodeWarning,
+                retry: { model.retry() }
+            )
             .refreshable { await model.load() }
             .task { await model.load() }
             .onDisappear { model.stop() }
         }
     }
+}
+
+/// The rendering of `WorkspacesView`, free of the model so that previews can feed it plain values.
+struct WorkspacesList: View {
+    let state: WorkspacesModel.State
+    let serverAddress: String?
+    let userName: String
+    let showsNoPasscodeWarning: Bool
+    let retry: () -> Void
+
+    var body: some View {
+        List {
+            if showsNoPasscodeWarning {
+                Section {
+                    ErrorBanner(String(localized: "workspaces.noPasscode", bundle: .module), style: .warning)
+                }
+            }
+            Section {
+                content
+            } header: {
+                Text("workspaces.section.workspaces", bundle: .module)
+            }
+            serverSection
+        }
+        .listStyle(.insetGrouped)
+        .navigationTitle(Text("workspaces.title", bundle: .module))
+    }
 
     @ViewBuilder private var content: some View {
-        switch model.state {
+        switch state {
         case .loading:
             HStack(spacing: 12) {
                 ProgressView()
@@ -53,17 +72,15 @@ public struct WorkspacesView: View {
                 WorkspaceRowView(row: row)
             }
         case .failed(let message):
-            ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module)) {
-                model.retry()
-            }
+            ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module), action: retry)
         }
     }
 
     private var serverSection: some View {
         Section {
-            if let address = model.serverAddress {
+            if let serverAddress {
                 LabeledContent {
-                    Text(address)
+                    Text(serverAddress)
                 } label: {
                     Text("workspaces.server.address", bundle: .module)
                 }
@@ -79,7 +96,7 @@ public struct WorkspacesView: View {
                 Text("workspaces.server.connection", bundle: .module)
             }
             LabeledContent {
-                Text(model.userName)
+                Text(userName)
             } label: {
                 Text("workspaces.server.user", bundle: .module)
             }
@@ -116,4 +133,36 @@ private struct WorkspaceRowView: View {
         .accessibilityElement(children: .combine)
     }
 }
+
+#if DEBUG
+private var previewRows: [WorkspacesModel.Row] {
+    [
+        WorkspacesModel.Row(
+            id: UUID(), name: "Thuis", kind: .home, kindLabel: WorkspaceStrings.kindHome,
+            roleLabel: WorkspaceStrings.roleAdmin
+        )
+    ]
+}
+
+#Preview("Light") {
+    NavigationStack {
+        WorkspacesList(
+            state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
+            showsNoPasscodeWarning: false, retry: {}
+        )
+    }
+    .tint(BrievieColor.brand)
+}
+
+#Preview("Dark") {
+    NavigationStack {
+        WorkspacesList(
+            state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
+            showsNoPasscodeWarning: false, retry: {}
+        )
+    }
+    .tint(BrievieColor.brand)
+    .preferredColorScheme(.dark)
+}
+#endif
 #endif
