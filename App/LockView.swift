@@ -46,6 +46,13 @@ struct PrivacyCover: View {
     }
 }
 
-#Preview {
+#Preview("Light") {
     LockView {}
+        .tint(BrievieColor.brand)
+}
+
+#Preview("Dark") {
+    LockView {}
+        .tint(BrievieColor.brand)
+        .preferredColorScheme(.dark)
 }

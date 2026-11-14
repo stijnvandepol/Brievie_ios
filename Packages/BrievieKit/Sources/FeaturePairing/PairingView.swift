@@ -122,21 +122,23 @@ public struct PairingView: View {
         }
     }
 
+    /// The buttons sit in a section footer: a list row would clip them with its own rounded corners.
     private var actions: some View {
         Section {
-            PrimaryButton(String(localized: "pairing.scan", bundle: .module)) {
-                showsScanner = true
-            }
-            .disabled(!cameraIsUsable || isPairing)
-            if !isManual {
-                SecondaryButton(String(localized: "pairing.paste.show", bundle: .module)) {
-                    showsManualEntry = true
+        } footer: {
+            VStack(spacing: 12) {
+                PrimaryButton(String(localized: "pairing.scan", bundle: .module)) {
+                    showsScanner = true
+                }
+                .disabled(!cameraIsUsable || isPairing)
+                if !isManual {
+                    SecondaryButton(String(localized: "pairing.paste.show", bundle: .module)) {
+                        showsManualEntry = true
+                    }
                 }
             }
+            .padding(.horizontal, -16)
         }
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
-        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
     }
 
     private var scannerSheet: some View {
@@ -172,23 +174,26 @@ public struct PairingView: View {
                 text: $manualText,
                 axis: .vertical
             )
-            .lineLimit(3...8)
+            .lineLimit(3...4)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
             .keyboardType(.asciiCapable)
             .accessibilityLabel(Text("pairing.manual.field", bundle: .module))
-            PrimaryButton(String(localized: "pairing.manual.submit", bundle: .module)) {
-                model.startPairing(pasted: manualText)
-            }
-            .listRowSeparator(.hidden)
-            .disabled(manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isPairing)
             PasteButton(payloadType: String.self) { strings in
                 guard let text = strings.first else { return }
                 model.startPairing(pasted: text)
             }
             .disabled(isPairing)
+            .frame(maxWidth: .infinity, alignment: .leading)
         } header: {
             Text("pairing.manual.header", bundle: .module)
+        } footer: {
+            PrimaryButton(String(localized: "pairing.manual.submit", bundle: .module)) {
+                model.startPairing(pasted: manualText)
+            }
+            .disabled(manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isPairing)
+            .padding(.horizontal, -16)
+            .padding(.top, 12)
         }
     }
 }
