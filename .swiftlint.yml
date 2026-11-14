@@ -1,0 +1,30 @@
+included:
+  - App
+  - Packages/BrievieKit/Sources
+  - Packages/BrievieKit/Tests
+  - Packages/BrievieKit/Package.swift
+excluded:
+  - Packages/BrievieKit/.build
+  - .build
+opt_in_rules:
+  - force_unwrapping
+  - empty_count
+  - first_where
+  - contains_over_first_not_nil
+  - implicit_return
+  - sorted_imports
+  - redundant_nil_coalescing
+  - fatal_error_message
+force_cast: error
+force_try: error
+force_unwrapping: error
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+identifier_name:
+  excluded:
+    - id
+    - ca
+    - v

@@ -1,0 +1,71 @@
+name: Brievie
+# `Base.xcconfig` includes the optional, git-ignored `Local.xcconfig` (`DEVELOPMENT_TEAM = <team id>`, see
+# `Local.xcconfig.example`) so that `make generate` keeps the developer team for real devices.
+configFiles:
+  Debug: Base.xcconfig
+  Release: Base.xcconfig
+options:
+  bundleIdPrefix: nl.brievie
+  developmentLanguage: nl
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+packages:
+  BrievieKit:
+    path: Packages/BrievieKit
+targets:
+  Brievie:
+    type: application
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: nl.brievie.app
+        INFOPLIST_FILE: App/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - package: BrievieKit
+        products:
+          - BrievieAPI
+          - BrievieCore
+          - BrievieUI
+          - FeaturePairing
+          - FeatureWorkspace
+  # Tests that need an entitled app process (the Keychain). Hosted in the app on the simulator.
+  BrievieTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "18.0"
+    sources:
+      - path: Packages/BrievieKit/Tests/BrievieCoreTests/KeychainSecretStoreTests.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: nl.brievie.app.tests
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) BRIEVIE_HOSTED_TESTS
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Brievie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Brievie
+        BUNDLE_LOADER: $(TEST_HOST)
+    dependencies:
+      - target: Brievie
+      - package: BrievieKit
+        product: BrievieCore
+        link: false
+schemes:
+  Brievie:
+    build:
+      targets:
+        Brievie: all
+    test:
+      targets:
+        - BrievieTests

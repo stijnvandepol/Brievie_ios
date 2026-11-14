@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install tools
+        run: brew install xcodegen swiftlint
+      - name: Lint
+        run: make lint
+      - name: Test
+        run: make test
+      - name: Generate project
+        run: make generate
+      - name: Pick a simulator
+        run: |
+          udid=$(scripts/simulator-udid.sh "iPhone 17")
+          echo "SIMULATOR_ID=$udid" >> "$GITHUB_ENV"
+      - name: Simulator build
+        run: make build
+      - name: Keychain tests (hosted in the app on the simulator)
+        run: make test-keychain
