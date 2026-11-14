@@ -273,3 +273,18 @@ private struct NoAuthentication: DeviceAuthenticator {
         #expect(icon(.unknown) == "square.grid.2x2.fill")
     }
 }
+
+@Suite struct WorkspaceRowSubtitleTests {
+    private func row(name: String, kindLabel: String, roleLabel: String?) -> WorkspacesModel.Row {
+        WorkspacesModel.Row(id: UUID(), name: name, kind: .home, kindLabel: kindLabel, roleLabel: roleLabel)
+    }
+
+    @Test func kindLabelThatRepeatsTheNameIsLeftOut() {
+        #expect(row(name: " thuis ", kindLabel: "Thuis", roleLabel: "Beheerder").subtitle == "Beheerder")
+    }
+
+    @Test func otherNamesKeepKindAndRole() {
+        #expect(row(name: "Mijn huis", kindLabel: "Thuis", roleLabel: "Beheerder").subtitle == "Thuis · Beheerder")
+        #expect(row(name: "Mijn huis", kindLabel: "Thuis", roleLabel: nil).subtitle == "Thuis")
+    }
+}

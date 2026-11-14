@@ -86,12 +86,14 @@ struct WorkspacesList: View {
                 }
             }
             LabeledContent {
-                Label {
-                    Text("workspaces.server.secure", bundle: .module)
-                } icon: {
+                HStack(spacing: 4) {
                     Image(systemName: "lock.fill")
+                        .imageScale(.small)
                         .foregroundStyle(.green)
+                        .accessibilityHidden(true)
+                    Text("workspaces.server.secure", bundle: .module)
                 }
+                .accessibilityElement(children: .combine)
             } label: {
                 Text("workspaces.server.connection", bundle: .module)
             }

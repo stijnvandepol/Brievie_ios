@@ -152,8 +152,12 @@ extension WorkspacesModel.Row {
         }
     }
 
-    /// "Thuis · Beheerder"; just the kind when the role is unknown.
+    /// "Thuis · Beheerder". The kind is left out when it only repeats the workspace name (a workspace
+    /// called "Thuis" of kind home); just the kind when the role is unknown.
     public var subtitle: String {
-        [kindLabel, roleLabel].compactMap { $0 }.joined(separator: " · ")
+        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let repeatsName = kindLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+            .caseInsensitiveCompare(normalizedName) == .orderedSame
+        return [repeatsName ? nil : kindLabel, roleLabel].compactMap { $0 }.joined(separator: " · ")
     }
 }
