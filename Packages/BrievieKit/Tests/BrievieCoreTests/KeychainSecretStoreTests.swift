@@ -10,7 +10,7 @@ import Testing
 /// never pass with zero Keychain tests. Everywhere else they are reported as skipped.
 private var runsInsideAppOnSimulator: Bool {
     #if targetEnvironment(simulator)
-    Bundle.main.bundleIdentifier == "nl.brievie.app"
+    Bundle.main.bundleIdentifier == "nl.stijnvdpol.brievie"
     #else
     false
     #endif
@@ -25,11 +25,11 @@ private let keychainTestsEnabled = runsInsideAppOnSimulator
 @Suite(.enabled(if: keychainTestsEnabled, "Needs the app's Keychain on the simulator (make test-keychain)"))
 struct KeychainSecretStoreTests {
     @Test func hostIsTheAppOnSimulator() {
-        #expect(runsInsideAppOnSimulator, "Keychain tests must run hosted in nl.brievie.app on the simulator")
+        #expect(runsInsideAppOnSimulator, "Keychain tests must run hosted in nl.stijnvdpol.brievie on the simulator")
     }
 
     @Test func roundTripOverwriteAndDelete() throws {
-        let store = KeychainSecretStore(service: "nl.brievie.app.tests.\(UUID().uuidString)")
+        let store = KeychainSecretStore(service: "nl.stijnvdpol.brievie.tests.\(UUID().uuidString)")
         defer {
             try? store.delete(.deviceToken)
             try? store.delete(.serverConnection)
@@ -52,8 +52,8 @@ struct KeychainSecretStoreTests {
     }
 
     @Test func servicesAreIsolated() throws {
-        let first = KeychainSecretStore(service: "nl.brievie.app.tests.\(UUID().uuidString)")
-        let second = KeychainSecretStore(service: "nl.brievie.app.tests.\(UUID().uuidString)")
+        let first = KeychainSecretStore(service: "nl.stijnvdpol.brievie.tests.\(UUID().uuidString)")
+        let second = KeychainSecretStore(service: "nl.stijnvdpol.brievie.tests.\(UUID().uuidString)")
         defer { try? first.delete(.deviceToken) }
 
         try first.write(Data("token".utf8), for: .deviceToken)

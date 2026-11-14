@@ -28,7 +28,7 @@ import LocalAuthentication
     #endif
 
     @Test func theLaunchFlagPersistsInItsSuite() throws {
-        let suite = "nl.brievie.tests.\(UUID().uuidString)"
+        let suite = "nl.stijnvdpol.brievie.tests.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let flag = UserDefaultsLaunchFlag(suiteName: suite)
         #expect(!flag.hasLaunchedBefore)

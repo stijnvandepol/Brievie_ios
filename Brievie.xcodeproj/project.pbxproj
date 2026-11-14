@@ -1,0 +1,528 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		10638E1F3ADCC18E5E4BC16B /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7EDD481B988C592B8AB5985 /* AppEnvironment.swift */; };
+		1EFB106964A887B3CBD23CE9 /* LockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E769481337554AD9D9A19289 /* LockView.swift */; };
+		2BC8580EFBC0C5FB3630B790 /* FeaturePairing in Frameworks */ = {isa = PBXBuildFile; productRef = 0B45DF0CF293642976E1BE91 /* FeaturePairing */; };
+		430FC3893B1FE057A5649B0F /* KeychainSecretStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A61F612DDD396EF350CFF2F5 /* KeychainSecretStoreTests.swift */; };
+		5558758FF9A3883A58298B70 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2764E1ACC49558A4678F3A6C /* Assets.xcassets */; };
+		5FAF97D61D1EE19F66222550 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 5980CF85820FFDF8E486834C /* Localizable.xcstrings */; };
+		6C22E267FBEB9377BA0CA2D0 /* BrievieCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7EC3D56DAD31FB51E8C621A /* BrievieCore */; };
+		83849713F5D0AE0BB469B866 /* BrievieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DBF496F60D6A8E9350BE5C1 /* BrievieApp.swift */; };
+		854EB0B47F21ECB5D7BF38B8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */; };
+		8FD67E2BD4045DF0422F9F5E /* BrievieAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F4F6CDC3CC7341669371F61F /* BrievieAPI */; };
+		A1D64F3A7EE0B914996A1478 /* BrievieUI in Frameworks */ = {isa = PBXBuildFile; productRef = 3A414E82B33B8E01E7F5B270 /* BrievieUI */; };
+		A5D1EA6800F994EBAB91506A /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCC4F2726ED10E34A3AC655A /* RootView.swift */; };
+		C58ADCFC8218ED0056055571 /* FeatureWorkspace in Frameworks */ = {isa = PBXBuildFile; productRef = 5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DE67618CED1753C6F9A4039B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 100CF645942B65B1F794FF27 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E4AA4373066DFD7E47CE2769;
+			remoteInfo = Brievie;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2764E1ACC49558A4678F3A6C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5980CF85820FFDF8E486834C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		616EA71179575C46C38B5BC2 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+		8DBF496F60D6A8E9350BE5C1 /* BrievieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrievieApp.swift; sourceTree = "<group>"; };
+		A61F612DDD396EF350CFF2F5 /* KeychainSecretStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainSecretStoreTests.swift; sourceTree = "<group>"; };
+		A9FEAE58BC8EBAF00AAF0B5E /* BrievieKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BrievieKit; path = Packages/BrievieKit; sourceTree = SOURCE_ROOT; };
+		B4F6BE680787E48C18B0CD7C /* Brievie.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Brievie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B735A440B27F3B7DAB841F52 /* BrievieTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = BrievieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DCC4F2726ED10E34A3AC655A /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		DF9ABFEF409F70E0452C97CC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E769481337554AD9D9A19289 /* LockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockView.swift; sourceTree = "<group>"; };
+		F7EDD481B988C592B8AB5985 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AC9ABF7121E076DB2E556AC4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8FD67E2BD4045DF0422F9F5E /* BrievieAPI in Frameworks */,
+				6C22E267FBEB9377BA0CA2D0 /* BrievieCore in Frameworks */,
+				A1D64F3A7EE0B914996A1478 /* BrievieUI in Frameworks */,
+				2BC8580EFBC0C5FB3630B790 /* FeaturePairing in Frameworks */,
+				C58ADCFC8218ED0056055571 /* FeatureWorkspace in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		78A229EF2919535247EF5A0A /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				A9FEAE58BC8EBAF00AAF0B5E /* BrievieKit */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		9271082D08EA18FB090D3037 /* Brievie_ios */ = {
+			isa = PBXGroup;
+			children = (
+				616EA71179575C46C38B5BC2 /* Base.xcconfig */,
+			);
+			name = Brievie_ios;
+			path = .;
+			sourceTree = "<group>";
+		};
+		9DB9437CEA4EA7C97CB7BDF8 /* BrievieCoreTests */ = {
+			isa = PBXGroup;
+			children = (
+				A61F612DDD396EF350CFF2F5 /* KeychainSecretStoreTests.swift */,
+			);
+			name = BrievieCoreTests;
+			path = Packages/BrievieKit/Tests/BrievieCoreTests;
+			sourceTree = "<group>";
+		};
+		BCB9DE6BA8DBB9DAA46A9AC3 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F7EDD481B988C592B8AB5985 /* AppEnvironment.swift */,
+				2764E1ACC49558A4678F3A6C /* Assets.xcassets */,
+				8DBF496F60D6A8E9350BE5C1 /* BrievieApp.swift */,
+				DF9ABFEF409F70E0452C97CC /* Info.plist */,
+				5980CF85820FFDF8E486834C /* Localizable.xcstrings */,
+				E769481337554AD9D9A19289 /* LockView.swift */,
+				16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */,
+				DCC4F2726ED10E34A3AC655A /* RootView.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		BF116C29AB6C91B3D38D769B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B4F6BE680787E48C18B0CD7C /* Brievie.app */,
+				B735A440B27F3B7DAB841F52 /* BrievieTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E49E7D19D122311F54F36144 = {
+			isa = PBXGroup;
+			children = (
+				BCB9DE6BA8DBB9DAA46A9AC3 /* App */,
+				9271082D08EA18FB090D3037 /* Brievie_ios */,
+				9DB9437CEA4EA7C97CB7BDF8 /* BrievieCoreTests */,
+				78A229EF2919535247EF5A0A /* Packages */,
+				BF116C29AB6C91B3D38D769B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6AA98226225B83DC51896F80 /* BrievieTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F359520E604F6C8ACA03FDE3 /* Build configuration list for PBXNativeTarget "BrievieTests" */;
+			buildPhases = (
+				4991C3A6220FE5C22F4F7153 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E186F4551AF20FC59F0A3B67 /* PBXTargetDependency */,
+			);
+			name = BrievieTests;
+			packageProductDependencies = (
+			);
+			productName = BrievieTests;
+			productReference = B735A440B27F3B7DAB841F52 /* BrievieTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E4AA4373066DFD7E47CE2769 /* Brievie */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C3DA592D84056403A66F5917 /* Build configuration list for PBXNativeTarget "Brievie" */;
+			buildPhases = (
+				EAED6D9C75AFCEBEB3F5FE08 /* Sources */,
+				4B174BAF7F57478402362F9B /* Resources */,
+				AC9ABF7121E076DB2E556AC4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Brievie;
+			packageProductDependencies = (
+				F4F6CDC3CC7341669371F61F /* BrievieAPI */,
+				E7EC3D56DAD31FB51E8C621A /* BrievieCore */,
+				3A414E82B33B8E01E7F5B270 /* BrievieUI */,
+				0B45DF0CF293642976E1BE91 /* FeaturePairing */,
+				5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */,
+			);
+			productName = Brievie;
+			productReference = B4F6BE680787E48C18B0CD7C /* Brievie.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		100CF645942B65B1F794FF27 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					6AA98226225B83DC51896F80 = {
+						DevelopmentTeam = Y6MKD63DCN;
+					};
+					E4AA4373066DFD7E47CE2769 = {
+						DevelopmentTeam = Y6MKD63DCN;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 556248E247BEF312A5AAEDA9 /* Build configuration list for PBXProject "Brievie" */;
+			developmentRegion = nl;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				nl,
+			);
+			mainGroup = E49E7D19D122311F54F36144;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				693ADD46F7C4B3E90D69E77B /* XCLocalSwiftPackageReference "Packages/BrievieKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BF116C29AB6C91B3D38D769B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E4AA4373066DFD7E47CE2769 /* Brievie */,
+				6AA98226225B83DC51896F80 /* BrievieTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4B174BAF7F57478402362F9B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5558758FF9A3883A58298B70 /* Assets.xcassets in Resources */,
+				5FAF97D61D1EE19F66222550 /* Localizable.xcstrings in Resources */,
+				854EB0B47F21ECB5D7BF38B8 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4991C3A6220FE5C22F4F7153 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				430FC3893B1FE057A5649B0F /* KeychainSecretStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EAED6D9C75AFCEBEB3F5FE08 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10638E1F3ADCC18E5E4BC16B /* AppEnvironment.swift in Sources */,
+				83849713F5D0AE0BB469B866 /* BrievieApp.swift in Sources */,
+				1EFB106964A887B3CBD23CE9 /* LockView.swift in Sources */,
+				A5D1EA6800F994EBAB91506A /* RootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E186F4551AF20FC59F0A3B67 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E4AA4373066DFD7E47CE2769 /* Brievie */;
+			targetProxy = DE67618CED1753C6F9A4039B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		08F4966BBC394726EDDBF3DD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.stijnvdpol.brievie.tests;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) BRIEVIE_HOSTED_TESTS";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Brievie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Brievie";
+			};
+			name = Release;
+		};
+		1D226CBC63F7EF8049382C4F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.stijnvdpol.brievie;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		291399512CEE9C6BB1F40410 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.stijnvdpol.brievie;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4F85B154CEF662AE2FDCD51D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = nl.stijnvdpol.brievie.tests;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) BRIEVIE_HOSTED_TESTS";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Brievie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Brievie";
+			};
+			name = Debug;
+		};
+		65DA07503926AF2FCEA30E63 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 616EA71179575C46C38B5BC2 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		94B8DFC61929CCE03FFBE28E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 616EA71179575C46C38B5BC2 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		556248E247BEF312A5AAEDA9 /* Build configuration list for PBXProject "Brievie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				94B8DFC61929CCE03FFBE28E /* Debug */,
+				65DA07503926AF2FCEA30E63 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C3DA592D84056403A66F5917 /* Build configuration list for PBXNativeTarget "Brievie" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				291399512CEE9C6BB1F40410 /* Debug */,
+				1D226CBC63F7EF8049382C4F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F359520E604F6C8ACA03FDE3 /* Build configuration list for PBXNativeTarget "BrievieTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4F85B154CEF662AE2FDCD51D /* Debug */,
+				08F4966BBC394726EDDBF3DD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		693ADD46F7C4B3E90D69E77B /* XCLocalSwiftPackageReference "Packages/BrievieKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/BrievieKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0B45DF0CF293642976E1BE91 /* FeaturePairing */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FeaturePairing;
+		};
+		3A414E82B33B8E01E7F5B270 /* BrievieUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BrievieUI;
+		};
+		5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FeatureWorkspace;
+		};
+		E7EC3D56DAD31FB51E8C621A /* BrievieCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BrievieCore;
+		};
+		F4F6CDC3CC7341669371F61F /* BrievieAPI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BrievieAPI;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 100CF645942B65B1F794FF27 /* Project object */;
+}

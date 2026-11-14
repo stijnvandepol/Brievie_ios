@@ -1,15 +1,15 @@
 name: Brievie
-# `Base.xcconfig` includes the optional, git-ignored `Local.xcconfig` (`DEVELOPMENT_TEAM = <team id>`, see
-# `Local.xcconfig.example`) so that `make generate` keeps the developer team for real devices.
+# `Base.xcconfig` sets the developer team; the optional, git-ignored `Local.xcconfig` overrides it (see
+# `Local.xcconfig.example`).
 configFiles:
   Debug: Base.xcconfig
   Release: Base.xcconfig
 options:
-  bundleIdPrefix: nl.brievie
+  bundleIdPrefix: nl.stijnvdpol
   developmentLanguage: nl
   deploymentTarget:
     iOS: "18.0"
-  createIntermediateGroups: true
+  createIntermediateGroups: false
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -30,10 +30,12 @@ targets:
       - path: App
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: nl.brievie.app
+        PRODUCT_BUNDLE_IDENTIFIER: nl.stijnvdpol.brievie
         INFOPLIST_FILE: App/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: BrievieKit
         products:
@@ -51,16 +53,13 @@ targets:
       - path: Packages/BrievieKit/Tests/BrievieCoreTests/KeychainSecretStoreTests.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: nl.brievie.app.tests
+        PRODUCT_BUNDLE_IDENTIFIER: nl.stijnvdpol.brievie.tests
         SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) BRIEVIE_HOSTED_TESTS
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/Brievie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Brievie
         BUNDLE_LOADER: $(TEST_HOST)
     dependencies:
       - target: Brievie
-      - package: BrievieKit
-        product: BrievieCore
-        link: false
 schemes:
   Brievie:
     build:
@@ -69,3 +68,5 @@ schemes:
     test:
       targets:
         - BrievieTests
+    archive:
+      config: Release

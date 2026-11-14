@@ -5,10 +5,16 @@ SIMULATOR ?= iPhone 17
 SIMULATOR_ID ?=
 HOST ?= ../Brievie_host
 
-.PHONY: generate test lint build test-keychain sync-api
+.PHONY: generate check-project test lint build test-keychain sync-api archive
 
 generate:
 	xcodegen generate
+	@mkdir -p Brievie.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+	@cp $(PACKAGE)/Package.resolved Brievie.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# The project is committed for Xcode Cloud; it must match project.yml.
+check-project: generate
+	git diff --exit-code -- Brievie.xcodeproj
 
 test:
 	swift test --package-path $(PACKAGE)
@@ -41,3 +47,15 @@ sync-api:
 	@test -f "$(HOST)/docs/api/openapi.json" || { echo "No openapi.json at $(HOST)/docs/api"; exit 1; }
 	cp "$(HOST)/docs/api/openapi.json" $(PACKAGE)/Sources/BrievieAPI/openapi.json
 	plutil -extract info.version raw -o - $(PACKAGE)/Sources/BrievieAPI/openapi.json > $(PACKAGE)/Sources/BrievieAPI/API_VERSION
+
+# Release archive for TestFlight. Upload goes through Xcode Organizer (open build/Brievie.xcarchive).
+archive:
+	xcodegen generate
+	xcodebuild archive \
+		-project Brievie.xcodeproj \
+		-scheme Brievie \
+		-configuration Release \
+		-destination "generic/platform=iOS" \
+		-archivePath build/Brievie.xcarchive \
+		-skipPackagePluginValidation \
+		-allowProvisioningUpdates

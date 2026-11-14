@@ -31,10 +31,18 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.
 
+## Release
+
+- **Placeholder app icon and privacy manifest** — `scripts/make-app-icon.swift` draws an opaque 1024x1024 envelope icon until a real design exists. `App/PrivacyInfo.xcprivacy` declares no tracking and no collected data, and only the `UserDefaults` required-reason API (`CA92.1`, the `hasLaunchedBefore` flag); a grep found no other required-reason APIs.
+
+- **Bundle id `nl.stijnvdpol.brievie`** — chosen by the owner on 2026-11-14; fixed after the first upload. The Keychain service default and the test identifiers follow it (nothing was released yet, so no migration).
+
+- **`Brievie.xcodeproj` is committed** — Xcode Cloud builds from the repository and needs the project, the shared scheme and `Package.resolved`. `project.yml` stays the source; `make check-project` (in CI) fails when the committed project differs. The team id lives in `Base.xcconfig` (not a secret). `ci_scripts/ci_post_clone.sh` disables package plugin validation for the OpenAPI generator.
+
 ## Open items
 
 - In-app unpair (until then, reinstalling the app is the way to forget a pairing).
-- App icon.
+- Replace the placeholder app icon with the real design.
 - A clear message when the server's API major version becomes newer after pairing (today it surfaces as a generic error).
 - A hint when local-network access is denied (today it looks like an unreachable server).
 - The device name is always "iPhone" on iOS 16+ without the user-assigned-device-name entitlement.

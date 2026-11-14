@@ -15,10 +15,29 @@ make build      # bouwt de app voor een iPhone-simulator (bij voorkeur iPhone 17
 make test-keychain  # Keychain-tests, in de app op de simulator
 ```
 
-Het Xcode-project wordt gegenereerd en staat niet in git; pas `project.yml` aan.
+Het Xcode-project wordt gegenereerd uit `project.yml` en staat ook in git, omdat Xcode Cloud het nodig heeft.
+Pas `project.yml` aan, draai `make generate` en commit beide; CI controleert dat ze gelijk zijn.
 
 ## Op een echte iPhone draaien
 
-1. Kopieer `Local.xcconfig.example` naar `Local.xcconfig` (staat niet in git) en vul je Apple-team-id in bij `DEVELOPMENT_TEAM`.
-2. Draai `make generate`; je team blijft behouden bij elke volgende keer.
-3. Kies in Xcode je iPhone als bestemming en start de app.
+Het team-id staat in `Base.xcconfig`. Open `Brievie.xcodeproj`, kies je iPhone als bestemming en start de app.
+Wie met een ander team wil signeren, kopieert `Local.xcconfig.example` naar `Local.xcconfig` (staat niet in git).
+
+## TestFlight
+
+Het app-icoon is een tijdelijke placeholder (`scripts/make-app-icon.swift` genereert het); vervang het voor een publieke release.
+
+Eenmalig bij Apple (door de eigenaar):
+
+1. Registreer de bundle id `nl.stijnvdpol.brievie` in het Apple Developer-portaal.
+2. Maak in App Store Connect een app aan: naam Brievie, primaire taal Nederlands, bundle id `nl.stijnvdpol.brievie`.
+
+Uploaden kan op twee manieren; er is geen uploadscript.
+
+**Xcode Cloud.** Open `Brievie.xcodeproj`, kies Integrate → Create Workflow en volg de stappen (toegang tot de
+GitHub-repo geven, schema `Brievie`, actie Archive met TestFlight Internal Testing). Xcode Cloud zet zelf het
+build-nummer. `ci_scripts/ci_post_clone.sh` schakelt de plugin-validatie uit die de OpenAPI-generator anders blokkeert.
+
+**Vanaf je Mac.** Kies in Xcode de bestemming Any iOS Device en dan Product → Archive, of draai `make archive` en
+open `build/Brievie.xcarchive`. Kies in de Organizer **Distribute App** en dan **TestFlight Internal Only**.
+Verhoog voor elke upload `CURRENT_PROJECT_VERSION` in `project.yml`; App Store Connect weigert een gebruikt build-nummer.
