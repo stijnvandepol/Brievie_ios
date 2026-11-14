@@ -34,6 +34,8 @@ targets:
         INFOPLIST_FILE: App/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: BrievieKit
         products:
@@ -69,3 +71,5 @@ schemes:
     test:
       targets:
         - BrievieTests
+    archive:
+      config: Release

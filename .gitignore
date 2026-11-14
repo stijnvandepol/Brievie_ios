@@ -17,3 +17,6 @@ xcuserdata/
 
 # Local signing settings (team id)
 Local.xcconfig
+
+# Archives
+build/

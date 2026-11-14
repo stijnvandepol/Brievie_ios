@@ -5,7 +5,7 @@ SIMULATOR ?= iPhone 17
 SIMULATOR_ID ?=
 HOST ?= ../Brievie_host
 
-.PHONY: generate test lint build test-keychain sync-api
+.PHONY: generate test lint build test-keychain sync-api archive
 
 generate:
 	xcodegen generate
@@ -41,3 +41,16 @@ sync-api:
 	@test -f "$(HOST)/docs/api/openapi.json" || { echo "No openapi.json at $(HOST)/docs/api"; exit 1; }
 	cp "$(HOST)/docs/api/openapi.json" $(PACKAGE)/Sources/BrievieAPI/openapi.json
 	plutil -extract info.version raw -o - $(PACKAGE)/Sources/BrievieAPI/openapi.json > $(PACKAGE)/Sources/BrievieAPI/API_VERSION
+
+# Release archive for TestFlight. Upload goes through Xcode Organizer (open build/Brievie.xcarchive).
+archive:
+	@test -f Local.xcconfig || { echo "Local.xcconfig is missing: copy Local.xcconfig.example and set DEVELOPMENT_TEAM (needed to sign the archive)"; exit 1; }
+	xcodegen generate
+	xcodebuild archive \
+		-project Brievie.xcodeproj \
+		-scheme Brievie \
+		-configuration Release \
+		-destination "generic/platform=iOS" \
+		-archivePath build/Brievie.xcarchive \
+		-skipPackagePluginValidation \
+		-allowProvisioningUpdates
