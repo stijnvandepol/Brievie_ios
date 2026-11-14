@@ -33,7 +33,7 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 
 ## Release
 
-- **Placeholder app icon and privacy manifest** — `scripts/make-app-icon.swift` draws an opaque 1024x1024 envelope icon until a real design exists. `App/PrivacyInfo.xcprivacy` declares no tracking and no collected data, and only the `UserDefaults` required-reason API (`CA92.1`, the `hasLaunchedBefore` flag); a grep found no other required-reason APIs.
+- **App icon and privacy manifest** — `scripts/make-app-icon.swift` draws the opaque 1024x1024 app icon: an envelope with a tick as its flap, on a navy square. `App/PrivacyInfo.xcprivacy` declares no tracking and no collected data, and only the `UserDefaults` required-reason API (`CA92.1`, the `hasLaunchedBefore` flag); a grep found no other required-reason APIs.
 
 - **Bundle id `nl.stijnvdpol.brievie`** — chosen by the owner on 2026-11-14; fixed after the first upload. The Keychain service default and the test identifiers follow it (nothing was released yet, so no migration).
 
@@ -42,7 +42,6 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 ## Open items
 
 - In-app unpair (until then, reinstalling the app is the way to forget a pairing).
-- Replace the placeholder app icon with the real design.
 - A clear message when the server's API major version becomes newer after pairing (today it surfaces as a generic error).
 - A hint when local-network access is denied (today it looks like an unreachable server).
 - The device name is always "iPhone" on iOS 16+ without the user-assigned-device-name entitlement.

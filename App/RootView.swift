@@ -1,4 +1,5 @@
 import BrievieCore
+import BrievieUI
 import FeaturePairing
 import FeatureWorkspace
 import SwiftUI
@@ -12,6 +13,7 @@ struct RootView: View {
 
     var body: some View {
         content
+            .tint(BrievieColor.brand)
             .overlay {
                 if hidesContent {
                     PrivacyCover()
