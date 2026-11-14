@@ -37,6 +37,8 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 
 - **Bundle id `nl.stijnvdpol.brievie`** — chosen by the owner on 2026-11-14; fixed after the first upload. The Keychain service default and the test identifiers follow it (nothing was released yet, so no migration).
 
+- **`Brievie.xcodeproj` is committed** — Xcode Cloud builds from the repository and needs the project, the shared scheme and `Package.resolved`. `project.yml` stays the source; `make check-project` (in CI) fails when the committed project differs. The team id lives in `Base.xcconfig` (not a secret). `ci_scripts/ci_post_clone.sh` disables package plugin validation for the OpenAPI generator.
+
 ## Open items
 
 - In-app unpair (until then, reinstalling the app is the way to forget a pairing).

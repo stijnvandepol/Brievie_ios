@@ -5,10 +5,16 @@ SIMULATOR ?= iPhone 17
 SIMULATOR_ID ?=
 HOST ?= ../Brievie_host
 
-.PHONY: generate test lint build test-keychain sync-api archive
+.PHONY: generate check-project test lint build test-keychain sync-api archive
 
 generate:
 	xcodegen generate
+	@mkdir -p Brievie.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+	@cp $(PACKAGE)/Package.resolved Brievie.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# The project is committed for Xcode Cloud; it must match project.yml.
+check-project: generate
+	git diff --exit-code -- Brievie.xcodeproj
 
 test:
 	swift test --package-path $(PACKAGE)
@@ -44,7 +50,6 @@ sync-api:
 
 # Release archive for TestFlight. Upload goes through Xcode Organizer (open build/Brievie.xcarchive).
 archive:
-	@test -f Local.xcconfig || { echo "Local.xcconfig is missing: copy Local.xcconfig.example and set DEVELOPMENT_TEAM (needed to sign the archive)"; exit 1; }
 	xcodegen generate
 	xcodebuild archive \
 		-project Brievie.xcodeproj \

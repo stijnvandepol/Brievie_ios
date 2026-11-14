@@ -16,8 +16,8 @@ jobs:
         run: make lint
       - name: Test
         run: make test
-      - name: Generate project
-        run: make generate
+      - name: Project matches project.yml
+        run: make check-project
       - name: Pick a simulator
         run: |
           udid=$(scripts/simulator-udid.sh "iPhone 17")

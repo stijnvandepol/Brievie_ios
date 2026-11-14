@@ -1,2 +1,4 @@
-// Shared by every configuration. Local.xcconfig is optional and git-ignored (signing team for real devices).
+// Shared by every configuration. The team id is not a secret; Xcode Cloud needs it in the repository.
+DEVELOPMENT_TEAM = Y6MKD63DCN
+// Optional and git-ignored: overrides the team for another developer.
 #include? "Local.xcconfig"
