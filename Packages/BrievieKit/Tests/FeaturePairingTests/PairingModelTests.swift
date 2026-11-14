@@ -285,13 +285,11 @@ final class StubServer: BrievieServer {
 
     @Test func viewTextsInTheCatalogUseTheNewWording() throws {
         let expected = [
-            "pairing.instructions":
-                "Open in de webinterface 'App koppelen'. Scan de QR-code, "
-                + "of kopieer daar de koppelgegevens en plak ze hier.",
-            "pairing.instructions.manual":
-                "Open in de webinterface 'App koppelen'. Kopieer daar de koppelgegevens en plak ze hier.",
+            "pairing.title": "Koppelen met je server",
+            "pairing.instructions": "Open in de webinterface Apparaten en maak een koppelcode.",
+            "pairing.scan": "Scan QR-code",
             "pairing.manual.field": "Plak de koppelgegevens",
-            "pairing.paste.show": "Koppelgegevens plakken",
+            "pairing.paste.show": "Plak koppelgegevens",
             "pairing.camera.denied":
                 "Brievie mag de camera niet gebruiken. Zet dit aan in Instellingen, of plak de koppelgegevens.",
             "pairing.camera.openSettings": "Open Instellingen",
