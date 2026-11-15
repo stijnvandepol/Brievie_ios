@@ -1,7 +1,9 @@
 #if os(iOS)
 import SwiftUI
 
-/// A message with an optional action, for errors and warnings. The message is read as one VoiceOver element.
+/// A plain inline message with an SF Symbol and an optional action, for errors and warnings.
+/// The symbol differs per style, so the meaning never rests on colour alone. The message is read as one
+/// VoiceOver element.
 public struct ErrorBanner: View {
     public enum Style {
         case error
@@ -26,31 +28,30 @@ public struct ErrorBanner: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Label {
                 Text(message)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
-                Image(systemName: style == .error ? "exclamationmark.octagon.fill" : "exclamationmark.triangle.fill")
+                Image(systemName: style == .error ? "exclamationmark.circle.fill" : "exclamationmark.triangle.fill")
                     .foregroundStyle(style == .error ? Color.red : Color.orange)
             }
             .accessibilityElement(children: .combine)
             if let actionTitle {
                 Button(actionTitle, action: action)
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.borderless)
+                    .frame(minHeight: 44)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
 #Preview {
-    VStack {
+    List {
         ErrorBanner("We kunnen je server niet bereiken.", actionTitle: "Opnieuw proberen") {}
         ErrorBanner("Dit apparaat heeft geen toegangscode.", style: .warning)
     }
-    .padding()
 }
 #endif

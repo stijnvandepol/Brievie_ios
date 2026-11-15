@@ -13,6 +13,17 @@
         }
       }
     },
+    "pairing.brand": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie"
+          }
+        }
+      }
+    },
     "pairing.camera.denied": {
       "extractionState": "manual",
       "localizations": {
@@ -164,19 +175,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open in de webinterface 'App koppelen'. Scan de QR-code, of kopieer daar de koppelgegevens en plak ze hier."
-          }
-        }
-      }
-    },
-    "pairing.instructions.manual": {
-      "comment": "Pairing screen instructions when the camera is not used.",
-      "extractionState": "manual",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open in de webinterface 'App koppelen'. Kopieer daar de koppelgegevens en plak ze hier."
+            "value": "Open in de webinterface Apparaten en maak een koppelcode."
           }
         }
       }
@@ -193,6 +192,17 @@
         }
       }
     },
+    "pairing.manual.header": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppelgegevens plakken"
+          }
+        }
+      }
+    },
     "pairing.manual.submit": {
       "comment": "Button that pairs with the pasted code.",
       "extractionState": "manual",
@@ -205,18 +215,6 @@
         }
       }
     },
-    "pairing.paste.hide": {
-      "comment": "Button that hides the manual code field and returns to the camera.",
-      "extractionState": "manual",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Camera gebruiken"
-          }
-        }
-      }
-    },
     "pairing.paste.show": {
       "comment": "Button that shows the manual code field.",
       "extractionState": "manual",
@@ -224,7 +222,73 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Koppelgegevens plakken"
+            "value": "Plak koppelgegevens"
+          }
+        }
+      }
+    },
+    "pairing.prerequisite.code": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code geldig"
+          }
+        }
+      }
+    },
+    "pairing.prerequisite.code.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 minuten"
+          }
+        }
+      }
+    },
+    "pairing.prerequisite.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netwerk"
+          }
+        }
+      }
+    },
+    "pairing.prerequisite.network.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zelfde wifi als de server"
+          }
+        }
+      }
+    },
+    "pairing.prerequisites.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De app vertrouwt alleen het certificaat van jouw server."
+          }
+        }
+      }
+    },
+    "pairing.prerequisites.header": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voordat je begint"
           }
         }
       }
@@ -253,6 +317,28 @@
         }
       }
     },
+    "pairing.scan": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan QR-code"
+          }
+        }
+      }
+    },
+    "pairing.scanner.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleer"
+          }
+        }
+      }
+    },
     "pairing.scanner.label": {
       "comment": "VoiceOver label of the camera view.",
       "extractionState": "manual",
@@ -272,7 +358,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Koppel met je Brievie-server"
+            "value": "Koppelen met je server"
           }
         }
       }

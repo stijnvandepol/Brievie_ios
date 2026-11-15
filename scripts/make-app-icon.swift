@@ -1,4 +1,4 @@
-// Generates the placeholder app icon: a white envelope on a deep-blue square.
+// Generates the app icon: a white envelope whose flap is a tick, on a navy square.
 // Usage (from the repo root): swift scripts/make-app-icon.swift
 // The PNG is opaque (no alpha channel, sRGB) and has square corners, as App Store Connect requires.
 import CoreGraphics
@@ -23,30 +23,44 @@ else {
     fatalError("Cannot create the drawing context")
 }
 
-// Background #1F3A5F.
-context.setFillColor(CGColor(colorSpace: colorSpace, components: [31 / 255, 58 / 255, 95 / 255, 1]) ?? .black)
+// Work in the SVG design space: origin top-left, y down.
+context.translateBy(x: 0, y: CGFloat(size))
+context.scaleBy(x: 1, y: -1)
+
+let navy = CGColor(colorSpace: colorSpace, components: [0x16 / 255, 0x29 / 255, 0x3F / 255, 1]) ?? .black
+let white = CGColor(colorSpace: colorSpace, components: [1, 1, 1, 1]) ?? .white
+
+context.setFillColor(navy)
 context.fill(CGRect(x: 0, y: 0, width: size, height: size))
 
-// Envelope body, centred with a generous margin.
-let width: CGFloat = 560
-let height: CGFloat = 400
-let body = CGRect(x: (CGFloat(size) - width) / 2, y: (CGFloat(size) - height) / 2, width: width, height: height)
-let white = CGColor(colorSpace: colorSpace, components: [1, 1, 1, 1]) ?? .white
-let blue = CGColor(colorSpace: colorSpace, components: [31 / 255, 58 / 255, 95 / 255, 1]) ?? .black
+let envelope = CGPath(
+    roundedRect: CGRect(x: 156, y: 396, width: 600, height: 400),
+    cornerWidth: 52, cornerHeight: 52, transform: nil
+)
+let tick = CGMutablePath()
+tick.move(to: CGPoint(x: 232, y: 472))
+tick.addLine(to: CGPoint(x: 456, y: 664))
+tick.addLine(to: CGPoint(x: 836, y: 260))
 
+func strokeTick(_ colour: CGColor) {
+    context.setStrokeColor(colour)
+    context.setLineWidth(64)
+    context.setLineCap(.round)
+    context.setLineJoin(.round)
+    context.addPath(tick)
+    context.strokePath()
+}
+
+// The flap is a tick whose tail runs past the envelope: white outside, navy inside.
+strokeTick(white)
 context.setFillColor(white)
-context.addPath(CGPath(roundedRect: body, cornerWidth: 36, cornerHeight: 36, transform: nil))
+context.addPath(envelope)
 context.fillPath()
-
-// Flap: a "V" in the background colour from the top corners to the centre.
-context.setStrokeColor(blue)
-context.setLineWidth(28)
-context.setLineCap(.round)
-context.setLineJoin(.round)
-context.move(to: CGPoint(x: body.minX + 44, y: body.maxY - 48))
-context.addLine(to: CGPoint(x: body.midX, y: body.midY + 20))
-context.addLine(to: CGPoint(x: body.maxX - 44, y: body.maxY - 48))
-context.strokePath()
+context.saveGState()
+context.addPath(envelope)
+context.clip()
+strokeTick(navy)
+context.restoreGState()
 
 guard let image = context.makeImage(),
       let destination = CGImageDestinationCreateWithURL(

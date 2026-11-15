@@ -13,6 +13,17 @@
         }
       }
     },
+    "lock.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel met Face ID of je toegangscode."
+          }
+        }
+      }
+    },
     "lock.title": {
       "comment": "Lock screen title.",
       "extractionState": "manual",

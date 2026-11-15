@@ -9,6 +9,7 @@ public final class WorkspacesModel {
     public struct Row: Equatable, Identifiable {
         public let id: UUID
         public let name: String
+        public let kind: WorkspaceSummary.Kind
         public let kindLabel: String
         /// `nil` for a role this app does not know: no badge.
         public let roleLabel: String?
@@ -21,6 +22,11 @@ public final class WorkspacesModel {
     }
 
     public private(set) var state: State = .loading
+
+    /// Host of the first stored server address, for the Server section; `nil` if it has none.
+    public var serverAddress: String? { connection.urls.first?.host() }
+    /// The paired user's name, as stored at pairing.
+    public var userName: String { connection.userName }
 
     private let connection: ServerConnection
     private let store: ConnectionStore
@@ -112,6 +118,7 @@ extension WorkspacesModel.Row {
         self.init(
             id: workspace.id,
             name: workspace.name,
+            kind: workspace.kind,
             kindLabel: Self.label(for: workspace.kind),
             roleLabel: Self.label(for: workspace.role)
         )
@@ -132,5 +139,25 @@ extension WorkspacesModel.Row {
         case .viewer: WorkspaceStrings.roleViewer
         case .unknown: nil
         }
+    }
+}
+
+extension WorkspacesModel.Row {
+    /// SF Symbol for the workspace kind; a neutral one for a kind this app does not know.
+    public var iconName: String {
+        switch kind {
+        case .home: "house.fill"
+        case .business: "briefcase.fill"
+        case .unknown: "square.grid.2x2.fill"
+        }
+    }
+
+    /// "Thuis · Beheerder". The kind is left out when it only repeats the workspace name (a workspace
+    /// called "Thuis" of kind home); just the kind when the role is unknown.
+    public var subtitle: String {
+        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let repeatsName = kindLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+            .caseInsensitiveCompare(normalizedName) == .orderedSame
+        return [repeatsName ? nil : kindLabel, roleLabel].compactMap { $0 }.joined(separator: " · ")
     }
 }
