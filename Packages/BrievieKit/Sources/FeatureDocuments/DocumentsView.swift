@@ -1,6 +1,7 @@
 #if os(iOS)
 import BrievieScan
 import BrievieUI
+import PhotosUI
 import SwiftUI
 
 /// The post of one workspace, with a button to scan a new letter.
@@ -12,6 +13,8 @@ public struct DocumentsView<Destination: View>: View {
     private let destination: (UUID) -> Destination
 
     @State private var showsScanner = false
+    @State private var showsPhotoPicker = false
+    @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var showsScanProgress = false
 
     public init(
@@ -58,6 +61,14 @@ public struct DocumentsView<Destination: View>: View {
             )
             .ignoresSafeArea()
         }
+        .photosPicker(
+            isPresented: $showsPhotoPicker, selection: $pickedPhotos, maxSelectionCount: 30, matching: .images
+        )
+        .onChange(of: pickedPhotos) { _, items in
+            guard !items.isEmpty else { return }
+            pickedPhotos = []
+            Task { save(await PhotoPages.load(items)) }
+        }
         .sheet(isPresented: $showsScanProgress) {
             ScanFlowView(phase: scanModel.phase) {
                 showsScanProgress = false
@@ -68,16 +79,28 @@ public struct DocumentsView<Destination: View>: View {
         }
     }
 
-    /// The document scanner where there is one; otherwise (simulator, no camera) photos from the library.
+    /// Scan with the camera, or pick photos of the pages. Where the scanner is unavailable (no camera),
+    /// only the photos.
     @ViewBuilder private var scanButton: some View {
         if DocumentScannerView.isSupported {
-            Button {
-                showsScanner = true
+            Menu {
+                Button {
+                    showsScanner = true
+                } label: {
+                    Label(DocumentStrings.scan, systemImage: "doc.viewfinder")
+                }
+                Button {
+                    showsPhotoPicker = true
+                } label: {
+                    Label(DocumentStrings.importPhotos, systemImage: "photo.on.rectangle")
+                }
             } label: {
-                Label(DocumentStrings.scan, systemImage: "doc.viewfinder")
+                Label(DocumentStrings.addPost, systemImage: "plus")
             }
         } else {
-            PhotoImportButton(maxPages: 30, onFinish: save) {
+            Button {
+                showsPhotoPicker = true
+            } label: {
                 Label(DocumentStrings.importPhotos, systemImage: "photo.on.rectangle")
             }
         }

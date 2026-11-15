@@ -4,7 +4,9 @@ import Foundation
 import Testing
 
 @Suite struct UploadQueueStoreTests {
-    private let directory = FileManager.default.temporaryDirectory.appending(path: "uploads-\(UUID().uuidString)")
+    // With a space, like the app's real "Application Support": a percent-encoded path would not be found.
+    private let directory = FileManager.default.temporaryDirectory
+        .appending(path: "Application Support \(UUID().uuidString)/Uploads")
     private let workspaceID = UUID()
     private let deviceID = UUID()
 
@@ -13,7 +15,8 @@ import Testing
     }
 
     private func entries() -> [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: directory.path())) ?? []).sorted()
+        ((try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? [])
+            .sorted()
     }
 
     @Test func enqueuedItemSurvivesARelaunch() async throws {

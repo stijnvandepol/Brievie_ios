@@ -124,6 +124,10 @@ private struct DocumentsScreen: View {
     @State private var model: DocumentsModel
     @State private var scanModel: ScanFlowModel
     private let title: String
+    private let documents: WorkspaceDocuments
+    private let canEdit: Bool
+    private let appModel: AppModel
+    private let deviceID: UUID
 
     init(
         appModel: AppModel, environment: AppEnvironment, connection: ServerConnection,
@@ -133,22 +137,47 @@ private struct DocumentsScreen: View {
             workspaceID: workspace.id, connection: connection, store: environment.store,
             server: environment.documents
         )
+        // A role this app does not know may only look.
+        let canEdit = workspace.role == .admin || workspace.role == .member
         _model = State(initialValue: DocumentsModel(
             documents: documents,
             uploads: environment.uploads,
-            // A role this app does not know may only look.
-            canScan: workspace.role == .admin || workspace.role == .member,
+            canScan: canEdit,
             onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
         ))
         _scanModel = State(initialValue: ScanFlowModel(workspaceID: workspace.id, uploads: environment.uploads))
         title = workspace.name
+        self.documents = documents
+        self.canEdit = canEdit
+        self.appModel = appModel
+        deviceID = connection.deviceID
     }
 
     var body: some View {
-        DocumentsView(model: model, scanModel: scanModel, title: title) { _ in
-            // The review screen arrives with the next step of this phase.
-            EmptyView()
+        DocumentsView(model: model, scanModel: scanModel, title: title) { documentID in
+            ReviewScreen(
+                documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
+                deviceID: deviceID
+            )
         }
+    }
+}
+
+private struct ReviewScreen: View {
+    @State private var model: ReviewModel
+
+    init(documentID: UUID, documents: WorkspaceDocuments, canEdit: Bool, appModel: AppModel, deviceID: UUID) {
+        _model = State(initialValue: ReviewModel(
+            documentID: documentID,
+            documents: documents,
+            canEdit: canEdit,
+            onRevoked: { appModel.sessionRevoked(deviceID: deviceID) },
+            onMissingPairing: { appModel.connectionMissing() }
+        ))
+    }
+
+    var body: some View {
+        ReviewView(model: model)
     }
 }

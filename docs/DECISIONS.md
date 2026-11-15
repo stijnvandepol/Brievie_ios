@@ -67,6 +67,14 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - The list refreshes every 3 seconds only while something is on its way (waiting, uploading, processing) and the screen is visible. There is no push in phase 1.
 - All visible text of this target is in `DocumentStrings` (catalog key plus the Dutch default), also for views; the parity test keeps catalog and code equal. A viewer, or a role this app does not know, gets no scan button.
 
+## Review screen (phase 1b)
+
+- `ReviewModel` turns the server's proposals into a draft: a value the letter does not support (confidence 0) is shown as a hint, never pre-filled; a deadline the user changes becomes `manual` and loses its quote, so the source shown always belongs to the value; an invoice due date without a payment action adds a "Betaal de rekening" task. Nothing is sent before "Bevestigen".
+- "Waar staat dit?" shows the letter text with the quote marked (`QuoteLocator`: ignores case, accents and line breaks; it only finds what to highlight). Marking the place on the page image needs text positions from Vision: later.
+- AI-written text carries "Gemaakt door AI. Controleer of het klopt."; a deadline or amount below the server's threshold shows an orange "Controleer dit goed" label with an icon.
+- "Post toevoegen" is a menu with the scanner and "Kies foto's" (photos of the pages): the scanner reports itself as supported in the simulator but has no camera there, and a photo of a letter is a real way in too.
+- File paths are built with `path(percentEncoded: false)`: the default percent-encodes the space in `Application Support`, and the queue then finds nothing (caught in the simulator; a test now uses a directory with a space).
+
 ## Storage
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.

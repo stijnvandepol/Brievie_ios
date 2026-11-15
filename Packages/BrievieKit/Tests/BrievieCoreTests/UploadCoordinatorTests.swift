@@ -45,7 +45,7 @@ import Testing
     }
 
     private func entries() -> [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: directory.path())) ?? []).sorted()
+        ((try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []).sorted()
     }
 
     @Test func scanWithoutConnectionIsUploadedLater() async throws {
@@ -214,7 +214,7 @@ import Testing
         let itemsWhenCalled = Locked<Int?>(nil)
         let directory = directory
         await uploads.setEventsHandler {
-            let left = (try? FileManager.default.contentsOfDirectory(atPath: directory.path()))?.count
+            let left = (try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false)))?.count
             itemsWhenCalled.value = left
         }
 

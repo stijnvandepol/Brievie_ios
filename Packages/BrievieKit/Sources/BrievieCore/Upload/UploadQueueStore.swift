@@ -33,7 +33,7 @@ public actor UploadQueueStore {
         self.limits = limits
         self.writeBody = writeBody
         // An enqueue that was interrupted (crash, kill) never became an item: remove what it left.
-        let leftovers = (try? FileManager.default.contentsOfDirectory(atPath: directory.path())) ?? []
+        let leftovers = (try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []
         for name in leftovers where name.hasPrefix(Self.incomingPrefix) {
             try? FileManager.default.removeItem(at: directory.appending(path: name))
         }
@@ -81,7 +81,7 @@ public actor UploadQueueStore {
 
     /// Oldest first. A directory that cannot be read as an item is skipped.
     public func items() -> [UploadItem] {
-        let names = (try? files.contentsOfDirectory(atPath: directory.path())) ?? []
+        let names = (try? files.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             Self.date(milliseconds: try decoder.singleValueContainer().decode(Int64.self))
@@ -110,7 +110,7 @@ public actor UploadQueueStore {
 
     public func remove(_ id: UUID) throws {
         let directory = itemDirectory(id)
-        guard files.fileExists(atPath: directory.path()) else { return }
+        guard files.fileExists(atPath: directory.path(percentEncoded: false)) else { return }
         try files.removeItem(at: directory)
     }
 
@@ -143,7 +143,7 @@ public actor UploadQueueStore {
         try? url.setResourceValues(values)
         #if os(iOS)
         try? FileManager.default.setAttributes(
-            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: url.path()
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: url.path(percentEncoded: false)
         )
         #endif
     }
