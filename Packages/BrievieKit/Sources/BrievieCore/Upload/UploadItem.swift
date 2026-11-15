@@ -27,6 +27,24 @@ public struct UploadItem: Codable, Equatable, Sendable, Identifiable {
     public var nextAttemptAt: Date?
     /// Set with `.failed`. Diagnostic: an error code from a closed set, mapped to Dutch text by the UI.
     public var failureCode: String?
+
+    public init(
+        id: UUID, workspaceID: UUID, deviceID: UUID, createdAt: Date, pageCount: Int, bodyByteCount: Int64,
+        boundary: String, state: State, attempt: Int, urlIndex: Int, nextAttemptAt: Date?, failureCode: String?
+    ) {
+        self.id = id
+        self.workspaceID = workspaceID
+        self.deviceID = deviceID
+        self.createdAt = createdAt
+        self.pageCount = pageCount
+        self.bodyByteCount = bodyByteCount
+        self.boundary = boundary
+        self.state = state
+        self.attempt = attempt
+        self.urlIndex = urlIndex
+        self.nextAttemptAt = nextAttemptAt
+        self.failureCode = failureCode
+    }
 }
 
 /// What the server accepts in one upload (host settings `BRIEVIE_MAX_PAGES`, `BRIEVIE_MAX_UPLOAD_BYTES`,

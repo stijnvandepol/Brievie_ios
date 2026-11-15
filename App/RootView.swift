@@ -1,5 +1,6 @@
 import BrievieCore
 import BrievieUI
+import FeatureDocuments
 import FeaturePairing
 import FeatureWorkspace
 import SwiftUI
@@ -93,7 +94,9 @@ private struct PairingScreen: View {
 
 private struct WorkspacesScreen: View {
     @State private var model: WorkspacesModel
-    private let showsNoPasscodeWarning: Bool
+    private let appModel: AppModel
+    private let environment: AppEnvironment
+    private let connection: ServerConnection
 
     init(appModel: AppModel, environment: AppEnvironment, connection: ServerConnection) {
         _model = State(initialValue: WorkspacesModel(
@@ -102,10 +105,50 @@ private struct WorkspacesScreen: View {
             server: environment.server,
             appModel: appModel
         ))
-        showsNoPasscodeWarning = appModel.showsNoPasscodeWarning
+        self.appModel = appModel
+        self.environment = environment
+        self.connection = connection
     }
 
     var body: some View {
-        WorkspacesView(model: model, showsNoPasscodeWarning: showsNoPasscodeWarning)
+        WorkspacesView(model: model, showsNoPasscodeWarning: appModel.showsNoPasscodeWarning) { workspace in
+            DocumentsScreen(
+                appModel: appModel, environment: environment, connection: connection, workspace: workspace
+            )
+        }
+    }
+}
+
+/// The post of one workspace. Owns its models for as long as the screen is on the navigation stack.
+private struct DocumentsScreen: View {
+    @State private var model: DocumentsModel
+    @State private var scanModel: ScanFlowModel
+    private let title: String
+
+    init(
+        appModel: AppModel, environment: AppEnvironment, connection: ServerConnection,
+        workspace: WorkspacesModel.Row
+    ) {
+        let documents = WorkspaceDocuments(
+            workspaceID: workspace.id, connection: connection, store: environment.store,
+            server: environment.documents
+        )
+        _model = State(initialValue: DocumentsModel(
+            documents: documents,
+            uploads: environment.uploads,
+            // A role this app does not know may only look.
+            canScan: workspace.role == .admin || workspace.role == .member,
+            onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
+            onMissingPairing: { appModel.connectionMissing() }
+        ))
+        _scanModel = State(initialValue: ScanFlowModel(workspaceID: workspace.id, uploads: environment.uploads))
+        title = workspace.name
+    }
+
+    var body: some View {
+        DocumentsView(model: model, scanModel: scanModel, title: title) { _ in
+            // The review screen arrives with the next step of this phase.
+            EmptyView()
+        }
     }
 }

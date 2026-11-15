@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "BrievieCore", targets: ["BrievieCore"]),
         .library(name: "BrievieScan", targets: ["BrievieScan"]),
         .library(name: "BrievieUI", targets: ["BrievieUI"]),
+        .library(name: "FeatureDocuments", targets: ["FeatureDocuments"]),
         .library(name: "FeaturePairing", targets: ["FeaturePairing"]),
         .library(name: "FeatureWorkspace", targets: ["FeatureWorkspace"])
     ],
@@ -40,6 +41,11 @@ let package = Package(
         .target(name: "BrievieScan"),
         .target(name: "BrievieUI"),
         .target(
+            name: "FeatureDocuments",
+            dependencies: ["BrievieCore", "BrievieScan", "BrievieUI"],
+            resources: [.process("Resources")]
+        ),
+        .target(
             name: "FeaturePairing",
             dependencies: ["BrievieCore", "BrievieUI"],
             resources: [.process("Resources")]
@@ -53,7 +59,10 @@ let package = Package(
             name: "BrievieCoreTests",
             dependencies: ["BrievieCore", "BrievieAPI", "BrievieScan"],
             path: "Tests",
-            exclude: ["BrievieScanTests", "FeaturePairingTests", "FeatureWorkspaceTests", "Fixtures/make-certs.sh"],
+            exclude: [
+                "BrievieScanTests", "FeatureDocumentsTests", "FeaturePairingTests", "FeatureWorkspaceTests",
+                "Fixtures/make-certs.sh"
+            ],
             sources: ["BrievieCoreTests"],
             resources: [.copy("Fixtures")]
         ),
@@ -63,6 +72,7 @@ let package = Package(
             exclude: ["Fixtures/make-letter.swift"],
             resources: [.copy("Fixtures")]
         ),
+        .testTarget(name: "FeatureDocumentsTests", dependencies: ["FeatureDocuments", "BrievieCore", "BrievieScan"]),
         .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing", "BrievieCore"]),
         .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace", "BrievieCore"])
     ]

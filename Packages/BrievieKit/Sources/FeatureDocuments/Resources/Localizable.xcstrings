@@ -1,0 +1,390 @@
+{
+  "sourceLanguage": "nl",
+  "strings": {
+    "documents.delete": {
+      "comment": "Deletes a scan that is still on the phone.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "documents.empty": {
+      "comment": "Shown when the workspace has no documents.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen post. Scan je eerste brief."
+          }
+        }
+      }
+    },
+    "documents.error.notFound": {
+      "comment": "The document was removed on the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit document bestaat niet meer."
+          }
+        }
+      }
+    },
+    "documents.error.notVerified": {
+      "comment": "Server certificate refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We konden niet controleren of dit jouw Brievie-server is. Koppel de app opnieuw als dit blijft gebeuren."
+          }
+        }
+      }
+    },
+    "documents.error.unreachable": {
+      "comment": "Server unreachable.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We kunnen je Brievie-server niet bereiken. Zit je op hetzelfde netwerk?"
+          }
+        }
+      }
+    },
+    "documents.import": {
+      "comment": "Button that picks page photos from the library (no scanner available).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies foto's"
+          }
+        }
+      }
+    },
+    "documents.loading": {
+      "comment": "Shown while the first load runs.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post laden…"
+          }
+        }
+      }
+    },
+    "documents.new": {
+      "comment": "Title of a document whose sender is not known yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuw document"
+          }
+        }
+      }
+    },
+    "documents.pages.many": {
+      "comment": "Page count; %d is the number of pages (2 or more).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d pagina's"
+          }
+        }
+      }
+    },
+    "documents.pages.one": {
+      "comment": "Page count of a document with one page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 pagina"
+          }
+        }
+      }
+    },
+    "documents.retry": {
+      "comment": "Retry button.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw proberen"
+          }
+        }
+      }
+    },
+    "documents.scan": {
+      "comment": "Button that opens the document scanner.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan een brief"
+          }
+        }
+      }
+    },
+    "documents.section": {
+      "comment": "Header of the document list.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post"
+          }
+        }
+      }
+    },
+    "documents.status.done": {
+      "comment": "The document was confirmed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar"
+          }
+        }
+      }
+    },
+    "documents.status.failed": {
+      "comment": "Processing on the server failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwerken mislukt"
+          }
+        }
+      }
+    },
+    "documents.status.needsReview": {
+      "comment": "The document waits for the user's review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleer dit"
+          }
+        }
+      }
+    },
+    "documents.status.processing": {
+      "comment": "The server is processing the document.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wordt verwerkt"
+          }
+        }
+      }
+    },
+    "documents.status.uploadFailed": {
+      "comment": "A scan whose upload failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload mislukt"
+          }
+        }
+      }
+    },
+    "documents.status.uploading": {
+      "comment": "A scan that is being uploaded.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaden…"
+          }
+        }
+      }
+    },
+    "documents.status.waiting": {
+      "comment": "A scan that waits for the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht op verbinding"
+          }
+        }
+      }
+    },
+    "documents.upload.failed": {
+      "comment": "An upload the server refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaden is niet gelukt."
+          }
+        }
+      }
+    },
+    "documents.upload.tooLarge": {
+      "comment": "Scan above the server's size limit.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze scan is te groot. Scan minder pagina's tegelijk."
+          }
+        }
+      }
+    },
+    "documents.upload.workspaceGone": {
+      "comment": "Upload to a workspace that no longer exists.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze werkruimte bestaat niet meer op de server."
+          }
+        }
+      }
+    },
+    "error.generic": {
+      "comment": "Generic error; never shows server diagnostics.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "scan.close": {
+      "comment": "Closes the scan sheet after an error.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sluiten"
+          }
+        }
+      }
+    },
+    "scan.error.diskFull": {
+      "comment": "Phone storage is full.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is niet genoeg ruimte op je telefoon om de scan te bewaren."
+          }
+        }
+      }
+    },
+    "scan.error.failed": {
+      "comment": "Saving the scan failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De scan kon niet worden bewaard. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "scan.error.noPages": {
+      "comment": "The scanner returned no pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er zijn geen pagina's gescand."
+          }
+        }
+      }
+    },
+    "scan.error.tooManyPages": {
+      "comment": "More pages than the server accepts.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt maximaal 30 pagina's in één keer scannen."
+          }
+        }
+      }
+    },
+    "scan.error.unreadable": {
+      "comment": "A page image could not be decoded.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een pagina kon niet worden gelezen. Scan de brief opnieuw."
+          }
+        }
+      }
+    },
+    "scan.recognising": {
+      "comment": "Progress of text recognition; page number and page count.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tekst herkennen: pagina %1$d van %2$d"
+          }
+        }
+      }
+    },
+    "scan.title": {
+      "comment": "Title of the sheet shown while a scan is prepared.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan bewaren"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

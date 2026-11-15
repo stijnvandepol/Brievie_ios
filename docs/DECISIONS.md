@@ -60,6 +60,13 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **`CalendarDate`** (year, month, day) for letter dates and deadlines, never `Date`: a deadline is a day, and a `Date` at midnight in Amsterdam is the day before in Los Angeles.
 - A page image is read with a 20 MiB cap; `FakeDocumentServer` and `DocumentFixtures` live in `BrievieCore` because several test targets use them.
 
+## Document list and scanning screens (phase 1b)
+
+- `FeatureDocuments` holds the post of a workspace (`DocumentsModel`, `DocumentsView`) and the scan flow (`ScanFlowModel`). A workspace row opens it through a destination the app supplies (`WorkspacesView(destination:)`), so `FeatureWorkspace` does not depend on it. The tab bar of spec section 13 comes in 1c with the Today screen.
+- Screens talk to the queue through the `UploadQueue` protocol (`UploadCoordinator` conforms); a scan on the phone and its document on the server (same id as `client_id`) are one row.
+- The list refreshes every 3 seconds only while something is on its way (waiting, uploading, processing) and the screen is visible. There is no push in phase 1.
+- All visible text of this target is in `DocumentStrings` (catalog key plus the Dutch default), also for views; the parity test keeps catalog and code equal. A viewer, or a role this app does not know, gets no scan button.
+
 ## Storage
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.

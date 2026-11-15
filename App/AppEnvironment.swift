@@ -5,6 +5,7 @@ import Foundation
 struct AppEnvironment {
     let store: ConnectionStore
     let server: any BrievieServer
+    let documents: any DocumentServer
     let launchFlag: any LaunchFlag
     let uploads: UploadCoordinator
 
@@ -22,8 +23,9 @@ struct AppEnvironment {
         )
         AppDelegate.uploads = uploads
         Task { await uploads.run() }
+        let server = LiveBrievieServer()
         return AppEnvironment(
-            store: store, server: LiveBrievieServer(), launchFlag: UserDefaultsLaunchFlag(), uploads: uploads
+            store: store, server: server, documents: server, launchFlag: UserDefaultsLaunchFlag(), uploads: uploads
         )
     }
 

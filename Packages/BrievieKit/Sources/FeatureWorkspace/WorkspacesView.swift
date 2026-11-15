@@ -3,14 +3,21 @@ import BrievieUI
 import SwiftUI
 
 /// The paired user's workspaces, and the server they come from.
-public struct WorkspacesView: View {
+public struct WorkspacesView<Destination: View>: View {
     private let model: WorkspacesModel
     /// The device has no passcode, so the app cannot lock itself.
     private let showsNoPasscodeWarning: Bool
+    /// What a workspace opens: supplied by the app, so this target does not know the documents feature.
+    private let destination: (WorkspacesModel.Row) -> Destination
 
-    public init(model: WorkspacesModel, showsNoPasscodeWarning: Bool) {
+    public init(
+        model: WorkspacesModel,
+        showsNoPasscodeWarning: Bool,
+        @ViewBuilder destination: @escaping (WorkspacesModel.Row) -> Destination
+    ) {
         self.model = model
         self.showsNoPasscodeWarning = showsNoPasscodeWarning
+        self.destination = destination
     }
 
     public var body: some View {
@@ -20,7 +27,8 @@ public struct WorkspacesView: View {
                 serverAddress: model.serverAddress,
                 userName: model.userName,
                 showsNoPasscodeWarning: showsNoPasscodeWarning,
-                retry: { model.retry() }
+                retry: { model.retry() },
+                destination: destination
             )
             .refreshable { await model.load() }
             .task { await model.load() }
@@ -30,12 +38,13 @@ public struct WorkspacesView: View {
 }
 
 /// The rendering of `WorkspacesView`, free of the model so that previews can feed it plain values.
-struct WorkspacesList: View {
+struct WorkspacesList<Destination: View>: View {
     let state: WorkspacesModel.State
     let serverAddress: String?
     let userName: String
     let showsNoPasscodeWarning: Bool
     let retry: () -> Void
+    let destination: (WorkspacesModel.Row) -> Destination
 
     var body: some View {
         List {
@@ -69,7 +78,11 @@ struct WorkspacesList: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(rows) { row in
-                WorkspaceRowView(row: row)
+                NavigationLink {
+                    destination(row)
+                } label: {
+                    WorkspaceRowView(row: row)
+                }
             }
         case .failed(let message):
             ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module), action: retry)
@@ -150,7 +163,7 @@ private var previewRows: [WorkspacesModel.Row] {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, retry: {}
+            showsNoPasscodeWarning: false, retry: {}, destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)
@@ -160,7 +173,7 @@ private var previewRows: [WorkspacesModel.Row] {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, retry: {}
+            showsNoPasscodeWarning: false, retry: {}, destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)

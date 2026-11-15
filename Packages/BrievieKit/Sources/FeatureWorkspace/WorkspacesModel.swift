@@ -13,6 +13,8 @@ public final class WorkspacesModel {
         public let kindLabel: String
         /// `nil` for a role this app does not know: no badge.
         public let roleLabel: String?
+        /// What the user may do in this workspace; `.unknown` reads as "may only look".
+        public var role: WorkspaceSummary.Role = .unknown
     }
 
     public enum State: Equatable {
@@ -120,7 +122,8 @@ extension WorkspacesModel.Row {
             name: workspace.name,
             kind: workspace.kind,
             kindLabel: Self.label(for: workspace.kind),
-            roleLabel: Self.label(for: workspace.role)
+            roleLabel: Self.label(for: workspace.role),
+            role: workspace.role
         )
     }
 
