@@ -85,7 +85,9 @@ private struct NoAuthentication: DeviceAuthenticator {
         await model.load()
 
         #expect(model.state == .loaded([
-            WorkspacesModel.Row(id: thuis.id, name: "Thuis", kind: .home, kindLabel: "Thuis", roleLabel: "Beheerder")
+            WorkspacesModel.Row(
+                id: thuis.id, name: "Thuis", kind: .home, kindLabel: "Thuis", roleLabel: "Beheerder", role: .admin
+            )
         ]))
         #expect(server.tokens == ["device-token"])
     }
@@ -105,7 +107,9 @@ private struct NoAuthentication: DeviceAuthenticator {
 
         #expect(model.state == .loaded([
             WorkspacesModel.Row(id: mystery.id, name: "Nieuw", kind: .unknown, kindLabel: "Werkruimte", roleLabel: nil),
-            WorkspacesModel.Row(id: member.id, name: "Werk", kind: .business, kindLabel: "Zakelijk", roleLabel: "Lid")
+            WorkspacesModel.Row(
+                id: member.id, name: "Werk", kind: .business, kindLabel: "Zakelijk", roleLabel: "Lid", role: .member
+            )
         ]))
     }
 
@@ -259,6 +263,14 @@ private struct NoAuthentication: DeviceAuthenticator {
         for (key, resolved) in WorkspaceStrings.all {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeatureWorkspace") == resolved, "\(key)")
         }
+    }
+}
+
+@Suite struct WorkspaceRowRoleTests {
+    @Test func rowCarriesTheRoleForWhatTheUserMayDo() {
+        let member = WorkspaceSummary(id: UUID(), name: "Werk", kind: .business, role: .member)
+
+        #expect(WorkspacesModel.Row(workspace: member).role == .member)
     }
 }
 

@@ -4,7 +4,7 @@ import Testing
 /// A key used in a view without a default value shows up as the raw key when the catalog lacks it
 /// (`swift test` does not compile catalogs, so this scans the sources and reads the catalogs directly).
 @Suite struct CatalogKeyCoverageTests {
-    @Test(arguments: ["BrievieCore", "FeaturePairing", "FeatureWorkspace"])
+    @Test(arguments: ["BrievieCore", "FeatureDocuments", "FeaturePairing", "FeatureWorkspace"])
     func everyKeyTheCodeUsesHasADutchValueInItsCatalog(target: String) throws {
         let used = try CatalogKeyScan.usedKeys(target: target)
         let catalog = try CatalogKeyScan.catalogKeys(target: target)

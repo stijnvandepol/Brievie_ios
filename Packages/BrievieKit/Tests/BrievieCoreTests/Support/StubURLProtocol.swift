@@ -6,6 +6,7 @@ import Synchronization
 final class StubURLProtocol: URLProtocol {
     enum Answer: Sendable {
         case response(status: Int, json: String)
+        case data(status: Int, contentType: String, body: Data)
         case redirect(URL)
         case failure(URLError.Code)
     }
@@ -49,6 +50,8 @@ final class StubURLProtocol: URLProtocol {
         switch answer {
         case let .response(status, json):
             respond(url: url, status: status, body: Data(json.utf8))
+        case let .data(status, contentType, body):
+            respond(url: url, status: status, body: body, contentType: contentType)
         case let .redirect(target):
             guard let response = HTTPURLResponse(
                 url: url, statusCode: 302, httpVersion: "HTTP/1.1", headerFields: ["Location": target.absoluteString]
@@ -63,9 +66,9 @@ final class StubURLProtocol: URLProtocol {
 
     override func stopLoading() {}
 
-    private func respond(url: URL, status: Int, body: Data) {
+    private func respond(url: URL, status: Int, body: Data, contentType: String = "application/json") {
         guard let response = HTTPURLResponse(
-            url: url, statusCode: status, httpVersion: "HTTP/1.1", headerFields: ["Content-Type": "application/json"]
+            url: url, statusCode: status, httpVersion: "HTTP/1.1", headerFields: ["Content-Type": contentType]
         ) else { return }
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: body)

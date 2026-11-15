@@ -41,7 +41,9 @@ targets:
         products:
           - BrievieAPI
           - BrievieCore
+          - BrievieScan
           - BrievieUI
+          - FeatureDocuments
           - FeaturePairing
           - FeatureWorkspace
   # Tests that need an entitled app process (the Keychain). Hosted in the app on the simulator.

@@ -75,7 +75,7 @@ public struct LiveBrievieServer: BrievieServer {
     /// Runs `operation` on a client whose session only trusts what `trust` accepts and follows no redirects,
     /// then invalidates the session. Errors come out as `ServerError`, or `CancellationError` when the task
     /// was cancelled.
-    private func withClient<Result>(
+    func withClient<Result>(
         _ url: URL,
         trust: ServerTrust,
         token: String?,

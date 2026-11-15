@@ -1,0 +1,1146 @@
+{
+  "sourceLanguage": "nl",
+  "strings": {
+    "documents.add": {
+      "comment": "Toolbar menu: add a letter by scanning or from photos.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post toevoegen"
+          }
+        }
+      }
+    },
+    "documents.delete": {
+      "comment": "Deletes a scan that is still on the phone.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "documents.empty": {
+      "comment": "Shown when the workspace has no documents.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog geen post. Scan je eerste brief."
+          }
+        }
+      }
+    },
+    "documents.error.notFound": {
+      "comment": "The document was removed on the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit document bestaat niet meer."
+          }
+        }
+      }
+    },
+    "documents.error.notVerified": {
+      "comment": "Server certificate refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We konden niet controleren of dit jouw Brievie-server is. Koppel de app opnieuw als dit blijft gebeuren."
+          }
+        }
+      }
+    },
+    "documents.error.unreachable": {
+      "comment": "Server unreachable.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We kunnen je Brievie-server niet bereiken. Zit je op hetzelfde netwerk?"
+          }
+        }
+      }
+    },
+    "documents.import": {
+      "comment": "Button that picks page photos from the library (no scanner available).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies foto's"
+          }
+        }
+      }
+    },
+    "documents.loading": {
+      "comment": "Shown while the first load runs.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post laden…"
+          }
+        }
+      }
+    },
+    "documents.new": {
+      "comment": "Title of a document whose sender is not known yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuw document"
+          }
+        }
+      }
+    },
+    "documents.pages.many": {
+      "comment": "Page count; %d is the number of pages (2 or more).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d pagina's"
+          }
+        }
+      }
+    },
+    "documents.pages.one": {
+      "comment": "Page count of a document with one page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 pagina"
+          }
+        }
+      }
+    },
+    "documents.retry": {
+      "comment": "Retry button.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw proberen"
+          }
+        }
+      }
+    },
+    "documents.scan": {
+      "comment": "Button that opens the document scanner.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan een brief"
+          }
+        }
+      }
+    },
+    "documents.section": {
+      "comment": "Header of the document list.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post"
+          }
+        }
+      }
+    },
+    "documents.status.done": {
+      "comment": "The document was confirmed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar"
+          }
+        }
+      }
+    },
+    "documents.status.failed": {
+      "comment": "Processing on the server failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwerken mislukt"
+          }
+        }
+      }
+    },
+    "documents.status.needsReview": {
+      "comment": "The document waits for the user's review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleer dit"
+          }
+        }
+      }
+    },
+    "documents.status.processing": {
+      "comment": "The server is processing the document.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wordt verwerkt"
+          }
+        }
+      }
+    },
+    "documents.status.uploadFailed": {
+      "comment": "A scan whose upload failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload mislukt"
+          }
+        }
+      }
+    },
+    "documents.status.uploading": {
+      "comment": "A scan that is being uploaded.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaden…"
+          }
+        }
+      }
+    },
+    "documents.status.waiting": {
+      "comment": "A scan that waits for the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht op verbinding"
+          }
+        }
+      }
+    },
+    "documents.upload.failed": {
+      "comment": "An upload the server refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaden is niet gelukt."
+          }
+        }
+      }
+    },
+    "documents.upload.otherServer": {
+      "comment": "A queued scan that belongs to a server the app is no longer paired with.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze scan is gemaakt voor een andere server en wordt niet verstuurd. Verwijder hem, of koppel weer met die server."
+          }
+        }
+      }
+    },
+    "documents.upload.tooLarge": {
+      "comment": "Scan above the server's size limit.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze scan is te groot. Scan minder pagina's tegelijk."
+          }
+        }
+      }
+    },
+    "documents.upload.workspaceGone": {
+      "comment": "Upload to a workspace that no longer exists.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze werkruimte bestaat niet meer op de server."
+          }
+        }
+      }
+    },
+    "error.generic": {
+      "comment": "Generic error; never shows server diagnostics.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "review.ai.note": {
+      "comment": "Shown above a review that was pre-filled by AI (EU AI Act transparency).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingevuld door AI. Controleer of het klopt voordat je bevestigt."
+          }
+        }
+      }
+    },
+    "review.attention": {
+      "comment": "Label on a value the AI is not sure about.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleer dit goed"
+          }
+        }
+      }
+    },
+    "review.confirm": {
+      "comment": "Confirms the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bevestigen"
+          }
+        }
+      }
+    },
+    "review.date.add": {
+      "comment": "Adds a date to a field that has none.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum toevoegen"
+          }
+        }
+      }
+    },
+    "review.date.remove": {
+      "comment": "Removes the date from a field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum weghalen"
+          }
+        }
+      }
+    },
+    "review.done.manual": {
+      "comment": "A deadline the user typed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zelf ingevuld"
+          }
+        }
+      }
+    },
+    "review.done.noDeadline": {
+      "comment": "A task without a deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen datum"
+          }
+        }
+      }
+    },
+    "review.done.noTasks": {
+      "comment": "A confirmed document without tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen taken"
+          }
+        }
+      }
+    },
+    "review.done.source": {
+      "comment": "The words in the letter a deadline was read from.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bron: “%@”"
+          }
+        }
+      }
+    },
+    "review.error.refused": {
+      "comment": "The server refused the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De server kon dit niet opslaan. Controleer wat je hebt ingevuld."
+          }
+        }
+      }
+    },
+    "review.error.taskNeedsDescription": {
+      "comment": "A task has no description.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geef elke taak een omschrijving."
+          }
+        }
+      }
+    },
+    "review.failed": {
+      "comment": "Processing failed on the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het verwerken is niet gelukt. Je kunt de gegevens zelf invullen of het opnieuw laten proberen."
+          }
+        }
+      }
+    },
+    "review.letterDate": {
+      "comment": "Field label: the date on the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum van de brief"
+          }
+        }
+      }
+    },
+    "review.loading": {
+      "comment": "Shown while the document loads.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief laden…"
+          }
+        }
+      }
+    },
+    "review.page.loading": {
+      "comment": "Shown while a page image loads.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina laden…"
+          }
+        }
+      }
+    },
+    "review.page.unreadable": {
+      "comment": "A page image that cannot be decoded.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze pagina kan niet worden getoond."
+          }
+        }
+      }
+    },
+    "review.pages": {
+      "comment": "Page position; page number and page count.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina %1$d van %2$d"
+          }
+        }
+      }
+    },
+    "review.processing": {
+      "comment": "Shown while the server processes the document.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De server verwerkt deze brief. Dit duurt meestal minder dan een minuut."
+          }
+        }
+      }
+    },
+    "review.readOnly": {
+      "comment": "Shown to a viewer, who cannot confirm.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt in deze werkruimte alleen meekijken."
+          }
+        }
+      }
+    },
+    "review.retryProcessing": {
+      "comment": "Asks the server to process the document again.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw verwerken"
+          }
+        }
+      }
+    },
+    "review.saving": {
+      "comment": "Shown while the review is saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opslaan…"
+          }
+        }
+      }
+    },
+    "review.sender": {
+      "comment": "Field label: who sent the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afzender"
+          }
+        }
+      }
+    },
+    "review.source": {
+      "comment": "Button that shows where in the letter a value was read.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waar staat dit?"
+          }
+        }
+      }
+    },
+    "review.source.missing": {
+      "comment": "The quote could not be located in the letter text.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We vonden deze zin niet terug in de tekst van de brief."
+          }
+        }
+      }
+    },
+    "review.source.title": {
+      "comment": "Title of the sheet that shows the source.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bron in de brief"
+          }
+        }
+      }
+    },
+    "review.summary": {
+      "comment": "Field label: the plain-language explanation.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitleg"
+          }
+        }
+      }
+    },
+    "review.summary.ai": {
+      "comment": "Label on AI-written text (EU AI Act transparency).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemaakt door AI. Controleer of het klopt."
+          }
+        }
+      }
+    },
+    "review.task.add": {
+      "comment": "Adds a task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taak toevoegen"
+          }
+        }
+      }
+    },
+    "review.task.deadline": {
+      "comment": "Field label: the deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uiterste datum"
+          }
+        }
+      }
+    },
+    "review.task.description": {
+      "comment": "Field label: what has to be done.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omschrijving"
+          }
+        }
+      }
+    },
+    "review.task.pay.default": {
+      "comment": "Description of a payment task made from an invoice due date.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betaal de rekening"
+          }
+        }
+      }
+    },
+    "review.task.remove": {
+      "comment": "Removes a task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taak verwijderen"
+          }
+        }
+      }
+    },
+    "review.task.type": {
+      "comment": "Field label: the kind of task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soort taak"
+          }
+        }
+      }
+    },
+    "review.tasks": {
+      "comment": "Header of the tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wat moet je doen"
+          }
+        }
+      }
+    },
+    "review.title": {
+      "comment": "Title of the review screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleren"
+          }
+        }
+      }
+    },
+    "review.type": {
+      "comment": "Field label: the kind of document.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soort post"
+          }
+        }
+      }
+    },
+    "review.type.none": {
+      "comment": "Picker option: no document type chosen.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet gekozen"
+          }
+        }
+      }
+    },
+    "review.unverified": {
+      "comment": "An AI value that was not found in the letter; %@ is the value.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voorstel van AI, niet teruggevonden in de brief: %@"
+          }
+        }
+      }
+    },
+    "scan.close": {
+      "comment": "Closes the scan sheet after an error.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sluiten"
+          }
+        }
+      }
+    },
+    "scan.error.diskFull": {
+      "comment": "Phone storage is full.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is niet genoeg ruimte op je telefoon om de scan te bewaren."
+          }
+        }
+      }
+    },
+    "scan.error.failed": {
+      "comment": "Saving the scan failed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De scan kon niet worden bewaard. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "scan.error.noPages": {
+      "comment": "The scanner returned no pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er zijn geen pagina's gescand."
+          }
+        }
+      }
+    },
+    "scan.error.tooManyPages": {
+      "comment": "More pages than the server accepts.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt maximaal 30 pagina's in één keer scannen."
+          }
+        }
+      }
+    },
+    "scan.error.unreadable": {
+      "comment": "A page image could not be decoded.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een pagina kon niet worden gelezen. Scan de brief opnieuw."
+          }
+        }
+      }
+    },
+    "scan.recognising": {
+      "comment": "Progress of text recognition; page number and page count.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tekst herkennen: pagina %1$d van %2$d"
+          }
+        }
+      }
+    },
+    "scan.title": {
+      "comment": "Title of the sheet shown while a scan is prepared.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan bewaren"
+          }
+        }
+      }
+    },
+    "task.apply": {
+      "comment": "Task type apply.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanvragen"
+          }
+        }
+      }
+    },
+    "task.cancel": {
+      "comment": "Task type cancel.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opzeggen"
+          }
+        }
+      }
+    },
+    "task.file_tax": {
+      "comment": "Task type file_tax.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aangifte doen"
+          }
+        }
+      }
+    },
+    "task.inspection": {
+      "comment": "Task type inspection.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keuring"
+          }
+        }
+      }
+    },
+    "task.object": {
+      "comment": "Task type object.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezwaar maken"
+          }
+        }
+      }
+    },
+    "task.other": {
+      "comment": "Task type other.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overig"
+          }
+        }
+      }
+    },
+    "task.pay": {
+      "comment": "Task type pay.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Betalen"
+          }
+        }
+      }
+    },
+    "task.renew": {
+      "comment": "Task type renew.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlengen"
+          }
+        }
+      }
+    },
+    "task.respond": {
+      "comment": "Task type respond.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reageren"
+          }
+        }
+      }
+    },
+    "type.annual_statement": {
+      "comment": "Document type annual_statement.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jaaropgave"
+          }
+        }
+      }
+    },
+    "type.assessment": {
+      "comment": "Document type assessment.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanslag"
+          }
+        }
+      }
+    },
+    "type.bill": {
+      "comment": "Document type bill.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekening"
+          }
+        }
+      }
+    },
+    "type.contract": {
+      "comment": "Document type contract.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contract"
+          }
+        }
+      }
+    },
+    "type.decision": {
+      "comment": "Document type decision.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beschikking"
+          }
+        }
+      }
+    },
+    "type.demand": {
+      "comment": "Document type demand.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanmaning"
+          }
+        }
+      }
+    },
+    "type.information": {
+      "comment": "Document type information.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informatie"
+          }
+        }
+      }
+    },
+    "type.inspection": {
+      "comment": "Document type inspection.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keuring"
+          }
+        }
+      }
+    },
+    "type.invoice": {
+      "comment": "Document type invoice.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Factuur"
+          }
+        }
+      }
+    },
+    "type.other": {
+      "comment": "Document type other.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overig"
+          }
+        }
+      }
+    },
+    "type.payslip": {
+      "comment": "Document type payslip.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loonstrook"
+          }
+        }
+      }
+    },
+    "type.policy": {
+      "comment": "Document type policy.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Polis"
+          }
+        }
+      }
+    },
+    "type.receipt": {
+      "comment": "Document type receipt.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bonnetje"
+          }
+        }
+      }
+    },
+    "type.reminder": {
+      "comment": "Document type reminder.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herinnering"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
