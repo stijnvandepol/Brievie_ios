@@ -53,6 +53,13 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **Retry rules** live in `UploadPolicy` (pure): next URL at once, then back to the first with a backoff of 30 s up to 1 hour, forever; 401 pauses the queue and sends the user to pairing, nothing is deleted; other 4xx answers fail the item with a code from a closed set, and the user can retry or delete it.
 - `AppModel` does not know the queue: `AppEnvironment.live` builds transport and coordinator, `RootView` calls `resume()` whenever the app becomes ready.
 
+## Documents (phase 1b)
+
+- **A second seam, `DocumentServer`**, next to `BrievieServer`: the document calls (`documents`, `document`, `pageImage`, `confirm`, `retryProcessing`) take a `DocumentScope` (address, trust, token, workspace). `LiveBrievieServer` implements both. Adding five methods to `BrievieServer` would have forced every pairing fake to grow with them.
+- **`WorkspaceDocuments`** is what screens use: it tries the pairing's addresses in order, reads the token from the Keychain, and sorts every failure into a `DocumentsError` (revoked, unreachable, not verified, not found, conflict, ...).
+- **`CalendarDate`** (year, month, day) for letter dates and deadlines, never `Date`: a deadline is a day, and a `Date` at midnight in Amsterdam is the day before in Los Angeles.
+- A page image is read with a 20 MiB cap; `FakeDocumentServer` and `DocumentFixtures` live in `BrievieCore` because several test targets use them.
+
 ## Storage
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.
