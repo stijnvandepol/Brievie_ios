@@ -93,4 +93,7 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - A clear message when the server's API major version becomes newer after pairing (today it surfaces as a generic error).
 - A hint when local-network access is denied (today it looks like an unreachable server).
 - The device name is always "iPhone" on iOS 16+ without the user-assigned-device-name entitlement.
+- Phase 1b, not verified on a real device (the simulator has no camera and no real background relaunch): the document scanner itself, an upload that continues after the system ended the app, the queue going out by itself when the network returns, upload while the phone is locked, and a VoiceOver pass over the document list, scan flow and review screen. Checked in the simulator: the whole line with a photo of a letter (text recognition on the device, upload, processing, review with "Waar staat dit?", confirm), and the largest Dynamic Type size on the list and the review.
+- Thumbnails in the document list; a document cache for reading without the server (1c); marking the source on the page image instead of in the text; the share extension (1d); deleting a document on the server.
+- The simulator's "Post toevoegen" menu offers the scanner although it has no camera there.
 - Not verified on a real device: the VoiceOver pass, the Face ID success path, the no-passcode warning and the camera scanner (including the first-time permission prompt and the denied state).

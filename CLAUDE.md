@@ -3,7 +3,7 @@
 Native SwiftUI app that pairs with a self-hosted Brievie server.
 
 - Spec: `../Brievie_host/docs/SPEC.md` (sections 11, 13, 14, 16 step 1a, 18, 19)
-- Current plan: `docs/superpowers/plans/2026-11-13-ios-fundament.md`
+- Current plan: `docs/superpowers/plans/2026-11-14-ios-fase-1b.md` (phase 1a: `2026-11-13-ios-fundament.md`)
 - Dependency and design decisions: `docs/DECISIONS.md`
 
 ## Make targets
@@ -31,4 +31,7 @@ Native SwiftUI app that pairs with a self-hosted Brievie server.
 - No new dependency without a line in `docs/DECISIONS.md`.
 - Bundle id `nl.stijnvdpol.brievie`; App Group `group.nl.stijnvdpol.brievie` (reserved, unused in 1a).
 - `BrievieAPI` and `BrievieCore` must compile for macOS; guard iOS-only code with `#if canImport(UIKit)` / `#if os(iOS)`.
+- File paths from a `URL`: `path(percentEncoded: false)`; the default breaks on the space in `Application Support`.
+- A deadline or letter date is a `CalendarDate`, never a `Date`. Scans are on disk in the upload queue before any
+  upload starts and leave only after the server confirmed them.
 - Tests use Swift Testing. Conventional commits. Never push without being asked.
