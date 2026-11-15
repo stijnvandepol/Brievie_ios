@@ -1,5 +1,6 @@
 import BrievieCore
 import BrievieScan
+import FeatureDocuments
 import Foundation
 import Synchronization
 
@@ -100,5 +101,26 @@ final class FakeUploadQueue: UploadQueue {
         let (stream, continuation) = AsyncStream.makeStream(of: [UUID: Double].self)
         state.withLock { $0.continuations.append(continuation) }
         return stream
+    }
+}
+
+/// The camera permission as the scan button sees it, scripted.
+@MainActor
+final class FakeScanCamera: ScanCameraAccess {
+    var current: ScanCameraStatus
+    /// What the permission prompt answers.
+    var grants = true
+    private(set) var requests = 0
+
+    init(_ status: ScanCameraStatus) {
+        current = status
+    }
+
+    func status() -> ScanCameraStatus { current }
+
+    func requestAccess() async -> Bool {
+        requests += 1
+        current = grants ? .allowed : .denied
+        return grants
     }
 }

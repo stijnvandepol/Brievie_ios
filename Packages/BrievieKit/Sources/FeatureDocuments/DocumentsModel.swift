@@ -42,13 +42,27 @@ public final class DocumentsModel {
         case failed(message: String)
     }
 
+    /// Why the scanner did not open.
+    public enum CameraNotice: Equatable, Sendable {
+        /// Access refused: Settings can change it.
+        case denied
+        /// The device forbids the camera.
+        case restricted
+    }
+
     public private(set) var state: State = .loading
     public private(set) var rows: [Row] = []
     /// Members and admins may scan; a viewer only reads.
     public let canScan: Bool
+    /// Shown after "Scan een brief" when the camera may not be used; photos remain the way in.
+    public private(set) var cameraNotice: CameraNotice?
+    /// Scans the queue removed because they could not be read; shown while this screen is open.
+    public private(set) var removedNotice: String?
 
     private let documents: WorkspaceDocuments
     private let uploads: any UploadQueue
+    private let camera: any ScanCameraAccess
+    private let settingsOpener: @MainActor () -> Void
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
@@ -63,6 +77,8 @@ public final class DocumentsModel {
         documents: WorkspaceDocuments,
         uploads: any UploadQueue,
         canScan: Bool,
+        camera: any ScanCameraAccess,
+        openSettings: @escaping @MainActor () -> Void,
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void,
         refreshInterval: Duration = .seconds(3)
@@ -70,6 +86,8 @@ public final class DocumentsModel {
         self.documents = documents
         self.uploads = uploads
         self.canScan = canScan
+        self.camera = camera
+        settingsOpener = openSettings
         self.onRevoked = onRevoked
         self.onMissingPairing = onMissingPairing
         self.refreshInterval = refreshInterval
@@ -82,6 +100,8 @@ public final class DocumentsModel {
 
     /// Reads the queue and the server. A list that is already on screen stays when the server cannot be reached.
     public func load() async {
+        let removed = await uploads.takeRemovedUnreadableCount()
+        if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
         rebuild()
         do {
@@ -134,6 +154,34 @@ public final class DocumentsModel {
             progress = update
             rebuild()
         }
+    }
+
+    /// Before the scanner opens: asks for the camera the first time; `false` (with a notice) when it may not
+    /// be used.
+    public func prepareScanner() async -> Bool {
+        var status = camera.status()
+        if status == .notDetermined {
+            status = await camera.requestAccess() ? .allowed : .denied
+        }
+        switch status {
+        case .allowed:
+            cameraNotice = nil
+            return true
+        case .restricted:
+            cameraNotice = .restricted
+        case .denied, .notDetermined:
+            cameraNotice = .denied
+        }
+        return false
+    }
+
+    /// When the app is active again: access granted in Settings hides the notice. Never asks.
+    public func refreshCameraNotice() {
+        if cameraNotice != nil, camera.status() == .allowed { cameraNotice = nil }
+    }
+
+    public func openSettings() {
+        settingsOpener()
     }
 
     public func retryUpload(_ id: UUID) async {

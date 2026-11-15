@@ -12,6 +12,7 @@ import Testing
     private let server = FakeDocumentServer { _, id in DocumentFixtures.detail(id: id) }
     private let queue = FakeUploadQueue()
     private let events = EventLog()
+    private let camera = FakeScanCamera(.allowed)
 
     private func model(canScan: Bool = true) throws -> DocumentsModel {
         let connection = ServerConnection(
@@ -24,6 +25,8 @@ import Testing
             ),
             uploads: queue,
             canScan: canScan,
+            camera: camera,
+            openSettings: { [events] in events.add("settings") },
             onRevoked: { [events] in events.add("revoked") },
             onMissingPairing: { [events] in events.add("missing") }
         )
@@ -205,6 +208,75 @@ import Testing
         await model.load()
 
         #expect(model.rows.map(\.subtitle) == ["14 nov 2026 · 3 pagina's", "14 nov 2026 · 1 pagina"])
+    }
+
+    // MARK: - Camera
+
+    @Test func scannerOpensWhenTheCameraMayBeUsed() async throws {
+        let model = try model()
+
+        #expect(await model.prepareScanner())
+        #expect(model.cameraNotice == nil)
+    }
+
+    @Test func firstScanAsksForTheCamera() async throws {
+        camera.current = .notDetermined
+        camera.grants = false
+        let model = try model()
+
+        #expect(await model.prepareScanner() == false)
+        #expect(camera.requests == 1)
+        #expect(model.cameraNotice == .denied)
+    }
+
+    @Test func refusedCameraExplainsAndOffersSettings() async throws {
+        camera.current = .denied
+        let model = try model()
+
+        #expect(await model.prepareScanner() == false)
+        #expect(model.cameraNotice == .denied)
+        #expect(camera.requests == 0)
+        model.openSettings()
+        #expect(events.all == ["settings"])
+
+        // Back from Settings with access: the notice goes, without asking anything.
+        camera.current = .allowed
+        model.refreshCameraNotice()
+        #expect(model.cameraNotice == nil)
+    }
+
+    @Test func restrictedCameraExplainsWithoutSettings() async throws {
+        camera.current = .restricted
+        let model = try model()
+
+        #expect(await model.prepareScanner() == false)
+        #expect(model.cameraNotice == .restricted)
+    }
+
+    // MARK: - Unreadable scans
+
+    @Test func unreadableScansThatWereRemovedAreReportedOnce() async throws {
+        queue.setRemovedUnreadable(1)
+        let model = try model()
+
+        await model.load()
+        #expect(model.removedNotice == DocumentStrings.unreadableRemoved(1))
+        await model.load()
+        #expect(model.removedNotice == DocumentStrings.unreadableRemoved(1))
+
+        let next = try self.model()
+        await next.load()
+        #expect(next.removedNotice == nil)
+    }
+
+    @Test func theRemovedMessageHasASingularAndAPluralInTheCatalog() throws {
+        let key = "documents.upload.unreadableRemoved"
+        let forms = try CatalogParity.dutchPlural(forKey: key, target: "FeatureDocuments")
+
+        #expect(forms["one"] == "%lld scan kon niet worden gelezen en is verwijderd.")
+        #expect(forms["other"] == "%lld scans konden niet worden gelezen en zijn verwijderd.")
+        // `swift test` does not compile catalogs: the code's default is the plural form.
+        #expect(DocumentStrings.unreadableRemoved(2) == forms["other"]?.replacingOccurrences(of: "%lld", with: "2"))
     }
 
     @Test func catalogAndCodeAgree() throws {

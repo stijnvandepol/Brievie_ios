@@ -34,6 +34,10 @@ public struct DocumentsView<Destination: View>: View {
         DocumentsList(
             state: model.state,
             rows: model.rows,
+            notices: DocumentsList.Notices(
+                camera: model.cameraNotice, removed: model.removedNotice,
+                openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true }
+            ),
             retryLoad: { Task { await model.load() } },
             retryUpload: { id in Task { await model.retryUpload(id) } },
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
@@ -56,6 +60,7 @@ public struct DocumentsView<Destination: View>: View {
             switch phase {
             case .active:
                 model.startPolling()
+                model.refreshCameraNotice()
             case .background:
                 // The scanner shows the pages scanned so far; it would sit above the lock screen.
                 showsScanner = false
@@ -99,7 +104,10 @@ public struct DocumentsView<Destination: View>: View {
         if DocumentScannerView.isSupported {
             Menu {
                 Button {
-                    showsScanner = true
+                    Task {
+                        // Without camera access the scanner would only close again: explain instead.
+                        if await model.prepareScanner() { showsScanner = true }
+                    }
                 } label: {
                     Label(DocumentStrings.scan, systemImage: "doc.viewfinder")
                 }
@@ -136,8 +144,17 @@ public struct DocumentsView<Destination: View>: View {
 
 /// The rendering of `DocumentsView`, free of the models so that previews can feed it plain values.
 struct DocumentsList<Destination: View>: View {
+    /// Messages above the list: no camera access, scans the queue could not read.
+    struct Notices {
+        var camera: DocumentsModel.CameraNotice?
+        var removed: String?
+        var openSettings: () -> Void = {}
+        var importPhotos: () -> Void = {}
+    }
+
     let state: DocumentsModel.State
     let rows: [DocumentsModel.Row]
+    var notices = Notices()
     let retryLoad: () -> Void
     let retryUpload: (UUID) -> Void
     let deleteUpload: (UUID) -> Void
@@ -145,6 +162,7 @@ struct DocumentsList<Destination: View>: View {
 
     var body: some View {
         List {
+            noticeSection
             if case let .failed(message) = state {
                 Section {
                     ErrorBanner(message, actionTitle: DocumentStrings.retry, action: retryLoad)
@@ -162,6 +180,32 @@ struct DocumentsList<Destination: View>: View {
             }
         }
         .listStyle(.insetGrouped)
+    }
+
+    @ViewBuilder private var noticeSection: some View {
+        if notices.camera != nil || notices.removed != nil {
+            Section {
+                switch notices.camera {
+                case .denied:
+                    ErrorBanner(
+                        DocumentStrings.cameraDenied, style: .warning, actionTitle: DocumentStrings.openSettings,
+                        action: notices.openSettings
+                    )
+                case .restricted:
+                    ErrorBanner(DocumentStrings.cameraRestricted, style: .warning)
+                case nil:
+                    EmptyView()
+                }
+                if notices.camera != nil {
+                    Button(action: notices.importPhotos) {
+                        Label(DocumentStrings.importPhotos, systemImage: "photo.on.rectangle")
+                    }
+                }
+                if let removed = notices.removed {
+                    ErrorBanner(removed, style: .warning)
+                }
+            }
+        }
     }
 
     @ViewBuilder private var placeholder: some View {
@@ -189,16 +233,61 @@ struct DocumentsList<Destination: View>: View {
                 DocumentRowView(row: row)
             }
         } else {
-            DocumentRowView(row: row)
-                .swipeActions(edge: .trailing) {
-                    if row.status.canDelete {
-                        Button(DocumentStrings.delete, role: .destructive) { deleteUpload(row.id) }
-                    }
-                    if row.status.canRetryUpload {
-                        Button(DocumentStrings.retry) { retryUpload(row.id) }
-                            .tint(BrievieColor.brand)
-                    }
+            // Retry and delete as swipe actions, as a context menu, as VoiceOver and Switch Control actions,
+            // and as visible buttons once the upload failed.
+            VStack(alignment: .leading, spacing: 12) {
+                DocumentRowView(row: row)
+                    .accessibilityActions { uploadActions(row) }
+                if case .uploadFailed = row.status {
+                    failedRowButtons(row)
                 }
+            }
+            .contextMenu { uploadActions(row) }
+            .swipeActions(edge: .trailing) {
+                if row.status.canDelete {
+                    Button(DocumentStrings.delete, role: .destructive) { deleteUpload(row.id) }
+                }
+                if row.status.canRetryUpload {
+                    Button(DocumentStrings.retry) { retryUpload(row.id) }
+                        .tint(BrievieColor.brand)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func uploadActions(_ row: DocumentsModel.Row) -> some View {
+        if row.status.canRetryUpload {
+            Button {
+                retryUpload(row.id)
+            } label: {
+                Label(DocumentStrings.retry, systemImage: "arrow.clockwise")
+            }
+        }
+        if row.status.canDelete {
+            Button(role: .destructive) {
+                deleteUpload(row.id)
+            } label: {
+                Label(DocumentStrings.delete, systemImage: "trash")
+            }
+        }
+    }
+
+    /// Side by side, or stacked when the text is large.
+    private func failedRowButtons(_ row: DocumentsModel.Row) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) { failedButtons(row) }
+            VStack(spacing: 8) { failedButtons(row) }
+        }
+    }
+
+    @ViewBuilder
+    private func failedButtons(_ row: DocumentsModel.Row) -> some View {
+        if row.status.canRetryUpload {
+            SecondaryButton(DocumentStrings.retry) { retryUpload(row.id) }
+        }
+        if row.status.canDelete {
+            SecondaryButton(DocumentStrings.delete) { deleteUpload(row.id) }
         }
     }
 }
@@ -252,32 +341,6 @@ private struct DocumentRowView: View {
                 .foregroundStyle(color)
         }
         .font(.subheadline)
-    }
-}
-
-/// Shown while a scan is turned into an upload: which page is being read, or what went wrong.
-struct ScanFlowView: View {
-    let phase: ScanFlowModel.Phase
-    let close: () -> Void
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                switch phase {
-                case let .failed(message):
-                    ErrorBanner(message)
-                    PrimaryButton(DocumentStrings.scanClose, action: close)
-                case .idle, .recognising, .finished:
-                    ProgressView()
-                    Text(phase.label)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .navigationTitle(DocumentStrings.scanTitle)
-            .navigationBarTitleDisplayMode(.inline)
-        }
     }
 }
 
