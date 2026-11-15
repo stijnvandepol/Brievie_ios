@@ -16,7 +16,7 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **swift-openapi-urlsession** `from: 1.4.0` (newest) — `URLSession` transport, so trust is decided by our own session delegate.
 - **swift-http-types** `from: 1.8.0` (newest) — already a dependency of the OpenAPI packages; declared explicitly because `APIClient.swift` imports `HTTPTypes` for the bearer-token middleware.
 - **swift-openapi-generator** `exact: 1.12.2` (newest is 1.14.4) — build plugin in `BrievieAPI` that generates types and client from `openapi.json` (`generate: [types, client]`, `accessModifier: public`, `namingStrategy: idiomatic`). Pinned below the newest release on purpose: from 1.13.0 the generator emits `public import` lines, and from 1.13.1 it also splits types into files that do not use all of them, which gives "public import ... was not used" warnings on Swift 6.3 (Xcode 26.4); upstream only silences them from Swift 6.4 (`@diagnose`, PR #947). 1.12.2 output compiles warning-free under Swift 6 with complete strict concurrency, so no setting is relaxed for `BrievieAPI`. Move to the newest release once the toolchain is Swift 6.4. Build-time only: nothing of the generator ships in the app.
-- **Generator `filter`** — only the operations the app calls (`getHealth`, `getCaCertificate`, `pairDevice`, `listWorkspaces`); a feature that needs another operation adds it to `openapi-generator-config.yaml`. This keeps the generated surface small and avoids generating schemas the app does not use.
+- **Generator `filter`** — only the operations the app calls (`getHealth`, `getCaCertificate`, `pairDevice`, `revokeDevice`, `listWorkspaces`); a feature that needs another operation adds it to `openapi-generator-config.yaml`. This keeps the generated surface small and avoids generating schemas the app does not use.
 
 ## API client
 
@@ -86,9 +86,14 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **A review pre-filled by AI says so at the top** ("Ingevuld door AI. Controleer of het klopt voordat je bevestigt."), next to the label on the summary.
 - **The paired app stays in the view tree while locked**, under an opaque lock screen, so a half-filled review survives a trip to another app. Sheets above it close when the scene leaves the foreground (the letter-text sheet when inactive, the scanner and photo picker in the background), and polling stops while the app is not active.
 
+## Unpair
+
+- **"Ontkoppelen" on the Workspaces screen: best-effort server revoke, queue wiped, notice when the server could not be told.** `revokeDevice` (`DELETE /api/v1/devices/{id}` with the device token) gets 5 seconds over all the pairing's addresses; offline, no answer, a pin failure or any refusal never blocks unpairing. 401 and 404 `device_not_found` count as told (the server no longer knows the device). Then every upload is cancelled and the whole queue directory emptied (unreadable items and interrupted writes too), the stored connection and token are cleared (the `hasLaunchedBefore` flag stays), and pairing shows; only when the server was not told it says once "Deze telefoon staat nog als apparaat op de server. Trek hem daar in onder Apparaten." The confirmation names the number of waiting scans (catalog plural).
+- **Revoked and unpaired end in one path** (`AppModel.finishForgetting`): empty the queue (unpair only), clear the store, show pairing. When a step fails the app stays locked and every activation and unlock attempt retries it; it never shows pairing with a token left in the Keychain. A 401 whose clear fails now stays locked too (before, it showed pairing anyway). The retry lives in memory: a killed app reopens on the stored pairing (unlock, then a 401 if the server was told).
+
 ## Storage
 
-- **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.
+- **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. Without this a reinstall would reopen a pairing the user thought was gone (deleting the app is not unpairing it). Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.
 
 ## Release
 
@@ -100,7 +105,6 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 
 ## Open items
 
-- In-app unpair (until then, reinstalling the app is the way to forget a pairing).
 - A clear message when the server's API major version becomes newer after pairing (today it surfaces as a generic error).
 - A hint when local-network access is denied (today it looks like an unreachable server).
 - The device name is always "iPhone" on iOS 16+ without the user-assigned-device-name entitlement.

@@ -11,6 +11,9 @@ public protocol BrievieServer: Sendable {
     func pair(at url: URL, trust: ServerTrust, code: String, deviceName: String) async throws -> PairedDevice
     /// The workspaces the paired user belongs to.
     func workspaces(at url: URL, trust: ServerTrust, token: String) async throws -> [WorkspaceSummary]
+    /// Revokes the device `deviceID` on the server with its own token (unpairing). 401 and 404
+    /// (`device_not_found`) mean the server no longer knows the device.
+    func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws
 }
 
 /// The result of a successful pairing.

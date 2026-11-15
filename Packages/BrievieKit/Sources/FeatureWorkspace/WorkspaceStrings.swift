@@ -29,7 +29,29 @@ enum WorkspaceStrings {
         bundle: .module
     )
 
-    /// Every string above by catalog key, for the parity test.
+    static let unpairMessage = String(
+        localized: "workspaces.unpair.message",
+        defaultValue: """
+            Deze telefoon vergeet de koppeling met je Brievie-server. \
+            Je kunt daarna opnieuw koppelen met een nieuwe QR-code.
+            """,
+        bundle: .module
+    )
+
+    /// The unpair message when `count` (at least 1) scans still wait to be sent. The catalog has the
+    /// singular and plural; the default here is the plural (`swift test` reads no catalogs).
+    static func unpairMessageQueued(_ count: Int) -> String {
+        String(
+            localized: "workspaces.unpair.message.queued",
+            defaultValue: """
+                Er wachten nog \(count) scans om te versturen. Die scans worden van deze telefoon verwijderd. \
+                Je kunt daarna opnieuw koppelen met een nieuwe QR-code.
+                """,
+            bundle: .module
+        )
+    }
+
+    /// Every string above by catalog key, for the parity test (not the plural one: see its own test).
     static let all: [String: String] = [
         "workspaces.kind.home": kindHome,
         "workspaces.kind.business": kindBusiness,
@@ -39,6 +61,7 @@ enum WorkspaceStrings {
         "workspaces.role.viewer": roleViewer,
         "workspaces.error.unreachable": unreachable,
         "workspaces.error.notVerified": notVerified,
-        "error.generic": generic
+        "error.generic": generic,
+        "workspaces.unpair.message": unpairMessage
     ]
 }

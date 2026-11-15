@@ -16,6 +16,8 @@ public final class AppModel {
     /// `true` when the device has no passcode, so the app cannot lock itself. The app opens with a warning
     /// instead of locking the user out.
     public private(set) var showsNoPasscodeWarning = false
+    /// "Ontkoppelen" is running (telling the server takes up to a few seconds); the button waits for it.
+    public private(set) var isUnpairing = false
 
     private let store: ConnectionStore
     private let authenticator: any DeviceAuthenticator
@@ -34,6 +36,19 @@ public final class AppModel {
     private var isInBackground = false
     /// The task started by `requestUnlock()` or `sceneActivated()`; tests await it.
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
+    /// The task started by `requestUnpair(_:)`; owned by the model, so the screen going away cannot cancel it.
+    @ObservationIgnored private(set) var unpairTask: Task<Void, Never>?
+
+    /// A pairing that must be forgotten but is not yet: emptying the queue or clearing the store failed.
+    /// Until it succeeds the app stays locked (never "unpaired" with a token left in the Keychain) and every
+    /// activation and unlock attempt tries again.
+    private struct PendingForget {
+        let notice: String?
+        /// Unpairing only; `nil` once the queue is empty.
+        var wipeUploads: (@Sendable () async throws -> Void)?
+    }
+
+    @ObservationIgnored private var pendingForget: PendingForget?
 
     /// - Parameter isProtectedDataAvailable: `false` before the first unlock after a reboot (prewarm or
     ///   background launch), when the Keychain and `UserDefaults` may not be readable yet.
@@ -69,6 +84,7 @@ public final class AppModel {
     /// Gated by the first-launch check: while it has not completed, the app stays locked.
     public func unlock() async {
         clearLeftoversOfAPreviousInstall()
+        guard await finishForgetting() else { return }
         guard launchCheckDone, state == .locked, !isAuthenticating else { return }
         isAuthenticating = true
         wentToBackgroundWhileAuthenticating = false
@@ -102,6 +118,7 @@ public final class AppModel {
         // The scene may have gone to the background again before this ran.
         guard !isInBackground else { return }
         clearLeftoversOfAPreviousInstall()
+        guard await finishForgetting() else { return }
         // A pending check keeps the prompt for the activation that completes it.
         guard launchCheckDone, promptsOnActivation, state == .locked else { return }
         promptsOnActivation = false
@@ -129,14 +146,57 @@ public final class AppModel {
     /// A screen from an older connection may report late; it only counts when `deviceID` is the stored
     /// connection's, so it cannot wipe a pairing made since.
     public func sessionRevoked(deviceID: UUID) {
+        // The user is unpairing: a 401 is the expected result of that, and the unpair forgets the pairing itself.
+        guard !isUnpairing else { return }
         do {
             if let stored = try store.load(), stored.connection.deviceID != deviceID { return }
         } catch {
             return
         }
-        // If the Keychain refuses to delete, the next launch finds the same token, gets another 401 and ends up here again.
-        try? store.clear()
-        state = .unpaired(notice: AppStrings.sessionRevoked)
+        // An unpair whose queue could not be emptied yet keeps that step.
+        pendingForget = PendingForget(notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads)
+        if pendingForget?.wipeUploads == nil {
+            clearForgottenPairing()
+        } else {
+            state = .locked
+        }
+    }
+
+    /// For the "Ontkoppelen" button: unpairs without tying the work to the lifetime of a screen. Safe against
+    /// a double tap; does nothing unless the app is open.
+    public func requestUnpair(_ unpairing: Unpairing) {
+        guard case .ready = state, !isUnpairing else { return }
+        isUnpairing = true
+        unpairTask = Task {
+            await performUnpair(unpairing)
+            isUnpairing = false
+        }
+    }
+
+    /// "Ontkoppelen": tells the server (best effort, see `Unpairing.revokeOnServer`), empties the upload queue
+    /// and forgets the pairing, then shows pairing; with a notice when the server could not be told.
+    /// Only from the open app, and only once at a time. `true` when the app ended unpaired; `false` when it
+    /// did not run, or when emptying the queue or clearing the store failed (the app then stays locked and
+    /// retries, like the revoked path).
+    @discardableResult
+    public func unpair(_ unpairing: Unpairing) async -> Bool {
+        guard case .ready = state, !isUnpairing else { return false }
+        isUnpairing = true
+        defer { isUnpairing = false }
+        return await performUnpair(unpairing)
+    }
+
+    @discardableResult
+    private func performUnpair(_ unpairing: Unpairing) async -> Bool {
+        var serverTold = false
+        if let stored = try? store.load() {
+            serverTold = await unpairing.revokeOnServer(stored.connection, token: stored.token)
+        }
+        pendingForget = PendingForget(
+            notice: serverTold ? nil : AppStrings.serverStillKnowsDevice,
+            wipeUploads: { try await unpairing.wipeUploads() }
+        )
+        return await finishForgetting()
     }
 
     /// The stored pairing is gone although the app thinks it is paired. Not a revocation by the server, so the
@@ -164,8 +224,42 @@ public final class AppModel {
         pendingTask = Task { await activate() }
     }
 
+    /// Completes a pending forget (revoked or unpaired): empties the queue if that is still to do, then clears
+    /// the store and shows pairing. On failure the app stays locked; `true` when nothing is pending any more.
+    /// The one path both `sessionRevoked(deviceID:)` and `unpair(_:)` end in.
+    private func finishForgetting() async -> Bool {
+        guard let pending = pendingForget else { return true }
+        if let wipeUploads = pending.wipeUploads {
+            do {
+                try await wipeUploads()
+            } catch {
+                state = .locked
+                return false
+            }
+            // Another attempt may have finished meanwhile; then there is nothing left to do.
+            guard pendingForget != nil else { return true }
+            pendingForget?.wipeUploads = nil
+        }
+        return clearForgottenPairing()
+    }
+
+    /// The store part of a pending forget; synchronous, so a 401 shows pairing in the same turn.
+    @discardableResult
+    private func clearForgottenPairing() -> Bool {
+        guard let pending = pendingForget else { return true }
+        do {
+            try store.clear()
+        } catch {
+            state = .locked
+            return false
+        }
+        pendingForget = nil
+        state = .unpaired(notice: pending.notice)
+        return true
+    }
+
     private func finishUnlock() {
-        guard launchCheckDone else { return }
+        guard launchCheckDone, pendingForget == nil else { return }
         do {
             guard let paired = try store.load() else {
                 connectionMissing()

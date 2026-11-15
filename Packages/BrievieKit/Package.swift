@@ -74,6 +74,6 @@ let package = Package(
         ),
         .testTarget(name: "FeatureDocumentsTests", dependencies: ["FeatureDocuments", "BrievieCore", "BrievieScan"]),
         .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing", "BrievieCore"]),
-        .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace", "BrievieCore"])
+        .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace", "BrievieCore", "BrievieScan"])
     ]
 )

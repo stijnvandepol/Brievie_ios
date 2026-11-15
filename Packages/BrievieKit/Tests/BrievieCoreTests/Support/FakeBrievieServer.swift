@@ -9,6 +9,7 @@ final class FakeBrievieServer: BrievieServer {
         case caCertificate(URL)
         case health(URL)
         case pair(URL, code: String, name: String)
+        case revoke(URL, deviceID: UUID, token: String)
 
         var isPair: Bool {
             if case .pair = self { true } else { false }
@@ -31,6 +32,7 @@ final class FakeBrievieServer: BrievieServer {
         var caPEM: @Sendable (URL) throws -> String
         var health: @Sendable (URL) throws -> String = { _ in "1.0.0" }
         var pair: @Sendable (URL) throws -> PairedDevice = { _ in FakeBrievieServer.device }
+        var revoke: @Sendable (URL) async throws -> Void = { _ in }
     }
 
     private let state: Mutex<State>
@@ -58,6 +60,14 @@ final class FakeBrievieServer: BrievieServer {
         set { state.withLock { $0.pair = newValue } }
     }
 
+    /// Async, so a test can make the server hang (until the call is cancelled).
+    var revoke: @Sendable (URL) async throws -> Void {
+        get { state.withLock { $0.revoke } }
+        set { state.withLock { $0.revoke = newValue } }
+    }
+
+    var revokeCalls: [Call] { calls.filter { if case .revoke = $0 { true } else { false } } }
+
     func caCertificatePEM(at url: URL) async throws -> String {
         let answer = state.withLock {
             $0.calls.append(.caCertificate(url))
@@ -82,6 +92,15 @@ final class FakeBrievieServer: BrievieServer {
             return $0.pair
         }
         return try answer(url)
+    }
+
+    func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws {
+        let answer = state.withLock {
+            $0.calls.append(.revoke(url, deviceID: deviceID, token: token))
+            $0.trusts.append(trust)
+            return $0.revoke
+        }
+        try await answer(url)
     }
 
     func workspaces(at url: URL, trust: ServerTrust, token: String) async throws -> [WorkspaceSummary] {

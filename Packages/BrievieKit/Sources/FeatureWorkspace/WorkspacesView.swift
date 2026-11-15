@@ -21,12 +21,20 @@ public struct WorkspacesView<Destination: View>: View {
     }
 
     public var body: some View {
+        @Bindable var model = model
         NavigationStack {
             WorkspacesList(
                 state: model.state,
                 serverAddress: model.serverAddress,
                 userName: model.userName,
                 showsNoPasscodeWarning: showsNoPasscodeWarning,
+                unpair: UnpairControl(
+                    isUnpairing: model.isUnpairing,
+                    isConfirming: $model.isConfirmingUnpair,
+                    message: model.unpairMessage,
+                    request: { model.requestUnpair() },
+                    confirm: { model.confirmUnpair() }
+                ),
                 retry: { model.retry() },
                 destination: destination
             )
@@ -37,12 +45,22 @@ public struct WorkspacesView<Destination: View>: View {
     }
 }
 
+/// What the "Ontkoppelen" section shows and does.
+struct UnpairControl {
+    let isUnpairing: Bool
+    let isConfirming: Binding<Bool>
+    let message: String
+    let request: () -> Void
+    let confirm: () -> Void
+}
+
 /// The rendering of `WorkspacesView`, free of the model so that previews can feed it plain values.
 struct WorkspacesList<Destination: View>: View {
     let state: WorkspacesModel.State
     let serverAddress: String?
     let userName: String
     let showsNoPasscodeWarning: Bool
+    let unpair: UnpairControl
     let retry: () -> Void
     let destination: (WorkspacesModel.Row) -> Destination
 
@@ -59,6 +77,8 @@ struct WorkspacesList<Destination: View>: View {
                 Text("workspaces.section.workspaces", bundle: .module)
             }
             serverSection
+            // Its own section, last, away from everything else on the screen.
+            unpairSection
         }
         .listStyle(.insetGrouped)
         .navigationTitle(Text("workspaces.title", bundle: .module))
@@ -123,6 +143,37 @@ struct WorkspacesList<Destination: View>: View {
     }
 }
 
+extension WorkspacesList {
+    private var unpairSection: some View {
+        Section {
+            Button(role: .destructive, action: unpair.request) {
+                HStack {
+                    Text("workspaces.unpair.button", bundle: .module)
+                    if unpair.isUnpairing {
+                        Spacer()
+                        ProgressView()
+                    }
+                }
+            }
+            .disabled(unpair.isUnpairing)
+        }
+        .confirmationDialog(
+            Text("workspaces.unpair.title", bundle: .module),
+            isPresented: unpair.isConfirming,
+            titleVisibility: .visible
+        ) {
+            Button(role: .destructive, action: unpair.confirm) {
+                Text("workspaces.unpair.confirm", bundle: .module)
+            }
+            Button(role: .cancel) {} label: {
+                Text("workspaces.unpair.cancel", bundle: .module)
+            }
+        } message: {
+            Text(unpair.message)
+        }
+    }
+}
+
 private struct WorkspaceRowView: View {
     let row: WorkspacesModel.Row
 
@@ -159,11 +210,18 @@ private var previewRows: [WorkspacesModel.Row] {
     ]
 }
 
+private var previewUnpair: UnpairControl {
+    UnpairControl(
+        isUnpairing: false, isConfirming: .constant(false), message: WorkspaceStrings.unpairMessage,
+        request: {}, confirm: {}
+    )
+}
+
 #Preview("Light") {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, retry: {}, destination: { _ in EmptyView() }
+            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)
@@ -173,7 +231,7 @@ private var previewRows: [WorkspacesModel.Row] {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, retry: {}, destination: { _ in EmptyView() }
+            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)

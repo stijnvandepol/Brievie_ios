@@ -116,6 +116,22 @@ public actor UploadQueueStore {
         try files.removeItem(at: directory)
     }
 
+    /// Deletes everything in the queue directory: every item, also one whose record cannot be read, and what
+    /// an interrupted enqueue left. Tries every entry, then throws the first error.
+    public func removeAll() throws {
+        let path = directory.path(percentEncoded: false)
+        guard files.fileExists(atPath: path) else { return }
+        var firstError: (any Error)?
+        for name in try files.contentsOfDirectory(atPath: path) {
+            do {
+                try files.removeItem(at: directory.appending(path: name))
+            } catch {
+                firstError = firstError ?? error
+            }
+        }
+        if let firstError { throw firstError }
+    }
+
     private func itemDirectory(_ id: UUID) -> URL {
         directory.appending(path: id.uuidString)
     }

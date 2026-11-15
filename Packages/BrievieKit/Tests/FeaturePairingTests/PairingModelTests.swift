@@ -56,6 +56,10 @@ final class StubServer: BrievieServer {
     func workspaces(at url: URL, trust: ServerTrust, token: String) async throws -> [WorkspaceSummary] {
         []
     }
+
+    func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws {
+        throw ServerError.other("not expected: pairing never revokes")
+    }
 }
 
 @MainActor

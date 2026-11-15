@@ -78,7 +78,10 @@ enum CatalogKeyScan {
         let strings = (object as? [String: Any])?["strings"] as? [String: Any] ?? [:]
         return strings.compactMapValues { entry in
             let dutch = ((entry as? [String: Any])?["localizations"] as? [String: Any])?["nl"] as? [String: Any]
-            return (dutch?["stringUnit"] as? [String: Any])?["value"] as? String
+            if let value = (dutch?["stringUnit"] as? [String: Any])?["value"] as? String { return value }
+            // A key with plural variations: its `other` form must be there.
+            let plural = (dutch?["variations"] as? [String: Any])?["plural"] as? [String: Any]
+            return ((plural?["other"] as? [String: Any])?["stringUnit"] as? [String: Any])?["value"] as? String
         }
     }
 

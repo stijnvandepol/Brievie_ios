@@ -92,6 +92,18 @@ public actor UploadCoordinator {
         setProgress(nil, for: id)
     }
 
+    public func removeAll() async throws {
+        let ids = Set(await store.items().map(\.id)).union(await transport.runningItemIDs())
+        for id in ids {
+            await transport.cancel(itemID: id)
+        }
+        // A late event of a cancelled upload finds no item and changes nothing.
+        try await store.removeAll()
+        for id in progress.keys {
+            setProgress(nil, for: id)
+        }
+    }
+
     public func items() async -> [UploadItem] {
         await store.items()
     }
