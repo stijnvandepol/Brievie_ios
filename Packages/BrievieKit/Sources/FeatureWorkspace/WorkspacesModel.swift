@@ -25,6 +25,18 @@ public final class WorkspacesModel {
 
     public private(set) var state: State = .loading
 
+    /// The "Ontkoppelen" confirmation is on screen.
+    public var isConfirmingUnpair = false
+    /// Scans waiting in the upload queue when the user asked to unpair; the confirmation says they go.
+    public private(set) var queuedScanCount = 0
+    /// Unpairing is running: the button is disabled and shows progress.
+    public var isUnpairing: Bool { appModel.isUnpairing }
+
+    /// The confirmation's message, with the number of scans that will be deleted when there are any.
+    public var unpairMessage: String {
+        queuedScanCount > 0 ? WorkspaceStrings.unpairMessageQueued(queuedScanCount) : WorkspaceStrings.unpairMessage
+    }
+
     /// Host of the first stored server address, for the Server section; `nil` if it has none.
     public var serverAddress: String? { connection.urls.first?.host() }
     /// The paired user's name, as stored at pairing.
@@ -34,14 +46,36 @@ public final class WorkspacesModel {
     private let store: ConnectionStore
     private let server: any BrievieServer
     private let appModel: AppModel
+    private let unpairing: Unpairing
     /// The load started by `retry()`; `stop()` cancels it when the screen goes away. Tests await it.
     @ObservationIgnored private(set) var retryTask: Task<Void, Never>?
+    /// Counts the queue before the confirmation opens. Tests await it.
+    @ObservationIgnored private(set) var unpairCountTask: Task<Void, Never>?
 
-    public init(connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel) {
+    public init(
+        connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel,
+        unpairing: Unpairing
+    ) {
         self.connection = connection
         self.store = store
         self.server = server
         self.appModel = appModel
+        self.unpairing = unpairing
+    }
+
+    /// The "Ontkoppelen" button: counts the waiting scans, then asks for confirmation.
+    public func requestUnpair() {
+        guard !isUnpairing, unpairCountTask == nil else { return }
+        unpairCountTask = Task {
+            queuedScanCount = await unpairing.queuedScanCount()
+            isConfirmingUnpair = true
+            unpairCountTask = nil
+        }
+    }
+
+    /// The user confirmed. `AppModel` owns the work and ignores a second tap.
+    public func confirmUnpair() {
+        appModel.requestUnpair(unpairing)
     }
 
     /// For the retry button: loads again, tied to this model so that `stop()` can cancel it.

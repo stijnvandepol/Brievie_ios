@@ -1,4 +1,5 @@
-import BrievieCore
+@testable import BrievieCore
+import BrievieScan
 @testable import FeatureWorkspace
 import Foundation
 import Synchronization
@@ -9,6 +10,7 @@ final class WorkspaceServer: BrievieServer {
     private struct State {
         var urls: [URL] = []
         var tokens: [String] = []
+        var revoked: [UUID] = []
         var answer: @Sendable (URL) throws -> [WorkspaceSummary] = { _ in [] }
     }
 
@@ -16,6 +18,7 @@ final class WorkspaceServer: BrievieServer {
 
     var urls: [URL] { state.withLock { $0.urls } }
     var tokens: [String] { state.withLock { $0.tokens } }
+    var revoked: [UUID] { state.withLock { $0.revoked } }
 
     var answer: @Sendable (URL) throws -> [WorkspaceSummary] {
         get { state.withLock { $0.answer } }
@@ -36,6 +39,35 @@ final class WorkspaceServer: BrievieServer {
     func pair(at url: URL, trust: ServerTrust, code: String, deviceName: String) async throws -> PairedDevice {
         throw ServerError.other("not expected")
     }
+
+    func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws {
+        state.withLock { $0.revoked.append(deviceID) }
+    }
+}
+
+/// An upload queue that only holds items and can be emptied.
+final class ScriptedUploadQueue: UploadQueue {
+    private let queued: Mutex<[UploadItem]>
+
+    init(count: Int) {
+        queued = Mutex((0..<count).map { _ in
+            UploadItem(
+                id: UUID(), workspaceID: UUID(), deviceID: UUID(), createdAt: Date(), pageCount: 1,
+                bodyByteCount: 10, boundary: "b", state: .waiting, attempt: 0, urlIndex: 0, nextAttemptAt: nil,
+                failureCode: nil
+            )
+        })
+    }
+
+    func enqueue(pages: [ScannedPage], workspaceID: UUID) async throws(UploadQueueError) -> UploadItem {
+        throw .writeFailed
+    }
+
+    func items() async -> [UploadItem] { queued.withLock { $0 } }
+    func retry(_ id: UUID) async {}
+    func delete(_ id: UUID) async { queued.withLock { $0.removeAll { $0.id == id } } }
+    func removeAll() async throws { queued.withLock { $0.removeAll() } }
+    func progressUpdates() async -> AsyncStream<[UUID: Double]> { AsyncStream { $0.finish() } }
 }
 
 private struct NoAuthentication: DeviceAuthenticator {
@@ -52,6 +84,7 @@ private struct NoAuthentication: DeviceAuthenticator {
     private let connection: ServerConnection
     private let appModel: AppModel
     private let model: WorkspacesModel
+    private let uploads = ScriptedUploadQueue(count: 0)
 
     init() throws {
         let urls = try [#require(home), #require(away)]
@@ -65,7 +98,10 @@ private struct NoAuthentication: DeviceAuthenticator {
             isProtectedDataAvailable: { true }
         )
         appModel.didPair(connection)
-        model = WorkspacesModel(connection: connection, store: store, server: server, appModel: appModel)
+        model = WorkspacesModel(
+            connection: connection, store: store, server: server, appModel: appModel,
+            unpairing: Unpairing(server: server, uploads: uploads)
+        )
     }
 
     private func summary(
@@ -255,6 +291,60 @@ private struct NoAuthentication: DeviceAuthenticator {
         await model.retryTask?.value
 
         #expect(model.state == .loaded([]))
+    }
+
+    // MARK: - unpair
+
+    private func model(queued: Int) -> WorkspacesModel {
+        WorkspacesModel(
+            connection: connection, store: ConnectionStore(secrets: secrets), server: server, appModel: appModel,
+            unpairing: Unpairing(server: server, uploads: ScriptedUploadQueue(count: queued))
+        )
+    }
+
+    @Test func askingToUnpairCountsTheQueueBeforeTheDialogOpens() async {
+        let model = model(queued: 3)
+
+        model.requestUnpair()
+        await model.unpairCountTask?.value
+
+        #expect(model.queuedScanCount == 3)
+        #expect(model.isConfirmingUnpair)
+        #expect(model.unpairMessage.contains("3 scans"))
+        #expect(appModel.state == .ready(connection))
+    }
+
+    @Test func withAnEmptyQueueTheDialogDoesNotMentionScans() async {
+        model.requestUnpair()
+        await model.unpairCountTask?.value
+
+        #expect(model.queuedScanCount == 0)
+        #expect(model.isConfirmingUnpair)
+        #expect(model.unpairMessage == WorkspaceStrings.unpairMessage)
+        #expect(!model.unpairMessage.contains("scan"))
+    }
+
+    @Test func confirmingUnpairsThroughTheAppModel() async {
+        model.confirmUnpair()
+        await appModel.unpairTask?.value
+
+        #expect(server.revoked == [connection.deviceID])
+        #expect(appModel.state == .unpaired(notice: nil))
+        #expect(secrets.read(.deviceToken) == nil)
+    }
+
+    @Test func theQueuedMessageHasASingularAndAPluralInTheCatalog() throws {
+        let key = "workspaces.unpair.message.queued"
+        let forms = try CatalogParity.dutchPlural(forKey: key, target: "FeatureWorkspace")
+        let again = "Je kunt daarna opnieuw koppelen met een nieuwe QR-code."
+
+        #expect(forms["one"] == "Er wacht nog %lld scan om te versturen. "
+            + "Die scan wordt van deze telefoon verwijderd. " + again)
+        #expect(forms["other"] == "Er wachten nog %lld scans om te versturen. "
+            + "Die scans worden van deze telefoon verwijderd. " + again)
+        // `swift test` does not compile catalogs: the code's default is the plural form.
+        let expected = forms["other"]?.replacingOccurrences(of: "%lld", with: "2")
+        #expect(WorkspaceStrings.unpairMessageQueued(2) == expected)
     }
 
     // MARK: - copy

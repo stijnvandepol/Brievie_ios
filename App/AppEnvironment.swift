@@ -8,6 +8,8 @@ struct AppEnvironment {
     let documents: any DocumentServer
     let launchFlag: any LaunchFlag
     let uploads: UploadCoordinator
+    /// "Ontkoppelen": the live server and the upload queue.
+    let unpairing: Unpairing
 
     /// - Parameter onRevoked: called when an upload finds that the server no longer knows this device.
     @MainActor
@@ -25,7 +27,8 @@ struct AppEnvironment {
         Task { await uploads.run() }
         let server = LiveBrievieServer()
         return AppEnvironment(
-            store: store, server: server, documents: server, launchFlag: UserDefaultsLaunchFlag(), uploads: uploads
+            store: store, server: server, documents: server, launchFlag: UserDefaultsLaunchFlag(), uploads: uploads,
+            unpairing: Unpairing(server: server, uploads: uploads)
         )
     }
 

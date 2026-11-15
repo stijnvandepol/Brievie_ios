@@ -122,7 +122,8 @@ private struct WorkspacesScreen: View {
             connection: connection,
             store: environment.store,
             server: environment.server,
-            appModel: appModel
+            appModel: appModel,
+            unpairing: environment.unpairing
         ))
         self.appModel = appModel
         self.environment = environment
