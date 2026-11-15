@@ -16,6 +16,7 @@ public struct DocumentsView<Destination: View>: View {
     @State private var showsPhotoPicker = false
     @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var showsScanProgress = false
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(
         model: DocumentsModel,
@@ -51,6 +52,19 @@ public struct DocumentsView<Destination: View>: View {
             model.startPolling()
         }
         .onDisappear { model.stopPolling() }
+        .onChange(of: scenePhase) { _, phase in
+            switch phase {
+            case .active:
+                model.startPolling()
+            case .background:
+                // The scanner shows the pages scanned so far; it would sit above the lock screen.
+                showsScanner = false
+                showsPhotoPicker = false
+                model.stopPolling()
+            default:
+                model.stopPolling()
+            }
+        }
         .fullScreenCover(isPresented: $showsScanner) {
             DocumentScannerView(
                 onFinish: { pages in
@@ -106,11 +120,11 @@ public struct DocumentsView<Destination: View>: View {
         }
     }
 
-    private func save(_ pages: [PageSource]) {
+    private func save(_ pages: [PageSource?]) {
         guard !pages.isEmpty else { return }
         showsScanProgress = true
         Task {
-            await scanModel.process(pages)
+            await scanModel.process(loaded: pages)
             if scanModel.phase == .finished {
                 showsScanProgress = false
                 scanModel.reset()
@@ -212,7 +226,7 @@ private struct DocumentRowView: View {
                 Text(row.status.label)
                     .font(.subheadline)
             }
-        case let .uploadFailed(message):
+        case let .uploadFailed(message, _):
             statusLabel(color: .red)
             Text(message)
                 .font(.footnote)

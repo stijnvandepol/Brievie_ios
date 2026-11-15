@@ -5,8 +5,15 @@ import Synchronization
 /// Records what the coordinator asks for; the test feeds the events a real transport would report.
 final class FakeUploadTransport: UploadTransport {
     struct Start: Equatable {
+        /// Attempt ids are random; two starts are equal when everything else is.
+        static func == (lhs: Start, rhs: Start) -> Bool {
+            (lhs.itemID, lhs.deviceID, lhs.url, lhs.token, lhs.earliestBegin)
+                == (rhs.itemID, rhs.deviceID, rhs.url, rhs.token, rhs.earliestBegin)
+        }
+
         let itemID: UUID
         let deviceID: UUID
+        var attemptID = UUID()
         let url: URL
         let token: String
         let earliestBegin: Date?
@@ -34,7 +41,7 @@ final class FakeUploadTransport: UploadTransport {
     }
 
     func send(_ event: UploadEvent) {
-        if case let .finished(itemID, _, _) = event {
+        if case let .finished(itemID, _, _, _) = event {
             state.withLock { _ = $0.running.remove(itemID) }
         }
         continuation.yield(event)
@@ -47,7 +54,8 @@ final class FakeUploadTransport: UploadTransport {
     func start(_ request: UploadRequest) async {
         state.withLock {
             $0.starts.append(Start(
-                itemID: request.itemID, deviceID: request.deviceID, url: request.url, token: request.token,
+                itemID: request.itemID, deviceID: request.deviceID, attemptID: request.attemptID,
+                url: request.url, token: request.token,
                 earliestBegin: request.earliestBegin
             ))
             $0.running.insert(request.itemID)

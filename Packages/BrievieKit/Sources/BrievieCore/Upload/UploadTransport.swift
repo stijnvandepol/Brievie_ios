@@ -4,7 +4,7 @@ import Foundation
 public enum UploadEvent: Sendable {
     case sent(itemID: UUID, bytes: Int64, total: Int64)
     /// `deviceID` is the pairing the attempt was started with.
-    case finished(itemID: UUID, deviceID: UUID, outcome: UploadOutcome)
+    case finished(itemID: UUID, deviceID: UUID, attemptID: UUID, outcome: UploadOutcome)
     /// The system has delivered every event of a background relaunch.
     case allEventsDelivered
 }
@@ -14,6 +14,8 @@ public struct UploadRequest: Equatable, Sendable {
     public let itemID: UUID
     /// The pairing this attempt is made with.
     public let deviceID: UUID
+    /// Names this attempt; its events carry it back.
+    public let attemptID: UUID
     /// The upload endpoint (`BackgroundUploadTransport.uploadURL`).
     public let url: URL
     public let bodyFile: URL

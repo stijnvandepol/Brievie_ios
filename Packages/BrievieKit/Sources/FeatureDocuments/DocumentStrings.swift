@@ -122,6 +122,14 @@ enum DocumentStrings {
         defaultValue: "Er zijn geen pagina's gescand.",
         bundle: .module
     )
+    static let otherServer = String(
+        localized: "documents.upload.otherServer",
+        defaultValue: """
+            Deze scan is gemaakt voor een andere server en wordt niet verstuurd. Verwijder hem, of koppel \
+            weer met die server.
+            """,
+        bundle: .module
+    )
 }
 
 extension DocumentStrings {
@@ -213,6 +221,11 @@ extension DocumentStrings {
     static let pageUnreadable = String(
         localized: "review.page.unreadable",
         defaultValue: "Deze pagina kan niet worden getoond.",
+        bundle: .module
+    )
+    static let aiProposalsNote = String(
+        localized: "review.ai.note",
+        defaultValue: "Ingevuld door AI. Controleer of het klopt voordat je bevestigt.",
         bundle: .module
     )
 }
@@ -343,6 +356,8 @@ extension DocumentStrings {
         "task.renew": taskTypeRenew,
         "task.file_tax": taskTypeFileTax,
         "task.other": taskTypeOther,
-        "review.page.unreadable": pageUnreadable
+        "review.page.unreadable": pageUnreadable,
+        "documents.upload.otherServer": otherServer,
+        "review.ai.note": aiProposalsNote
     ]
 }

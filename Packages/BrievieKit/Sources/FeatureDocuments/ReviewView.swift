@@ -8,6 +8,7 @@ import SwiftUI
 public struct ReviewView: View {
     @Bindable private var model: ReviewModel
     @State private var source: SourceQuote?
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(model: ReviewModel) {
         self.model = model
@@ -41,6 +42,16 @@ public struct ReviewView: View {
             model.startPolling()
         }
         .onDisappear { model.stopPolling() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                model.startPolling()
+            } else {
+                // A sheet sits above the lock screen and the app-switcher cover: the letter text must not
+                // stay on screen when the app leaves the foreground. No polling while nobody looks either.
+                source = nil
+                model.stopPolling()
+            }
+        }
         .sheet(item: $source) { quote in
             SourceView(quote: quote.text, pageTexts: model.pageTexts) { source = nil }
         }
@@ -85,6 +96,12 @@ public struct ReviewView: View {
                     DocumentStrings.processingFailedNote, style: .warning,
                     actionTitle: model.canEdit ? DocumentStrings.retryProcessing : nil
                 ) { Task { await model.retryProcessing() } }
+            }
+        }
+        if model.draft.isFromAI {
+            Section {
+                Label(DocumentStrings.aiProposalsNote, systemImage: "sparkles")
+                    .font(.subheadline)
             }
         }
         Section {
@@ -320,68 +337,6 @@ private struct PageImageView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.bottom, 32)
-    }
-}
-
-/// The letter text with the quote marked: where a value was read.
-private struct SourceView: View {
-    let quote: String
-    let pageTexts: [String]
-    let close: () -> Void
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    if !pageTexts.contains(where: { !QuoteLocator.ranges(of: quote, in: $0).isEmpty }) {
-                        ErrorBanner(DocumentStrings.sourceMissing, style: .warning)
-                        Text(String(format: DocumentStrings.sourceFormat, quote))
-                    }
-                    ForEach(Array(pageTexts.enumerated()), id: \.offset) { index, text in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(String(format: DocumentStrings.pageFormat, index + 1, pageTexts.count))
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            Text(Self.highlighted(text, quote: quote))
-                                .textSelection(.enabled)
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-            }
-            .navigationTitle(DocumentStrings.sourceTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(DocumentStrings.scanClose, action: close)
-                }
-            }
-        }
-    }
-
-    /// The quote in bold on a tinted background: visible without relying on colour alone.
-    static func highlighted(_ text: String, quote: String) -> AttributedString {
-        var attributed = AttributedString(text)
-        for range in QuoteLocator.ranges(of: quote, in: text) {
-            guard
-                let lower = AttributedString.Index(range.lowerBound, within: attributed),
-                let upper = AttributedString.Index(range.upperBound, within: attributed)
-            else { continue }
-            attributed[lower..<upper].backgroundColor = .yellow.opacity(0.4)
-            attributed[lower..<upper].inlinePresentationIntent = .stronglyEmphasized
-            attributed[lower..<upper].underlineStyle = .single
-        }
-        return attributed
-    }
-}
-
-extension CalendarDate {
-    /// "1 december 2026": the day as written in Dutch, whatever the device's time zone.
-    var display: String {
-        let utc = TimeZone(identifier: "UTC") ?? .gmt
-        let style = Date.FormatStyle(date: .long, time: .omitted, locale: Locale(identifier: "nl_NL"), timeZone: utc)
-        return date(in: utc).formatted(style)
     }
 }
 #endif

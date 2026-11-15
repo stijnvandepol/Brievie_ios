@@ -65,7 +65,9 @@ import Testing
         queue.set([item])
         let model = try model()
         await model.load()
-        #expect(model.rows.map(\.status) == [.uploading(progress: 0)])
+        // Nothing sent yet (offline, or scheduled for later): it waits, and can still be taken back.
+        #expect(model.rows.map(\.status) == [.waitingForUpload])
+        #expect(model.rows.first?.status.canDelete == true)
 
         let observing = Task { await model.observeProgress() }
         await Task.yield()
@@ -80,6 +82,7 @@ import Testing
     @Test(arguments: [
         ("untrusted", DocumentStrings.notVerified),
         ("workspace_not_found", DocumentStrings.workspaceGone),
+        ("server_changed", DocumentStrings.otherServer),
         ("payload_too_large", DocumentStrings.tooLarge),
         ("document_conflict", DocumentStrings.uploadFailed),
         ("http_500", DocumentStrings.uploadFailed)
@@ -90,7 +93,26 @@ import Testing
 
         await model.load()
 
-        #expect(model.rows.map(\.status) == [.uploadFailed(message: message)])
+        let canRetry = code != "server_changed"
+        #expect(model.rows.map(\.status) == [.uploadFailed(message: message, canRetry: canRetry)])
+    }
+
+    @Test func scanOnItsWayCanStillBeDeleted() {
+        // Final review: a private letter scanned into the wrong workspace must be stoppable.
+        #expect(DocumentsModel.RowStatus.uploading(progress: 0.4).canDelete)
+        #expect(DocumentsModel.RowStatus.waitingForUpload.canDelete)
+        #expect(!DocumentsModel.RowStatus.processing.canDelete)
+        #expect(!DocumentsModel.RowStatus.uploading(progress: 0.4).canRetryUpload)
+    }
+
+    @Test func scanForAnotherServerCanOnlyBeDeleted() async throws {
+        queue.set([FakeUploadQueue.item(workspaceID: workspaceID, state: .failed, failureCode: "server_changed")])
+        let model = try model()
+
+        await model.load()
+
+        #expect(model.rows.first?.status.canDelete == true)
+        #expect(model.rows.first?.status.canRetryUpload == false)
     }
 
     @Test func retryAndDeleteGoToTheQueue() async throws {

@@ -106,6 +106,26 @@ import Testing
         #expect(queue.enqueued.isEmpty)
     }
 
+    @Test func pageThatCouldNotBeLoadedStopsTheScanInsteadOfBeingDropped() async {
+        // Final review: a photo that is only in iCloud, or a scanner page without data, must not vanish:
+        // a three-page letter would be uploaded as two pages without a word.
+        let model = model()
+
+        await model.process(loaded: [image(), nil, image()])
+
+        #expect(model.phase == .failed(message: DocumentStrings.unreadablePage))
+        #expect(queue.enqueued.isEmpty)
+    }
+
+    @Test func completelyLoadedPagesAreProcessed() async {
+        let model = model()
+
+        await model.process(loaded: [image(), image()])
+
+        #expect(model.phase == .finished)
+        #expect(queue.enqueued.first?.count == 2)
+    }
+
     @Test func progressNamesThePageBeingRead() {
         #expect(ScanFlowModel.Phase.recognising(page: 2, total: 5).label == "Tekst herkennen: pagina 2 van 5")
     }

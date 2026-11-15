@@ -76,6 +76,10 @@ import Testing
         #expect(decide(outcome) == .failed(code: expected))
     }
 
+    @Test func uploadWithoutAPairingIsPausedNotFailed() {
+        #expect(decide(.unpaired) == .paused)
+    }
+
     @Test func untrustedServerFailsInsteadOfWaiting() {
         #expect(decide(.untrusted) == .failed(code: "untrusted"))
     }

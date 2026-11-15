@@ -19,3 +19,15 @@ public struct ServerConnection: Codable, Equatable, Sendable {
         self.userName = userName
     }
 }
+
+extension ServerConnection {
+    /// Which server this pairing belongs to, stable across pairing the same server again: the pinned CA
+    /// when there is one, otherwise the set of addresses. A queued scan carries it, so a scan made for one
+    /// server is never sent to another.
+    public var serverID: String {
+        if let caCertificateDER {
+            return "ca:" + CertificatePin.sha256Hex(ofDER: caCertificateDER)
+        }
+        return "hosts:" + urls.map { $0.host()?.lowercased() ?? $0.absoluteString }.sorted().joined(separator: ",")
+    }
+}

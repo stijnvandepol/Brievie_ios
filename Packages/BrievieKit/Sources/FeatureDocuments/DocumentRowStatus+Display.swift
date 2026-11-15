@@ -25,16 +25,16 @@ extension DocumentsModel.RowStatus {
         }
     }
 
-    /// The scan is still only on this phone and can be removed from it.
+    /// The scan has not reached the server yet and can be taken back, also while it is being sent.
     public var canDelete: Bool {
         switch self {
-        case .waitingForUpload, .uploadFailed: true
-        case .uploading, .processing, .needsReview, .done, .failed: false
+        case .waitingForUpload, .uploading, .uploadFailed: true
+        case .processing, .needsReview, .done, .failed: false
         }
     }
 
     public var canRetryUpload: Bool {
-        if case .uploadFailed = self { return true }
+        if case let .uploadFailed(_, canRetry) = self { return canRetry }
         return false
     }
 }

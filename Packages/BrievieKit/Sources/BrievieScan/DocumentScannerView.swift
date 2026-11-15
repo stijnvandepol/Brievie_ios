@@ -7,13 +7,14 @@ import VisionKit
 /// Each page is handed over as compressed data, read from the scan one at a time, so a scan of many pages
 /// never sits in memory as full-size bitmaps.
 public struct DocumentScannerView: UIViewControllerRepresentable {
-    private let onFinish: ([PageSource]) -> Void
+    private let onFinish: ([PageSource?]) -> Void
     private let onCancel: () -> Void
 
     /// Not available in the simulator or on a device without a camera.
     public static var isSupported: Bool { VNDocumentCameraViewController.isSupported }
 
-    public init(onFinish: @escaping ([PageSource]) -> Void, onCancel: @escaping () -> Void) {
+    /// - Parameter onFinish: the pages in order; `nil` for a page whose image could not be read.
+    public init(onFinish: @escaping ([PageSource?]) -> Void, onCancel: @escaping () -> Void) {
         self.onFinish = onFinish
         self.onCancel = onCancel
     }
@@ -31,10 +32,10 @@ public struct DocumentScannerView: UIViewControllerRepresentable {
     }
 
     public final class Coordinator: NSObject, VNDocumentCameraViewControllerDelegate {
-        private let onFinish: ([PageSource]) -> Void
+        private let onFinish: ([PageSource?]) -> Void
         private let onCancel: () -> Void
 
-        init(onFinish: @escaping ([PageSource]) -> Void, onCancel: @escaping () -> Void) {
+        init(onFinish: @escaping ([PageSource?]) -> Void, onCancel: @escaping () -> Void) {
             self.onFinish = onFinish
             self.onCancel = onCancel
         }
@@ -42,12 +43,11 @@ public struct DocumentScannerView: UIViewControllerRepresentable {
         public func documentCameraViewController(
             _ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan
         ) {
-            var pages: [PageSource] = []
+            var pages: [PageSource?] = []
             for index in 0..<scan.pageCount {
                 // High quality here; the upload encoder scales and compresses once more.
-                if let data = scan.imageOfPage(at: index).jpegData(compressionQuality: 0.9) {
-                    pages.append(.encodedData(data))
-                }
+                let data = scan.imageOfPage(at: index).jpegData(compressionQuality: 0.9)
+                pages.append(data.map(PageSource.encodedData))
             }
             onFinish(pages)
         }

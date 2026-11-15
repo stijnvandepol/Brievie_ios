@@ -13,10 +13,18 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
     /// An error body is `{"code", "message"}`; anything longer is not ours.
     private static let maxResponseBytes = 16 * 1024
 
+    /// Why this transport itself cancelled a task. Kept in memory: after a relaunch a cancellation counts
+    /// as "unreachable", which only retries.
+    struct CancelReasons: OptionSet, Sendable {
+        let rawValue: Int
+        static let trustRefused = CancelReasons(rawValue: 1)
+        static let cancelledByApp = CancelReasons(rawValue: 2)
+        static let unpaired = CancelReasons(rawValue: 4)
+    }
+
     private struct State {
         var bodies: [Int: Data] = [:]
-        var trustRefused: Set<Int> = []
-        var cancelledByApp: Set<Int> = []
+        var reasons: [Int: CancelReasons] = [:]
     }
 
     public let events: AsyncStream<UploadEvent>
@@ -78,7 +86,9 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         // From a file: the system reads it while the app is not running, and sends a Content-Length.
         let task = urlSession().uploadTask(with: request, fromFile: upload.bodyFile)
-        task.taskDescription = Self.description(itemID: upload.itemID, deviceID: upload.deviceID)
+        task.taskDescription = Self.description(
+            itemID: upload.itemID, deviceID: upload.deviceID, attemptID: upload.attemptID
+        )
         task.earliestBeginDate = upload.earliestBegin
         task.resume()
     }
@@ -91,7 +101,7 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
 
     public func cancel(itemID: UUID) async {
         for task in await urlSession().allTasks where Self.ids(from: task.taskDescription)?.itemID == itemID {
-            state.withLock { _ = $0.cancelledByApp.insert(task.taskIdentifier) }
+            state.withLock { _ = $0.reasons[task.taskIdentifier, default: []].insert(.cancelledByApp) }
             task.cancel()
         }
     }
@@ -107,14 +117,17 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
         _ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge
     ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         let space = challenge.protectionSpace
+        let trust = trustProvider.currentTrust()
         let decision = Self.disposition(
             authenticationMethod: space.authenticationMethod,
             serverTrust: space.serverTrust,
             host: space.host,
-            trust: trustProvider.currentTrust()
+            trust: trust
         )
         if decision == .cancelAuthenticationChallenge {
-            state.withLock { _ = $0.trustRefused.insert(task.taskIdentifier) }
+            // Without a pairing there is nothing to check against: not the server's fault.
+            let reason: CancelReasons = trust == nil ? .unpaired : .trustRefused
+            state.withLock { _ = $0.reasons[task.taskIdentifier, default: []].insert(reason) }
             return (decision, nil)
         }
         guard decision == .useCredential, let serverTrust = space.serverTrust else { return (decision, nil) }
@@ -148,22 +161,19 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
 
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
         let identifier = task.taskIdentifier
-        let (body, trustRefused, cancelledByApp) = state.withLock { state in
+        let (body, reasons) = state.withLock { state in
             (
                 state.bodies.removeValue(forKey: identifier) ?? Data(),
-                state.trustRefused.remove(identifier) != nil,
-                state.cancelledByApp.remove(identifier) != nil
+                state.reasons.removeValue(forKey: identifier) ?? []
             )
         }
         guard let ids = Self.ids(from: task.taskDescription) else { return }
         let outcome = Self.outcome(
-            error: error,
-            status: (task.response as? HTTPURLResponse)?.statusCode,
-            body: body,
-            trustRefused: trustRefused,
-            cancelledByApp: cancelledByApp
+            error: error, status: (task.response as? HTTPURLResponse)?.statusCode, body: body, reasons: reasons
         )
-        continuation.yield(.finished(itemID: ids.itemID, deviceID: ids.deviceID, outcome: outcome))
+        continuation.yield(
+            .finished(itemID: ids.itemID, deviceID: ids.deviceID, attemptID: ids.attemptID, outcome: outcome)
+        )
     }
 
     public func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
@@ -184,15 +194,14 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
         return .useCredential
     }
 
-    static func outcome(
-        error: (any Error)?, status: Int?, body: Data, trustRefused: Bool, cancelledByApp: Bool
-    ) -> UploadOutcome {
+    static func outcome(error: (any Error)?, status: Int?, body: Data, reasons: CancelReasons) -> UploadOutcome {
         guard let error else {
             guard let status else { return .unreachable }
             return .status(status, code: errorCode(in: body))
         }
-        if trustRefused { return .untrusted }
-        if cancelledByApp { return .cancelledByUser }
+        if reasons.contains(.cancelledByApp) { return .cancelledByUser }
+        if reasons.contains(.unpaired) { return .unpaired }
+        if reasons.contains(.trustRefused) { return .untrusted }
         switch (error as? URLError)?.code {
         case .secureConnectionFailed, .serverCertificateUntrusted, .serverCertificateHasBadDate,
              .serverCertificateNotYetValid, .serverCertificateHasUnknownRoot, .clientCertificateRejected,
@@ -209,14 +218,22 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
         return (try? JSONDecoder().decode(ErrorBody.self, from: body))?.code
     }
 
-    static func description(itemID: UUID, deviceID: UUID) -> String {
-        "\(itemID.uuidString)/\(deviceID.uuidString)"
+    static func description(itemID: UUID, deviceID: UUID, attemptID: UUID) -> String {
+        "\(itemID.uuidString)/\(deviceID.uuidString)/\(attemptID.uuidString)"
     }
 
-    static func ids(from description: String?) -> (itemID: UUID, deviceID: UUID)? {
-        guard let parts = description?.split(separator: "/"), parts.count == 2,
-              let itemID = UUID(uuidString: String(parts[0])), let deviceID = UUID(uuidString: String(parts[1]))
+    /// What a task's description says about it.
+    struct TaskIDs: Equatable {
+        let itemID: UUID
+        let deviceID: UUID
+        let attemptID: UUID
+    }
+
+    static func ids(from description: String?) -> TaskIDs? {
+        guard let parts = description?.split(separator: "/"), parts.count == 3,
+              let itemID = UUID(uuidString: String(parts[0])), let deviceID = UUID(uuidString: String(parts[1])),
+              let attemptID = UUID(uuidString: String(parts[2]))
         else { return nil }
-        return (itemID, deviceID)
+        return TaskIDs(itemID: itemID, deviceID: deviceID, attemptID: attemptID)
     }
 }

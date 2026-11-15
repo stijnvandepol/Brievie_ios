@@ -11,6 +11,8 @@ struct RootView: View {
     let environment: AppEnvironment
 
     @Environment(\.scenePhase) private var scenePhase
+    /// The pairing whose screens are in the view tree (also while locked); `nil` until the first unlock.
+    @State private var shownConnection: ServerConnection?
 
     var body: some View {
         content
@@ -44,16 +46,33 @@ struct RootView: View {
             }
     }
 
+    /// The paired app stays in the view tree while it is locked, under an opaque lock screen: a review that
+    /// is half filled in must survive a trip to another app. (Its sheets close themselves when the scene
+    /// leaves the foreground, so nothing of it shows above the lock.)
     @ViewBuilder private var content: some View {
-        switch appModel.state {
-        case .unpaired(let notice):
+        if case .unpaired(let notice) = appModel.state {
             PairingScreen(appModel: appModel, environment: environment, notice: notice)
-        case .locked:
-            LockView(unlock: { appModel.requestUnlock() })
-        case .ready(let connection):
-            WorkspacesScreen(appModel: appModel, environment: environment, connection: connection)
+        } else {
+            ZStack {
+                if let connection = shownConnection {
+                    WorkspacesScreen(appModel: appModel, environment: environment, connection: connection)
+                        // A new pairing is a new app: nothing of the old one is kept.
+                        .id(connection.deviceID)
+                        .accessibilityHidden(isLocked)
+                        .allowsHitTesting(!isLocked)
+                }
+                if isLocked {
+                    LockView(unlock: { appModel.requestUnlock() })
+                        .background(Color(.systemGroupedBackground).ignoresSafeArea())
+                }
+            }
+            .onChange(of: appModel.state, initial: true) { _, state in
+                if case .ready(let connection) = state { shownConnection = connection }
+            }
         }
     }
+
+    private var isLocked: Bool { appModel.state == .locked }
 
     private var isReady: Bool {
         if case .ready = appModel.state { return true }

@@ -11,6 +11,8 @@ public enum UploadOutcome: Equatable, Sendable {
     case untrusted
     /// The app cancelled the upload itself (`delete`): nothing to decide.
     case cancelledByUser
+    /// There was no pairing to check the server against (it was cleared while the upload waited).
+    case unpaired
 }
 
 public enum UploadDecision: Equatable, Sendable {
@@ -21,6 +23,8 @@ public enum UploadDecision: Equatable, Sendable {
     case failed(code: String)
     /// The server no longer knows this device. The item stays for after pairing again.
     case revoked
+    /// Nothing is wrong with the scan; it waits until the app is paired again.
+    case paused
 }
 
 /// Decides what happens after each upload attempt. Retries never end by themselves: a scan waits as long
@@ -40,19 +44,8 @@ public enum UploadPolicy {
     public static func decide(_ outcome: UploadOutcome, item: UploadItem, urlCount: Int) -> UploadDecision {
         let wait = backoff[min(max(item.attempt, 0), backoff.count - 1)]
         switch outcome {
-        case .status(200, _), .status(201, _):
-            return .done
-        case .status(401, _):
-            return .revoked
-        case .status(429, _), .status(500..., _):
-            return .retry(urlIndex: item.urlIndex, after: wait)
-        case let .status(status, code) where (400..<500).contains(status):
-            if let code, knownCodes.contains(code) {
-                return .failed(code: code)
-            }
-            return .failed(code: "http_\(status)")
-        case .status:
-            return .retry(urlIndex: item.urlIndex, after: wait)
+        case let .status(status, code):
+            return decide(status: status, code: code, item: item, wait: wait)
         case .unreachable:
             if item.urlIndex + 1 < urlCount {
                 return .retry(urlIndex: item.urlIndex + 1, after: .zero)
@@ -63,6 +56,28 @@ public enum UploadPolicy {
             return .failed(code: "untrusted")
         case .cancelledByUser:
             return .failed(code: "cancelled")
+        case .unpaired:
+            return .paused
+        }
+    }
+
+    /// The server (or something in front of it) answered.
+    private static func decide(status: Int, code: String?, item: UploadItem, wait: Duration) -> UploadDecision {
+        switch status {
+        case 200, 201:
+            return .done
+        case 401:
+            return .revoked
+        case 429, 500...:
+            return .retry(urlIndex: item.urlIndex, after: wait)
+        case 400..<500:
+            if let code, knownCodes.contains(code) {
+                return .failed(code: code)
+            }
+            return .failed(code: "http_\(status)")
+        default:
+            // A proxy page, a redirect: not our server's verdict on the document.
+            return .retry(urlIndex: item.urlIndex, after: wait)
         }
     }
 }

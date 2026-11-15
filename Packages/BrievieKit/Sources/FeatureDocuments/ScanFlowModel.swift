@@ -42,6 +42,17 @@ public final class ScanFlowModel {
         self.maxPages = maxPages
     }
 
+    /// For pages that had to be loaded first (photo library, scanner): `nil` is a page that could not be
+    /// loaded. A scan with a missing page is refused as a whole; uploading the rest would silently lose it.
+    public func process(loaded sources: [PageSource?]) async {
+        let complete = sources.compactMap { $0 }
+        guard complete.count == sources.count else {
+            phase = .failed(message: DocumentStrings.unreadablePage)
+            return
+        }
+        await process(complete)
+    }
+
     /// One page at a time: only the JPEG and the text of earlier pages stay in memory.
     public func process(_ sources: [PageSource]) async {
         guard !sources.isEmpty else {

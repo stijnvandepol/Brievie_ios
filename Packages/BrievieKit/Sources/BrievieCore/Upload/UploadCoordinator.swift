@@ -22,6 +22,8 @@ public actor UploadCoordinator {
     private var progress: [UUID: Double] = [:]
     private var subscribers: [UUID: AsyncStream<[UUID: Double]>.Continuation] = [:]
     private var eventsHandler: (@MainActor @Sendable () -> Void)?
+    /// The system's events were all handled before the app delegate handed over its completion handler.
+    private var eventsDeliveredEarly = false
 
     public init(
         store: UploadQueueStore,
@@ -46,8 +48,13 @@ public actor UploadCoordinator {
 
     /// Writes the scan to the queue and starts its upload. The scan is safe on disk when this returns.
     public func enqueue(pages: [ScannedPage], workspaceID: UUID) async throws(UploadQueueError) -> UploadItem {
-        let deviceID = current()?.connection.deviceID ?? Self.noDevice
-        let item = try await store.enqueue(pages: pages, workspaceID: workspaceID, deviceID: deviceID)
+        let paired = current()
+        let deviceID = paired?.connection.deviceID ?? Self.noDevice
+        var item = try await store.enqueue(pages: pages, workspaceID: workspaceID, deviceID: deviceID)
+        if let serverID = paired?.connection.serverID {
+            item.serverID = serverID
+            try? await store.update(item)
+        }
         await start(item)
         return await store.item(item.id) ?? item
     }
@@ -104,8 +111,13 @@ public actor UploadCoordinator {
     }
 
     /// The completion handler iOS hands the app when it relaunches it for finished uploads.
-    public func setEventsHandler(_ handler: @escaping @MainActor @Sendable () -> Void) {
-        eventsHandler = handler
+    public func setEventsHandler(_ handler: @escaping @MainActor @Sendable () -> Void) async {
+        if eventsDeliveredEarly {
+            eventsDeliveredEarly = false
+            await MainActor.run { handler() }
+        } else {
+            eventsHandler = handler
+        }
     }
 
     // MARK: - Events
@@ -114,23 +126,26 @@ public actor UploadCoordinator {
         switch event {
         case let .sent(itemID, bytes, total):
             setProgress(total > 0 ? Double(bytes) / Double(total) : 0, for: itemID)
-        case let .finished(itemID, deviceID, outcome):
-            await finished(itemID: itemID, deviceID: deviceID, outcome: outcome)
+        case let .finished(itemID, deviceID, attemptID, outcome):
+            await finished(itemID: itemID, deviceID: deviceID, attemptID: attemptID, outcome: outcome)
         case .allEventsDelivered:
             // Only now: the queue on disk reflects every event the system delivered.
             if let handler = eventsHandler {
                 eventsHandler = nil
                 await MainActor.run { handler() }
+            } else {
+                eventsDeliveredEarly = true
             }
         }
     }
 
-    private func finished(itemID: UUID, deviceID: UUID, outcome: UploadOutcome) async {
+    private func finished(itemID: UUID, deviceID: UUID, attemptID: UUID, outcome: UploadOutcome) async {
+        // Gone (deleted), not uploading any more (set back to waiting after a revocation), or an event of an
+        // earlier attempt (a task the system cancelled after the item was started again): nothing to decide.
+        guard outcome != .cancelledByUser, var item = await store.item(itemID), item.state == .uploading,
+              item.attemptID == attemptID
+        else { return }
         setProgress(nil, for: itemID)
-        // Gone (deleted), or not uploading any more (set back to waiting after a revocation): nothing to decide.
-        guard outcome != .cancelledByUser, var item = await store.item(itemID), item.state == .uploading else {
-            return
-        }
         let urlCount = max(current()?.connection.urls.count ?? 1, 1)
         switch UploadPolicy.decide(outcome, item: item, urlCount: urlCount) {
         case .done:
@@ -153,6 +168,10 @@ public actor UploadCoordinator {
             try? await store.update(item)
         case .revoked:
             await revoked(item, deviceID: deviceID)
+        case .paused:
+            // Waits for `resume()` after the next pairing; not a failed attempt.
+            item.state = .waiting
+            try? await store.update(item)
         }
     }
 
@@ -188,13 +207,28 @@ public actor UploadCoordinator {
         defer { starting.remove(item.id) }
 
         // Re-read: another call may have started it while this one waited for the actor.
-        guard var fresh = await store.item(item.id), fresh.state != .failed else { return }
+        guard var fresh = await store.item(item.id) else { return }
+        // Only `retry` restarts a failed item (it sets it to waiting first), except that a scan made for
+        // another server stays failed whatever is tried.
+        if fresh.state == .failed { return }
         if fresh.state == .uploading, await transport.runningItemIDs().contains(fresh.id) { return }
 
+        // A scan belongs to the server it was made for: after pairing with another server it stays here.
+        let serverID = paired.connection.serverID
+        if let madeFor = fresh.serverID, madeFor != serverID {
+            fresh.state = .failed
+            fresh.failureCode = "server_changed"
+            try? await store.update(fresh)
+            return
+        }
+
         let urls = paired.connection.urls
+        let attemptID = UUID()
         fresh.urlIndex = min(fresh.urlIndex, urls.count - 1)
         fresh.state = .uploading
         fresh.deviceID = paired.connection.deviceID
+        fresh.serverID = serverID
+        fresh.attemptID = attemptID
         // Saved before the transfer starts, so a relaunch knows this item was on its way.
         guard (try? await store.update(fresh)) != nil else { return }
 
@@ -202,6 +236,7 @@ public actor UploadCoordinator {
         await transport.start(UploadRequest(
             itemID: fresh.id,
             deviceID: paired.connection.deviceID,
+            attemptID: attemptID,
             url: BackgroundUploadTransport.uploadURL(base: urls[fresh.urlIndex], workspaceID: fresh.workspaceID),
             bodyFile: await store.bodyFile(for: fresh.id),
             boundary: fresh.boundary,

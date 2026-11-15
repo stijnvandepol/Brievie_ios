@@ -63,6 +63,19 @@ struct ReviewHarness {
         #expect(model.pageTexts == [DocumentFixtures.letterText])
     }
 
+    @Test func draftFilledByAIIsMarkedAsSuch() async throws {
+        // Final review, spec 14: every AI result is recognisable as AI, not only the summary.
+        let filled = try harness.model()
+        await filled.load()
+        #expect(filled.draft.isFromAI)
+
+        let empty = ReviewHarness()
+        empty.answer { id in DocumentFixtures.detail(id: id, proposals: []) }
+        let byHand = try empty.model()
+        await byHand.load()
+        #expect(!byHand.draft.isFromAI)
+    }
+
     @Test func invoiceDueDateWithoutAPayActionAddsAPayTask() async throws {
         harness.answer { id in
             DocumentFixtures.detail(id: id, proposals: [

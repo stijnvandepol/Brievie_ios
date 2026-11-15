@@ -35,6 +35,9 @@ public final class ReviewModel {
         public init() {}
 
         public var summaryIsByAI: Bool { !aiSummary.isEmpty && summary == aiSummary }
+
+        /// The draft was pre-filled from AI proposals (as opposed to started empty, by hand).
+        public internal(set) var isFromAI = false
     }
 
     public private(set) var state: State = .loading
@@ -212,6 +215,7 @@ public final class ReviewModel {
 
     static func draft(from proposals: [Proposal]) -> Draft {
         var draft = Draft()
+        draft.isFromAI = !proposals.isEmpty
         for proposal in proposals where proposal.group == 0 {
             let trusted = proposal.confidence > 0
             switch proposal.field {

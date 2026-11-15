@@ -265,6 +265,18 @@
         }
       }
     },
+    "documents.upload.otherServer": {
+      "comment": "A queued scan that belongs to a server the app is no longer paired with.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze scan is gemaakt voor een andere server en wordt niet verstuurd. Verwijder hem, of koppel weer met die server."
+          }
+        }
+      }
+    },
     "documents.upload.tooLarge": {
       "comment": "Scan above the server's size limit.",
       "extractionState": "manual",
@@ -297,6 +309,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "review.ai.note": {
+      "comment": "Shown above a review that was pre-filled by AI (EU AI Act transparency).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingevuld door AI. Controleer of het klopt voordat je bevestigt."
           }
         }
       }

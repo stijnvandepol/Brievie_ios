@@ -10,7 +10,8 @@ public final class DocumentsModel {
     public enum RowStatus: Equatable, Sendable {
         case waitingForUpload
         case uploading(progress: Double)
-        case uploadFailed(message: String)
+        /// `canRetry` is false for a scan that belongs to another server: it can only be deleted.
+        case uploadFailed(message: String, canRetry: Bool = true)
         case processing
         case needsReview
         case done
@@ -173,8 +174,13 @@ public final class DocumentsModel {
     private func status(of item: UploadItem) -> RowStatus {
         switch item.state {
         case .waiting: .waitingForUpload
-        case .uploading: .uploading(progress: progress[item.id] ?? 0)
-        case .failed: .uploadFailed(message: Self.uploadMessage(for: item.failureCode))
+        case .uploading:
+            // Handed to the system but nothing sent yet (offline, or scheduled for later): it waits.
+            progress[item.id].map { .uploading(progress: $0) } ?? .waitingForUpload
+        case .failed:
+            .uploadFailed(
+                message: Self.uploadMessage(for: item.failureCode), canRetry: item.failureCode != "server_changed"
+            )
         }
     }
 
@@ -192,6 +198,7 @@ public final class DocumentsModel {
         switch code {
         case "untrusted": DocumentStrings.notVerified
         case "workspace_not_found": DocumentStrings.workspaceGone
+        case "server_changed": DocumentStrings.otherServer
         case "payload_too_large": DocumentStrings.tooLarge
         default: DocumentStrings.uploadFailed
         }

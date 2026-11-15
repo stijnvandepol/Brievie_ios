@@ -15,6 +15,11 @@ public struct UploadItem: Codable, Equatable, Sendable, Identifiable {
     public let workspaceID: UUID
     /// The pairing the latest attempt was made with: a late answer to an older pairing is told apart by it.
     public var deviceID: UUID
+    /// The server the scan was made for (`ServerConnection.serverID`); `nil` until its first attempt when it
+    /// was queued while unpaired. A scan is only ever sent to this server.
+    public var serverID: String?
+    /// The attempt that is on its way; an event of any other attempt is stale and ignored.
+    public var attemptID: UUID?
     public let createdAt: Date
     public let pageCount: Int
     public let bodyByteCount: Int64
@@ -30,7 +35,8 @@ public struct UploadItem: Codable, Equatable, Sendable, Identifiable {
 
     public init(
         id: UUID, workspaceID: UUID, deviceID: UUID, createdAt: Date, pageCount: Int, bodyByteCount: Int64,
-        boundary: String, state: State, attempt: Int, urlIndex: Int, nextAttemptAt: Date?, failureCode: String?
+        boundary: String, state: State, attempt: Int, urlIndex: Int, nextAttemptAt: Date?, failureCode: String?,
+        serverID: String? = nil, attemptID: UUID? = nil
     ) {
         self.id = id
         self.workspaceID = workspaceID
@@ -44,6 +50,8 @@ public struct UploadItem: Codable, Equatable, Sendable, Identifiable {
         self.urlIndex = urlIndex
         self.nextAttemptAt = nextAttemptAt
         self.failureCode = failureCode
+        self.serverID = serverID
+        self.attemptID = attemptID
     }
 }
 

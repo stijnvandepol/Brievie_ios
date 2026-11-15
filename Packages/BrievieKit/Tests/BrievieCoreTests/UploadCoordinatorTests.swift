@@ -40,8 +40,10 @@ import Testing
 
     private var page: [ScannedPage] { [ScannedPage(jpeg: Data([0xFF, 0xD8, 0xFF, 1]), text: "tekst")] }
 
+    /// The end of the item's latest attempt, as the transport would report it.
     private func finished(_ item: UploadItem, _ outcome: UploadOutcome, device: UUID? = nil) -> UploadEvent {
-        .finished(itemID: item.id, deviceID: device ?? deviceA, outcome: outcome)
+        let attempt = transport.starts.last { $0.itemID == item.id }?.attemptID ?? UUID()
+        return .finished(itemID: item.id, deviceID: device ?? deviceA, attemptID: attempt, outcome: outcome)
     }
 
     private func entries() -> [String] {
@@ -236,5 +238,78 @@ import Testing
         pair(deviceID: deviceA, urls: [Self.local])
         await uploads.resume()
         #expect(transport.starts.map(\.itemID) == [item.id])
+    }
+
+    @Test func lateEventOfAnEarlierAttemptIsIgnored() async throws {
+        // Final review: swiped away and reopened: the item is restarted, then the old task's cancel arrives.
+        let uploads = coordinator()
+        let item = try await uploads.enqueue(pages: page, workspaceID: workspaceID)
+        let oldAttempt = try #require(transport.starts.first?.attemptID)
+        transport.setRunning([])
+        await uploads.resume()
+        #expect(transport.starts.count == 2)
+
+        await uploads.handle(
+            .finished(itemID: item.id, deviceID: deviceA, attemptID: oldAttempt, outcome: .unreachable)
+        )
+
+        #expect(transport.starts.count == 2)
+        let current = try #require(await uploads.items().first)
+        #expect(current.state == .uploading)
+        #expect(current.attempt == 0)
+        await uploads.handle(finished(item, .status(201, code: nil)))
+        #expect(await uploads.items().isEmpty)
+    }
+
+    @Test func scanQueuedForOneServerIsNeverSentToAnother() async throws {
+        // Final review: revoked, then paired with a different server: the scans must stay here.
+        let uploads = coordinator()
+        let item = try await uploads.enqueue(pages: page, workspaceID: workspaceID)
+        await uploads.handle(finished(item, .status(401, code: nil)))
+        let other = ServerConnection(
+            urls: [Self.remote], caCertificateDER: Data([1, 2, 3]), deviceID: UUID(), userName: "Iemand"
+        )
+        pairing.value = (other, "token-other")
+
+        await uploads.resume()
+
+        #expect(transport.starts.count == 1)
+        let kept = try #require(await uploads.items().first)
+        #expect(kept.state == .failed)
+        #expect(kept.failureCode == "server_changed")
+        // Trying again does not help either; the user can only delete it.
+        await uploads.retry(item.id)
+        #expect(transport.starts.count == 1)
+        #expect(await uploads.items().first?.failureCode == "server_changed")
+    }
+
+    @Test func uploadRefusedForLackOfAPairingWaitsForTheNextOne() async throws {
+        // Final review: a 401 elsewhere cleared the pairing; a scheduled upload then finds no pin.
+        let uploads = coordinator()
+        let item = try await uploads.enqueue(pages: page, workspaceID: workspaceID)
+        pairing.value = nil
+
+        await uploads.handle(finished(item, .unpaired))
+
+        let waiting = try #require(await uploads.items().first)
+        #expect(waiting.state == .waiting)
+        #expect(waiting.attempt == 0)
+        #expect(waiting.failureCode == nil)
+        #expect(transport.starts.count == 1)
+
+        pair(deviceID: UUID(), urls: [Self.local], token: "token-b")
+        await uploads.resume()
+        #expect(transport.starts.count == 2)
+    }
+
+    @Test func eventsHandlerSetAfterTheEventsWereDeliveredRunsAtOnce() async throws {
+        // Final review: the system's events can be handled before the app delegate hands over its handler.
+        let uploads = coordinator()
+        let called = Locked(false)
+
+        await uploads.handle(.allEventsDelivered)
+        await uploads.setEventsHandler { called.value = true }
+
+        #expect(called.value)
     }
 }

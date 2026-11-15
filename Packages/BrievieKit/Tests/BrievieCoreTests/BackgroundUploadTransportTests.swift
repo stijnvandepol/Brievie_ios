@@ -36,6 +36,10 @@ import Testing
         #expect(outcome(error: URLError(.cancelled)) == .unreachable)
     }
 
+    @Test func cancellationForLackOfAPairingIsNotAnUntrustedServer() {
+        #expect(outcome(error: URLError(.cancelled), unpaired: true) == .unpaired)
+    }
+
     @Test func ourOwnCancelIsReportedAsSuch() {
         #expect(outcome(error: URLError(.cancelled), cancelledByApp: true) == .cancelledByUser)
     }
@@ -83,18 +87,36 @@ import Testing
         #expect(disposition == .performDefaultHandling)
     }
 
-    @Test func taskDescriptionCarriesItemAndDevice() {
+    @Test func taskDescriptionCarriesItemDeviceAndAttempt() {
         let item = UUID()
         let device = UUID()
+        let attempt = UUID()
 
         let ids = BackgroundUploadTransport.ids(
-            from: BackgroundUploadTransport.description(itemID: item, deviceID: device)
+            from: BackgroundUploadTransport.description(itemID: item, deviceID: device, attemptID: attempt)
         )
 
         #expect(ids?.itemID == item)
         #expect(ids?.deviceID == device)
+        #expect(ids?.attemptID == attempt)
         #expect(BackgroundUploadTransport.ids(from: "iets anders") == nil)
+        #expect(BackgroundUploadTransport.ids(from: "\(item)/\(device)") == nil)
         #expect(BackgroundUploadTransport.ids(from: nil) == nil)
+    }
+
+    @Test func serverIdentityFollowsThePinOrTheAddresses() throws {
+        let local = try #require(URL(string: "https://brievie.local"))
+        let other = try #require(URL(string: "https://elders.example.nl"))
+        func connection(_ urls: [URL], ca: Data?) -> ServerConnection {
+            ServerConnection(urls: urls, caCertificateDER: ca, deviceID: UUID(), userName: "x")
+        }
+
+        // The same server paired again (new device id) is the same server.
+        #expect(connection([local], ca: Data([1])).serverID == connection([other, local], ca: Data([1])).serverID)
+        #expect(connection([local], ca: Data([1])).serverID != connection([local], ca: Data([2])).serverID)
+        #expect(connection([local], ca: nil).serverID == connection([local], ca: nil).serverID)
+        #expect(connection([local], ca: nil).serverID != connection([other], ca: nil).serverID)
+        #expect(connection([local], ca: nil).serverID != connection([local], ca: Data([1])).serverID)
     }
 
     @Test func uploadURLIsTheDocumentsEndpointOfTheWorkspace() throws {
@@ -125,10 +147,12 @@ import Testing
 
     private func outcome(
         error: (any Error)? = nil, status: Int? = nil, body: Data = Data(), trustRefused: Bool = false,
-        cancelledByApp: Bool = false
+        cancelledByApp: Bool = false, unpaired: Bool = false
     ) -> UploadOutcome {
-        BackgroundUploadTransport.outcome(
-            error: error, status: status, body: body, trustRefused: trustRefused, cancelledByApp: cancelledByApp
-        )
+        var reasons: BackgroundUploadTransport.CancelReasons = []
+        if trustRefused { reasons.insert(.trustRefused) }
+        if cancelledByApp { reasons.insert(.cancelledByApp) }
+        if unpaired { reasons.insert(.unpaired) }
+        return BackgroundUploadTransport.outcome(error: error, status: status, body: body, reasons: reasons)
     }
 }
