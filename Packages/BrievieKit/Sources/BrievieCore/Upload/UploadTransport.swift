@@ -2,11 +2,25 @@ import Foundation
 
 /// What a transport reports back about the uploads it runs.
 public enum UploadEvent: Sendable {
-    case sent(itemID: UUID, bytes: Int64, of: Int64)
+    case sent(itemID: UUID, bytes: Int64, total: Int64)
     /// `deviceID` is the pairing the attempt was started with.
     case finished(itemID: UUID, deviceID: UUID, outcome: UploadOutcome)
     /// The system has delivered every event of a background relaunch.
     case allEventsDelivered
+}
+
+/// One upload attempt of a queued item.
+public struct UploadRequest: Equatable, Sendable {
+    public let itemID: UUID
+    /// The pairing this attempt is made with.
+    public let deviceID: UUID
+    /// The upload endpoint (`BackgroundUploadTransport.uploadURL`).
+    public let url: URL
+    public let bodyFile: URL
+    public let boundary: String
+    public let token: String
+    /// `nil` to start at once.
+    public let earliestBegin: Date?
 }
 
 /// Sends queued upload bodies. The live one is a background `URLSession`, which keeps uploading while the
@@ -16,10 +30,7 @@ public protocol UploadTransport: Sendable {
     var events: AsyncStream<UploadEvent> { get }
 
     /// Starts a POST of the item's body file, or schedules it for `earliestBegin`.
-    // swiftlint:disable:next function_parameter_count
-    func start(
-        itemID: UUID, deviceID: UUID, url: URL, bodyFile: URL, boundary: String, token: String, earliestBegin: Date?
-    ) async
+    func start(_ request: UploadRequest) async
 
     /// The items whose upload is running or scheduled.
     func runningItemIDs() async -> Set<UUID>

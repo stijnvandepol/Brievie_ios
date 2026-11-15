@@ -5,8 +5,8 @@ import Testing
 
 @Suite struct UploadCoordinatorTests {
     private static let now = Date(timeIntervalSince1970: 1_800_000_000)
-    private static let local = URL(string: "https://brievie.local")!  // swiftlint:disable:this force_unwrapping
-    private static let remote = URL(string: "https://brievie.example.nl")!  // swiftlint:disable:this force_unwrapping
+    private static let local = URL(string: "https://brievie.local")!
+    private static let remote = URL(string: "https://brievie.example.nl")!
 
     private let directory = FileManager.default.temporaryDirectory.appending(path: "queue-\(UUID().uuidString)")
     private let transport = FakeUploadTransport()
@@ -54,7 +54,9 @@ import Testing
 
         let item = try await uploads.enqueue(pages: page, workspaceID: workspaceID)
         #expect(transport.starts == [
-            .init(itemID: item.id, deviceID: deviceA, url: endpoint(Self.local), token: "token-a", earliestBegin: nil)
+            .init(
+                itemID: item.id, deviceID: deviceA, url: endpoint(Self.local), token: "token-a", earliestBegin: nil
+            )
         ])
         #expect(await uploads.items().map(\.state) == [.uploading])
 
@@ -189,7 +191,7 @@ import Testing
         var first = await uploads.progressUpdates().makeAsyncIterator()
         var second = await uploads.progressUpdates().makeAsyncIterator()
 
-        await uploads.handle(.sent(itemID: item.id, bytes: 50, of: 100))
+        await uploads.handle(.sent(itemID: item.id, bytes: 50, total: 100))
 
         #expect(await first.next() == [item.id: 0.5])
         #expect(await second.next() == [item.id: 0.5])

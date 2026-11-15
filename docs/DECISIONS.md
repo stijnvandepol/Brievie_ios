@@ -44,6 +44,15 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - The item's id is the document's `client_id` on the server: a repeated upload finds the same document.
 - Server limits are checked on the phone (`UploadLimits.server`: 30 pages, 32 MiB, 20000 characters of text per page; longer text is cut), so a scan that cannot succeed is never queued.
 
+## Background upload (phase 1b)
+
+- **One background `URLSession` per process** (`nl.stijnvdpol.brievie.upload`), created at launch, also when the system relaunches the app for finished uploads. Its own configuration instead of `SessionConfiguration.hardened`: that one's 30 s resource timeout would end every slow upload; here the system waits for a connection itself (up to 7 days per attempt). No cookies, no cache, no stored credentials, redirects refused.
+- **Trust is read per TLS handshake** (`UploadTrustProvider`): the session outlives a pairing, so the pin comes from the stored connection each time. Without a readable pairing the connection is refused; there is no fallback to system trust for a pinned server.
+- **The device token travels in the request of a background task**, which iOS keeps outside the app's process until the task ends. Accepted for now; a short-lived upload token is later hardening.
+- **Swiping the app away cancels its background uploads** (iOS design). They stay in the queue and go out the next time the app opens. When the system itself ends the app, uploads continue. Such a cancellation counts as "unreachable", never as a failure; only our own refusal of the server's certificate is "untrusted".
+- **Retry rules** live in `UploadPolicy` (pure): next URL at once, then back to the first with a backoff of 30 s up to 1 hour, forever; 401 pauses the queue and sends the user to pairing, nothing is deleted; other 4xx answers fail the item with a code from a closed set, and the user can retry or delete it.
+- `AppModel` does not know the queue: `AppEnvironment.live` builds transport and coordinator, `RootView` calls `resume()` whenever the app becomes ready.
+
 ## Storage
 
 - **`UserDefaults`: one boolean, `hasLaunchedBefore`** — the single sanctioned use of `UserDefaults` (flag only, never secrets; behind the `LaunchFlag` protocol). Keychain items survive uninstalling the app, `UserDefaults` does not, so a missing flag means "first launch after an install" and the app then clears the stored connection. There is no in-app unpair yet, so without this a reinstall would reopen a pairing the user thought was gone. Consequence: a device restored from a backup (flag restored, Keychain items not) or a new device needs to pair again. Until the check has completed (protected data available, clear succeeded) the app stays on the lock screen and never unlocks a stored connection; it retries on every activation, unlock attempt and when protected data becomes available.

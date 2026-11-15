@@ -68,18 +68,18 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
 
     // MARK: - UploadTransport
 
-    public func start(
-        itemID: UUID, deviceID: UUID, url: URL, bodyFile: URL, boundary: String, token: String, earliestBegin: Date?
-    ) async {
-        var request = URLRequest(url: url)
+    public func start(_ upload: UploadRequest) async {
+        var request = URLRequest(url: upload.url)
         request.httpMethod = "POST"
-        request.setValue(MultipartBodyWriter.contentType(boundary: boundary), forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(
+            MultipartBodyWriter.contentType(boundary: upload.boundary), forHTTPHeaderField: "Content-Type"
+        )
+        request.setValue("Bearer \(upload.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         // From a file: the system reads it while the app is not running, and sends a Content-Length.
-        let task = urlSession().uploadTask(with: request, fromFile: bodyFile)
-        task.taskDescription = Self.description(itemID: itemID, deviceID: deviceID)
-        task.earliestBeginDate = earliestBegin
+        let task = urlSession().uploadTask(with: request, fromFile: upload.bodyFile)
+        task.taskDescription = Self.description(itemID: upload.itemID, deviceID: upload.deviceID)
+        task.earliestBeginDate = upload.earliestBegin
         task.resume()
     }
 
@@ -134,7 +134,7 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
         totalBytesExpectedToSend: Int64
     ) {
         guard let ids = Self.ids(from: task.taskDescription) else { return }
-        continuation.yield(.sent(itemID: ids.itemID, bytes: totalBytesSent, of: totalBytesExpectedToSend))
+        continuation.yield(.sent(itemID: ids.itemID, bytes: totalBytesSent, total: totalBytesExpectedToSend))
     }
 
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {

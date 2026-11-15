@@ -199,7 +199,7 @@ public actor UploadCoordinator {
         guard (try? await store.update(fresh)) != nil else { return }
 
         let earliest = fresh.nextAttemptAt.flatMap { $0 > now() ? $0 : nil }
-        await transport.start(
+        await transport.start(UploadRequest(
             itemID: fresh.id,
             deviceID: paired.connection.deviceID,
             url: BackgroundUploadTransport.uploadURL(base: urls[fresh.urlIndex], workspaceID: fresh.workspaceID),
@@ -207,7 +207,7 @@ public actor UploadCoordinator {
             boundary: fresh.boundary,
             token: paired.token,
             earliestBegin: earliest
-        )
+        ))
     }
 
     private func current() -> (connection: ServerConnection, token: String)? {

@@ -44,14 +44,13 @@ final class FakeUploadTransport: UploadTransport {
         continuation.finish()
     }
 
-    func start(
-        itemID: UUID, deviceID: UUID, url: URL, bodyFile: URL, boundary: String, token: String, earliestBegin: Date?
-    ) async {
+    func start(_ request: UploadRequest) async {
         state.withLock {
             $0.starts.append(Start(
-                itemID: itemID, deviceID: deviceID, url: url, token: token, earliestBegin: earliestBegin
+                itemID: request.itemID, deviceID: request.deviceID, url: request.url, token: request.token,
+                earliestBegin: request.earliestBegin
             ))
-            $0.running.insert(itemID)
+            $0.running.insert(request.itemID)
         }
     }
 
