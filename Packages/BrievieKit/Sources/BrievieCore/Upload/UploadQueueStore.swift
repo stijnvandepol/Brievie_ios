@@ -18,6 +18,8 @@ public actor UploadQueueStore {
     private let limits: UploadLimits
     private let writeBody: BodyWriter
     private let files = FileManager.default
+    /// Items removed at load because their record could not be read; reported once.
+    private var removedUnreadable: Int
 
     /// - Parameter directory: live: `Application Support/Uploads`.
     public init(
@@ -39,6 +41,24 @@ public actor UploadQueueStore {
         for name in leftovers where name.hasPrefix(Self.incomingPrefix) {
             try? FileManager.default.removeItem(at: directory.appending(path: name))
         }
+        // An item whose record cannot be read can never be uploaded: remove it instead of keeping its scan on
+        // disk where nobody sees it. A record that exists but cannot be opened yet (phone not unlocked since
+        // the restart) is left alone.
+        var removed = 0
+        for name in leftovers where !name.hasPrefix(".") {
+            let itemDirectory = directory.appending(path: name)
+            if case .unreadable = Self.record(in: itemDirectory),
+               (try? FileManager.default.removeItem(at: itemDirectory)) != nil {
+                removed += 1
+            }
+        }
+        removedUnreadable = removed
+    }
+
+    /// How many unreadable items were removed when the queue was loaded; 0 after the first call.
+    public func takeRemovedUnreadableCount() -> Int {
+        defer { removedUnreadable = 0 }
+        return removedUnreadable
     }
 
     /// Writes the scan to disk as a waiting item. Nothing is left behind when it fails.
@@ -84,18 +104,37 @@ public actor UploadQueueStore {
     /// Oldest first. A directory that cannot be read as an item is skipped.
     public func items() -> [UploadItem] {
         let names = (try? files.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []
+        return names
+            .filter { !$0.hasPrefix(".") }
+            .compactMap { name -> UploadItem? in
+                if case let .item(item) = Self.record(in: directory.appending(path: name)) { return item }
+                return nil
+            }
+            .sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
+    }
+
+    private enum Record {
+        case item(UploadItem)
+        /// No record, or one that is not an item: the directory can never be uploaded.
+        case unreadable
+        /// The record is there but cannot be opened now (file protection before the first unlock).
+        case unavailable
+    }
+
+    private static func record(in itemDirectory: URL) -> Record {
+        let file = itemDirectory.appending(path: itemFile)
+        let data: Data
+        do {
+            data = try Data(contentsOf: file)
+        } catch {
+            return FileManager.default.fileExists(atPath: file.path(percentEncoded: false)) ? .unavailable : .unreadable
+        }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             Self.date(milliseconds: try decoder.singleValueContainer().decode(Int64.self))
         }
-        return names
-            .filter { !$0.hasPrefix(".") }
-            .compactMap { name -> UploadItem? in
-                let file = directory.appending(path: name).appending(path: Self.itemFile)
-                guard let data = try? Data(contentsOf: file) else { return nil }
-                return try? decoder.decode(UploadItem.self, from: data)
-            }
-            .sorted { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
+        guard let item = try? decoder.decode(UploadItem.self, from: data) else { return .unreadable }
+        return .item(item)
     }
 
     public func item(_ id: UUID) -> UploadItem? {

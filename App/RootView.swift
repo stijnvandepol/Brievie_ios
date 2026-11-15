@@ -163,6 +163,12 @@ private struct DocumentsScreen: View {
             documents: documents,
             uploads: environment.uploads,
             canScan: canEdit,
+            camera: LiveScanCameraAccess(),
+            openSettings: {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            },
             onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
         ))

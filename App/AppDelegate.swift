@@ -5,8 +5,9 @@ import UIKit
 final class AppDelegate: NSObject, UIApplicationDelegate {
     /// Set by `AppEnvironment.live` at launch, before the system can call back.
     static var uploads: UploadCoordinator?
-    /// The system's completion handler: called once the queue reflects every delivered event.
-    private static var backgroundEventsCompletion: (() -> Void)?
+    /// The system's completion handlers, oldest first: each is called once its events are reflected in the
+    /// queue. More than one when the system wakes the app again before the first events were handled.
+    private static var backgroundEventsCompletions: [() -> Void] = []
 
     func application(
         _ application: UIApplication,
@@ -17,12 +18,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             completionHandler()
             return
         }
-        Self.backgroundEventsCompletion = completionHandler
+        Self.backgroundEventsCompletions.append(completionHandler)
+        // The coordinator calls this exactly once, on the main actor, also when the events were handled
+        // before this task ran.
         Task { await uploads.setEventsHandler { Self.finishBackgroundEvents() } }
     }
 
     private static func finishBackgroundEvents() {
-        backgroundEventsCompletion?()
-        backgroundEventsCompletion = nil
+        guard !backgroundEventsCompletions.isEmpty else { return }
+        backgroundEventsCompletions.removeFirst()()
     }
 }

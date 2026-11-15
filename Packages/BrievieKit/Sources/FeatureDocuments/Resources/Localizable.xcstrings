@@ -289,6 +289,30 @@
         }
       }
     },
+    "documents.upload.unreadableRemoved": {
+      "comment": "Shown once when scans in the upload queue could not be read and were removed; %lld is their number.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld scan kon niet worden gelezen en is verwijderd."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld scans konden niet worden gelezen en zijn verwijderd."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "documents.upload.workspaceGone": {
       "comment": "Upload to a workspace that no longer exists.",
       "extractionState": "manual",
@@ -373,6 +397,54 @@
         }
       }
     },
+    "review.discard.confirm": {
+      "comment": "Destructive button: throw away the user's changes and process the letter again.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weggooien en opnieuw verwerken"
+          }
+        }
+      }
+    },
+    "review.discard.keep": {
+      "comment": "Cancel button: keep what the user filled in.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet weggooien"
+          }
+        }
+      }
+    },
+    "review.discard.message": {
+      "comment": "Message of the question before processing again replaces a review the user changed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw verwerken vervangt wat je zelf hebt ingevuld door nieuwe voorstellen."
+          }
+        }
+      }
+    },
+    "review.discard.title": {
+      "comment": "Title of the question before processing again replaces a review the user changed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wat je hebt ingevuld weggooien?"
+          }
+        }
+      }
+    },
     "review.done.manual": {
       "comment": "A deadline the user typed.",
       "extractionState": "manual",
@@ -417,6 +489,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bron: “%@”"
+          }
+        }
+      }
+    },
+    "review.done.taskLine": {
+      "comment": "Line under a confirmed task: %1$@ is the task type, %2$@ the deadline (or 'Geen datum').",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "review.error.conflict": {
+      "comment": "The server refused the confirmation for now (409) while the document still waits for review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dat lukte nu niet. Wat je hebt ingevuld, staat er nog. Probeer het zo nog eens."
           }
         }
       }
@@ -757,6 +853,18 @@
         }
       }
     },
+    "review.unchecked": {
+      "comment": "Label on a value the app filled in itself (not read from the letter): there is no source or confidence.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet gecontroleerd"
+          }
+        }
+      }
+    },
     "review.unverified": {
       "comment": "An AI value that was not found in the letter; %@ is the value.",
       "extractionState": "manual",
@@ -765,6 +873,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voorstel van AI, niet teruggevonden in de brief: %@"
+          }
+        }
+      }
+    },
+    "scan.camera.denied": {
+      "comment": "Shown when camera access was refused and the user wanted to scan a letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie mag de camera niet gebruiken. Zet dit aan in Instellingen, of kies foto's van de brief."
+          }
+        }
+      }
+    },
+    "scan.camera.openSettings": {
+      "comment": "Button that opens the app's page in the Settings app.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Instellingen"
+          }
+        }
+      }
+    },
+    "scan.camera.restricted": {
+      "comment": "Shown when the device forbids camera use (Screen Time, MDM) and the user wanted to scan a letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De camera is op dit toestel uitgeschakeld. Kies foto's van de brief."
           }
         }
       }

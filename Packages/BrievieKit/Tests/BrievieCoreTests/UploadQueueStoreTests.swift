@@ -150,4 +150,21 @@ import Testing
 
         #expect(await store.items() == [item])
     }
+
+    @Test func unreadableItemsAreRemovedAtLoadAndCountedOnce() async throws {
+        let first = UploadQueueStore(directory: directory)
+        let item = try await first.enqueue(pages: pages(1), workspaceID: workspaceID, deviceID: deviceID)
+        let garbled = directory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: garbled, withIntermediateDirectories: true)
+        try Data("geen json".utf8).write(to: garbled.appending(path: "item.json"))
+        let empty = directory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: empty, withIntermediateDirectories: true)
+
+        let store = UploadQueueStore(directory: directory)
+
+        #expect(entries() == [item.id.uuidString])
+        #expect(await store.items() == [item])
+        #expect(await store.takeRemovedUnreadableCount() == 2)
+        #expect(await store.takeRemovedUnreadableCount() == 0)
+    }
 }

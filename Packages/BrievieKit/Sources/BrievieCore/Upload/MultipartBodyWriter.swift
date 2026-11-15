@@ -15,7 +15,7 @@ public enum MultipartBodyWriter {
         let metadata = Components.Schemas.UploadMetadataIn(
             clientId: clientID.uuidString.lowercased(),
             pages: pages.map { page in
-                .init(sha256: sha256Hex(page.jpeg), text: String(page.text.prefix(maxTextCharacters)))
+                .init(sha256: sha256Hex(page.jpeg), text: cut(page.text, maxCodePoints: maxTextCharacters))
             }
         )
         let encoder = JSONEncoder()
@@ -33,6 +33,21 @@ public enum MultipartBodyWriter {
         body.append(Data("--\(boundary)--\r\n".utf8))
         try body.write(to: file, options: .atomic)
         return Int64(body.count)
+    }
+
+    /// The longest start of `text` with at most `maxCodePoints` Unicode code points: the host counts code
+    /// points, not `Character`s. Cut between whole characters, so a letter with its accent or a joined emoji
+    /// is never split.
+    static func cut(_ text: String, maxCodePoints: Int) -> String {
+        guard text.unicodeScalars.count > maxCodePoints else { return text }
+        var count = 0
+        var end = text.startIndex
+        for character in text {
+            count += character.unicodeScalars.count
+            if count > maxCodePoints { break }
+            end = text.index(after: end)
+        }
+        return String(text[..<end])
     }
 
     /// The value of the request's `Content-Type` header for a body written with `boundary`.

@@ -68,6 +68,7 @@ final class ScriptedUploadQueue: UploadQueue {
     func delete(_ id: UUID) async { queued.withLock { $0.removeAll { $0.id == id } } }
     func removeAll() async throws { queued.withLock { $0.removeAll() } }
     func progressUpdates() async -> AsyncStream<[UUID: Double]> { AsyncStream { $0.finish() } }
+    func takeRemovedUnreadableCount() async -> Int { 0 }
 }
 
 private struct NoAuthentication: DeviceAuthenticator {

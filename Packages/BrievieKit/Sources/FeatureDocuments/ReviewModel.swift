@@ -17,29 +17,6 @@ public final class ReviewModel {
         case failed(message: String)
     }
 
-    /// What the user is about to confirm, pre-filled from the proposals.
-    public struct Draft: Equatable, Sendable {
-        public var sender = ""
-        /// The words in the letter the sender was read from; empty when typed by hand.
-        public var senderQuote = ""
-        public var documentType = ""
-        public var letterDate: CalendarDate?
-        public var letterDateQuote = ""
-        public var summary = ""
-        /// The AI's own summary, to tell whether `summary` is still its text.
-        public var aiSummary = ""
-        public var tasks: [TaskDraft] = []
-        /// AI values that were not found in the letter, by field: shown as a hint, never pre-filled.
-        public var unverified: [String: String] = [:]
-
-        public init() {}
-
-        public var summaryIsByAI: Bool { !aiSummary.isEmpty && summary == aiSummary }
-
-        /// The draft was pre-filled from AI proposals (as opposed to started empty, by hand).
-        public internal(set) var isFromAI = false
-    }
-
     public private(set) var state: State = .loading
     public var draft = Draft()
     public private(set) var detail: DocumentDetail?
@@ -47,6 +24,8 @@ public final class ReviewModel {
     public private(set) var pages: [Int: Data] = [:]
     public private(set) var isSaving = false
     public private(set) var saveError: String?
+    /// "Opnieuw verwerken" was asked while the draft holds the user's own changes: the screen asks first.
+    public private(set) var confirmsDiscardingEdits = false
     /// Members and admins confirm; a viewer only reads.
     public let canEdit: Bool
 
@@ -56,6 +35,8 @@ public final class ReviewModel {
     private let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
     @ObservationIgnored private var pollTask: Task<Void, Never>?
+    /// The draft as it was pre-filled, to tell whether the user changed anything.
+    @ObservationIgnored private var pristineDraft = Draft()
     @ObservationIgnored private var loadingPages: Set<Int> = []
 
     public init(
@@ -122,26 +103,25 @@ public final class ReviewModel {
     }
 
     public func addTask() {
-        draft.tasks.append(TaskDraft(
-            type: "other", description: "", deadline: nil, deadlineSource: "manual", deadlineQuote: "",
-            needsAttention: false
-        ))
+        draft.tasks.append(Self.emptyTask())
     }
 
     public func removeTask(_ id: UUID) {
         draft.tasks.removeAll { $0.id == id }
     }
 
-    /// A deadline the user changed is theirs: its source in the letter no longer belongs to it.
+    /// A deadline the user changed is theirs: its source in the letter no longer belongs to it. Setting the
+    /// date read from the letter again brings its source back.
     public func setDeadline(_ deadline: CalendarDate?, for taskID: UUID) {
         guard let index = draft.tasks.firstIndex(where: { $0.id == taskID }),
               draft.tasks[index].deadline != deadline
         else { return }
         draft.tasks[index].deadline = deadline
-        draft.tasks[index].deadlineSource = "manual"
-        draft.tasks[index].deadlineQuote = ""
-        draft.tasks[index].needsAttention = false
+        draft.syncDeadlineSource(of: index)
     }
+
+    /// The user changed something since the draft was pre-filled (or started empty).
+    public var draftHasUserEdits: Bool { draft != pristineDraft }
 
     public func confirm() async {
         guard canEdit, state == .review, !isSaving else { return }
@@ -163,8 +143,15 @@ public final class ReviewModel {
         }
     }
 
-    public func retryProcessing() async {
+    /// Processing again replaces the draft. When the user changed it, the screen asks first
+    /// (`confirmsDiscardingEdits`) and calls again with `discardingEdits`.
+    public func retryProcessing(discardingEdits: Bool = false) async {
         guard canEdit, !isSaving else { return }
+        guard discardingEdits || !draftHasUserEdits else {
+            confirmsDiscardingEdits = true
+            return
+        }
+        confirmsDiscardingEdits = false
         isSaving = true
         saveError = nil
         defer { isSaving = false }
@@ -175,13 +162,19 @@ public final class ReviewModel {
         }
     }
 
+    public func keepEdits() {
+        confirmsDiscardingEdits = false
+    }
+
     // MARK: - Private
 
     private func handleSaveFailure(_ error: DocumentsError) async {
         switch error {
         case .conflict:
-            // Confirmed or changed elsewhere: show what the server has now.
+            // Confirmed or changed elsewhere: show what the server has now. Still waiting for review (the
+            // edits are kept): say that it did not work.
             await load()
+            if state == .review { saveError = DocumentStrings.confirmConflict }
         case .invalid:
             saveError = DocumentStrings.reviewRefused
         default:
@@ -206,82 +199,13 @@ public final class ReviewModel {
             state = .processing
         case .needsReview, .failed:
             // A refresh must not throw away what the user typed.
-            if !wasReviewing { draft = Self.draft(from: detail.proposals) }
+            if !wasReviewing {
+                draft = Self.draft(from: detail.proposals)
+                pristineDraft = draft
+            }
             state = .review
         case .done, .unknown:
             state = .done
-        }
-    }
-
-    static func draft(from proposals: [Proposal]) -> Draft {
-        var draft = Draft()
-        draft.isFromAI = !proposals.isEmpty
-        for proposal in proposals where proposal.group == 0 {
-            let trusted = proposal.confidence > 0
-            switch proposal.field {
-            case "sender":
-                if trusted {
-                    draft.sender = proposal.value
-                    draft.senderQuote = proposal.quote
-                } else {
-                    draft.unverified["sender"] = proposal.value
-                }
-            case "document_type":
-                draft.documentType = DocumentTypes.knownDocumentType(proposal.value)
-            case "letter_date":
-                if trusted, let date = CalendarDate(iso: proposal.value) {
-                    draft.letterDate = date
-                    draft.letterDateQuote = proposal.quote
-                } else {
-                    draft.unverified["letter_date"] = proposal.value
-                }
-            case "summary":
-                draft.summary = proposal.value
-                draft.aiSummary = proposal.value
-            default:
-                break
-            }
-        }
-        let groups = Set(proposals.map(\.group)).filter { $0 > 0 }.sorted()
-        draft.tasks = groups.map { group in task(from: proposals.filter { $0.group == group }) }
-        if let due = proposals.first(where: { $0.field == "invoice_due_date" }),
-           !draft.tasks.contains(where: { $0.type == "pay" }) {
-            var pay = task(from: [])
-            pay.type = "pay"
-            pay.description = DocumentStrings.payInvoice
-            apply(deadline: due, to: &pay)
-            draft.tasks.append(pay)
-        }
-        return draft
-    }
-
-    private static func task(from proposals: [Proposal]) -> TaskDraft {
-        var task = TaskDraft(
-            type: "other", description: "", deadline: nil, deadlineSource: "manual", deadlineQuote: "",
-            needsAttention: false
-        )
-        for proposal in proposals {
-            switch proposal.field {
-            case "action_type": task.type = DocumentTypes.knownTaskType(proposal.value)
-            case "action_description": task.description = proposal.value
-            case "action_deadline": apply(deadline: proposal, to: &task)
-            default: break
-            }
-        }
-        return task
-    }
-
-    /// A date the letter does not support (confidence 0) is not pre-filled: the user types it.
-    private static func apply(deadline proposal: Proposal, to task: inout TaskDraft) {
-        task.needsAttention = proposal.needsAttention
-        guard proposal.confidence > 0, let date = CalendarDate(iso: proposal.value) else {
-            task.needsAttention = true
-            return
-        }
-        task.deadline = date
-        if !proposal.quote.isEmpty {
-            task.deadlineSource = "in_document"
-            task.deadlineQuote = proposal.quote
         }
     }
 }

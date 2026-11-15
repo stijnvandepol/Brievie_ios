@@ -1,5 +1,6 @@
 import BrievieCore
 import BrievieScan
+import FeatureDocuments
 import Foundation
 import Synchronization
 
@@ -10,6 +11,7 @@ final class FakeUploadQueue: UploadQueue {
         var retried: [UUID] = []
         var deleted: [UUID] = []
         var enqueueError: UploadQueueError?
+        var removedUnreadable = 0
         var continuations: [AsyncStream<[UUID: Double]>.Continuation] = []
     }
 
@@ -25,6 +27,17 @@ final class FakeUploadQueue: UploadQueue {
 
     func set(_ items: [UploadItem]) {
         state.withLock { $0.items = items }
+    }
+
+    func setRemovedUnreadable(_ count: Int) {
+        state.withLock { $0.removedUnreadable = count }
+    }
+
+    func takeRemovedUnreadableCount() async -> Int {
+        state.withLock { state in
+            defer { state.removedUnreadable = 0 }
+            return state.removedUnreadable
+        }
     }
 
     func failEnqueue(with error: UploadQueueError) {
@@ -88,5 +101,26 @@ final class FakeUploadQueue: UploadQueue {
         let (stream, continuation) = AsyncStream.makeStream(of: [UUID: Double].self)
         state.withLock { $0.continuations.append(continuation) }
         return stream
+    }
+}
+
+/// The camera permission as the scan button sees it, scripted.
+@MainActor
+final class FakeScanCamera: ScanCameraAccess {
+    var current: ScanCameraStatus
+    /// What the permission prompt answers.
+    var grants = true
+    private(set) var requests = 0
+
+    init(_ status: ScanCameraStatus) {
+        current = status
+    }
+
+    func status() -> ScanCameraStatus { current }
+
+    func requestAccess() async -> Bool {
+        requests += 1
+        current = grants ? .allowed : .denied
+        return grants
     }
 }
