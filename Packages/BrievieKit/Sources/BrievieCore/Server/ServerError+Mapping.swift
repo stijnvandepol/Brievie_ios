@@ -6,7 +6,7 @@ extension ServerError {
     /// Brievie server yet) becomes the fixed form `http_<status>`, so no server-chosen text reaches the app.
     static let passThroughCodes: Set<String> = [
         "no_private_ca", "validation_error", "workspace_not_found", "document_not_found", "page_not_found",
-        "document_not_reviewable", "document_not_failed"
+        "document_not_reviewable", "document_not_failed", "device_not_found"
     ]
 
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.

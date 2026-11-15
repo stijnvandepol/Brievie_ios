@@ -80,6 +80,10 @@ final class FakeUploadQueue: UploadQueue {
         }
     }
 
+    func removeAll() async throws {
+        state.withLock { $0.items.removeAll() }
+    }
+
     func progressUpdates() async -> AsyncStream<[UUID: Double]> {
         let (stream, continuation) = AsyncStream.makeStream(of: [UUID: Double].self)
         state.withLock { $0.continuations.append(continuation) }

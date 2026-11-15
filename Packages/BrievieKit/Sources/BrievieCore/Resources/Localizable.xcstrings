@@ -36,6 +36,18 @@
           }
         }
       }
+    },
+    "unpair.serverStillKnowsDevice": {
+      "comment": "Notice on the pairing screen after unpairing when the server could not be told.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze telefoon staat nog als apparaat op de server. Trek hem daar in onder Apparaten."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

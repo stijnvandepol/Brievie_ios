@@ -16,6 +16,15 @@ enum AppStrings {
         )
     }
 
+    /// After unpairing, when the server could not be told (offline, no answer in time, refused).
+    static var serverStillKnowsDevice: String {
+        String(
+            localized: "unpair.serverStillKnowsDevice",
+            defaultValue: "Deze telefoon staat nog als apparaat op de server. Trek hem daar in onder Apparaten.",
+            bundle: .module
+        )
+    }
+
     static var genericError: String {
         String(localized: "error.generic", defaultValue: "Er ging iets mis. Probeer het opnieuw.", bundle: .module)
     }

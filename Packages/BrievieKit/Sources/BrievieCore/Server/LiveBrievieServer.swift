@@ -72,6 +72,23 @@ public struct LiveBrievieServer: BrievieServer {
         }
     }
 
+    public func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws {
+        try await withClient(url, trust: trust, token: token) { client in
+            switch try await client.revokeDevice(path: .init(deviceId: deviceID.uuidString.lowercased())) {
+            case .noContent:
+                return
+            case .unauthorized:
+                throw ServerError.unauthorized
+            case let .forbidden(response):
+                throw ServerError(status: 403, code: try? response.body.json.code)
+            case let .notFound(response):
+                throw ServerError(status: 404, code: try? response.body.json.code)
+            case let .undocumented(status, _):
+                throw ServerError(status: status, code: nil)
+            }
+        }
+    }
+
     /// Runs `operation` on a client whose session only trusts what `trust` accepts and follows no redirects,
     /// then invalidates the session. Errors come out as `ServerError`, or `CancellationError` when the task
     /// was cancelled.

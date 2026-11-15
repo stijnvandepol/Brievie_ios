@@ -125,6 +125,35 @@ import Testing
         }
     }
 
+    // MARK: - revokeDevice
+
+    @Test func revokeDeviceDeletesThisDeviceWithItsToken() async throws {
+        let url = try StubURLProtocol.serve(.data(status: 204, contentType: "application/json", body: Data()))
+        let deviceID = try #require(UUID(uuidString: "F5400FDE-D094-49BA-9B51-62596E6DF070"))
+
+        try await server.revokeDevice(deviceID, at: url, trust: trust, token: "device-token-123")
+
+        let request = try #require(StubURLProtocol.requests(to: url).first)
+        #expect(request.httpMethod == "DELETE")
+        #expect(request.url?.path() == "/api/v1/devices/f5400fde-d094-49ba-9b51-62596e6df070")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer device-token-123")
+    }
+
+    @Test(arguments: [
+        (401, "not_authenticated", ServerError.unauthorized),
+        (404, "device_not_found", ServerError.other("device_not_found")),
+        (404, "something_else", ServerError.other("http_404")),
+        (403, "csrf_failed", ServerError.other("http_403")),
+        (500, "internal_error", ServerError.other("http_500"))
+    ])
+    func revokeDeviceMapsRefusals(status: Int, code: String, expected: ServerError) async throws {
+        let url = try StubURLProtocol.serve(.response(status: status, json: #"{"code":"\#(code)","message":"x"}"#))
+
+        await #expect(throws: expected) {
+            try await server.revokeDevice(UUID(), at: url, trust: trust, token: "device-token-123")
+        }
+    }
+
     // MARK: - redirects (the API never redirects)
 
     @Test func workspacesDoNotFollowRedirectsWithTheToken() async throws {
