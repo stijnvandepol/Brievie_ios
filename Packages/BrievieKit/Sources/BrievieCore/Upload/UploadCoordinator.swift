@@ -21,8 +21,11 @@ public actor UploadCoordinator {
     private var revokedDevice: UUID?
     private var progress: [UUID: Double] = [:]
     private var subscribers: [UUID: AsyncStream<[UUID: Double]>.Continuation] = [:]
-    private var eventsHandler: (@MainActor @Sendable () -> Void)?
+    /// Completion handlers of the system's wake-ups, waiting for their events. More than one when the system
+    /// woke the app again before the first events were in; each is called exactly once.
+    private var eventsHandlers: [@MainActor @Sendable () -> Void] = []
     /// The system's events were all handled before the app delegate handed over its completion handler.
+    /// Used by the next handler only.
     private var eventsDeliveredEarly = false
 
     public init(
@@ -108,6 +111,10 @@ public actor UploadCoordinator {
         await store.items()
     }
 
+    public func takeRemovedUnreadableCount() async -> Int {
+        await store.takeRemovedUnreadableCount()
+    }
+
     /// Upload progress (0...1) per running item. Every caller gets its own stream.
     public func progressUpdates() -> AsyncStream<[UUID: Double]> {
         let id = UUID()
@@ -122,13 +129,14 @@ public actor UploadCoordinator {
         return stream
     }
 
-    /// The completion handler iOS hands the app when it relaunches it for finished uploads.
+    /// The completion handler iOS hands the app when it relaunches it for finished uploads. Called on the main
+    /// actor, exactly once: at once when the events were already handled, otherwise after them.
     public func setEventsHandler(_ handler: @escaping @MainActor @Sendable () -> Void) async {
         if eventsDeliveredEarly {
             eventsDeliveredEarly = false
             await MainActor.run { handler() }
         } else {
-            eventsHandler = handler
+            eventsHandlers.append(handler)
         }
     }
 
@@ -142,11 +150,17 @@ public actor UploadCoordinator {
             await finished(itemID: itemID, deviceID: deviceID, attemptID: attemptID, outcome: outcome)
         case .allEventsDelivered:
             // Only now: the queue on disk reflects every event the system delivered.
-            if let handler = eventsHandler {
-                eventsHandler = nil
-                await MainActor.run { handler() }
-            } else {
+            guard !eventsHandlers.isEmpty else {
                 eventsDeliveredEarly = true
+                return
+            }
+            // Taken before the hop to the main actor: a handler set meanwhile waits for its own events.
+            let handlers = eventsHandlers
+            eventsHandlers = []
+            await MainActor.run {
+                for handler in handlers {
+                    handler()
+                }
             }
         }
     }

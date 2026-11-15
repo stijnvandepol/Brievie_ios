@@ -57,6 +57,31 @@ import Testing
         #expect(pages[0]["text"]?.count == 20_000)
     }
 
+    @Test func textIsCutByCodePointsAsTheHostCountsThem() throws {
+        // "e" + combining acute: one Character, two code points. The host (Python) counts code points.
+        let page = ScannedPage(jpeg: Data([0xFF, 0xD8, 0xFF]), text: String(repeating: "e\u{301}", count: 15_000))
+
+        let (body, _) = try write([page])
+
+        let parts = MultipartParser.parts(of: body, boundary: boundary)
+        let metadata = try #require(JSONSerialization.jsonObject(with: parts[0].body) as? [String: Any])
+        let pages = try #require(metadata["pages"] as? [[String: String]])
+        let text = try #require(pages[0]["text"])
+        #expect(text.unicodeScalars.count == 20_000)
+        #expect(text.count == 10_000)
+    }
+
+    @Test func cutNeverSplitsACharacter() {
+        // A family emoji is five code points joined into one Character.
+        let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}"
+
+        let cut = MultipartBodyWriter.cut("ab" + family, maxCodePoints: 4)
+
+        #expect(cut == "ab")
+        #expect(MultipartBodyWriter.cut("ab" + family, maxCodePoints: 7) == "ab" + family)
+        #expect(MultipartBodyWriter.cut("kort", maxCodePoints: 20_000) == "kort")
+    }
+
     @Test func pageBytesThatLookLikeTheBoundaryStayIntact() throws {
         let tricky = Data([0xFF, 0xD8, 0xFF]) + Data("\r\n--not-the-boundary\r\n".utf8)
 
