@@ -33,7 +33,9 @@ public actor UploadQueueStore {
         self.limits = limits
         self.writeBody = writeBody
         // An enqueue that was interrupted (crash, kill) never became an item: remove what it left.
-        let leftovers = (try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []
+        // Plain paths: the default percent-encodes a space ("Application Support") and then finds nothing.
+        let path = directory.path(percentEncoded: false)
+        let leftovers = (try? FileManager.default.contentsOfDirectory(atPath: path)) ?? []
         for name in leftovers where name.hasPrefix(Self.incomingPrefix) {
             try? FileManager.default.removeItem(at: directory.appending(path: name))
         }
@@ -143,7 +145,8 @@ public actor UploadQueueStore {
         try? url.setResourceValues(values)
         #if os(iOS)
         try? FileManager.default.setAttributes(
-            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: url.path(percentEncoded: false)
+            [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+            ofItemAtPath: url.path(percentEncoded: false)
         )
         #endif
     }

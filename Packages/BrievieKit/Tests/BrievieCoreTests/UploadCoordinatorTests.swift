@@ -214,7 +214,8 @@ import Testing
         let itemsWhenCalled = Locked<Int?>(nil)
         let directory = directory
         await uploads.setEventsHandler {
-            let left = (try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false)))?.count
+            let path = directory.path(percentEncoded: false)
+            let left = (try? FileManager.default.contentsOfDirectory(atPath: path))?.count
             itemsWhenCalled.value = left
         }
 
