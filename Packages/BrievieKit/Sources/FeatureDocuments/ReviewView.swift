@@ -55,6 +55,21 @@ public struct ReviewView: View {
         .sheet(item: $source) { quote in
             SourceView(quote: quote.text, pageTexts: model.pageTexts) { source = nil }
         }
+        .confirmationDialog(
+            DocumentStrings.discardEditsTitle,
+            isPresented: Binding(
+                get: { model.confirmsDiscardingEdits },
+                set: { if !$0 { model.keepEdits() } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button(DocumentStrings.discardEdits, role: .destructive) {
+                Task { await model.retryProcessing(discardingEdits: true) }
+            }
+            Button(DocumentStrings.keepEdits, role: .cancel) { model.keepEdits() }
+        } message: {
+            Text(DocumentStrings.discardEditsMessage)
+        }
     }
 
     private func progressRow(_ text: String) -> some View {
@@ -106,8 +121,7 @@ public struct ReviewView: View {
         }
         Section {
             TextField(DocumentStrings.sender, text: $model.draft.sender)
-            sourceButton(model.draft.senderQuote)
-            unverifiedHint("sender")
+            notes(for: .sender, title: DocumentStrings.sender)
         } header: {
             Text(DocumentStrings.sender)
         }
@@ -118,9 +132,9 @@ public struct ReviewView: View {
                     Text(type.label).tag(type.code)
                 }
             }
+            notes(for: .documentType, title: DocumentStrings.documentType)
             OptionalDateRow(title: DocumentStrings.letterDate, date: $model.draft.letterDate)
-            sourceButton(model.draft.letterDateQuote)
-            unverifiedHint("letter_date")
+            notes(for: .letterDate, title: DocumentStrings.letterDate)
         }
         Section {
             TextField(DocumentStrings.summary, text: $model.draft.summary, axis: .vertical)
@@ -133,13 +147,17 @@ public struct ReviewView: View {
             }
         }
         ForEach($model.draft.tasks) { $task in
-            taskSection($task)
+            taskSection($task, showsHeader: task.id == model.draft.tasks.first?.id)
         }
         Section {
             Button {
                 model.addTask()
             } label: {
                 Label(DocumentStrings.addTask, systemImage: "plus")
+            }
+        } header: {
+            if model.draft.tasks.isEmpty {
+                Text(DocumentStrings.tasks)
             }
         }
         Section {
@@ -158,54 +176,38 @@ public struct ReviewView: View {
         }
     }
 
-    private func taskSection(_ task: Binding<TaskDraft>) -> some View {
-        Section {
+    /// One section per task; the "Wat moet je doen" header only above the first.
+    private func taskSection(_ task: Binding<TaskDraft>, showsHeader: Bool) -> some View {
+        let id = task.wrappedValue.id
+        return Section {
             Picker(DocumentStrings.taskType, selection: task.type) {
                 ForEach(DocumentTypes.taskTypes, id: \.code) { type in
                     Text(type.label).tag(type.code)
                 }
             }
+            notes(for: .taskType(id), title: DocumentStrings.taskType)
             TextField(DocumentStrings.taskDescription, text: task.description, axis: .vertical)
+            notes(for: .taskDescription(id), title: DocumentStrings.taskDescription)
             OptionalDateRow(
                 title: DocumentStrings.deadline,
                 date: Binding(
                     get: { task.wrappedValue.deadline },
-                    set: { model.setDeadline($0, for: task.wrappedValue.id) }
+                    set: { model.setDeadline($0, for: id) }
                 )
             )
-            if task.wrappedValue.needsAttention {
-                Label(DocumentStrings.checkCarefully, systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
-            }
-            sourceButton(task.wrappedValue.deadlineQuote)
+            notes(for: .taskDeadline(id), title: DocumentStrings.deadline)
             Button(DocumentStrings.removeTask, role: .destructive) {
-                model.removeTask(task.wrappedValue.id)
+                model.removeTask(id)
             }
         } header: {
-            Text(DocumentStrings.tasks)
-        }
-    }
-
-    @ViewBuilder
-    private func sourceButton(_ quote: String) -> some View {
-        if !quote.isEmpty {
-            Button {
-                source = SourceQuote(text: quote)
-            } label: {
-                Label(DocumentStrings.whereIsThis, systemImage: "text.magnifyingglass")
+            if showsHeader {
+                Text(DocumentStrings.tasks)
             }
         }
     }
 
-    @ViewBuilder
-    private func unverifiedHint(_ field: String) -> some View {
-        if let value = model.draft.unverified[field] {
-            Label(
-                String(format: DocumentStrings.unverifiedFormat, value), systemImage: "exclamationmark.triangle.fill"
-            )
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-        }
+    private func notes(for field: ReviewField, title: String) -> some View {
+        FieldNotes(draft: model.draft, field: field, title: title) { source = SourceQuote(text: $0) }
     }
 
     // MARK: - Done
@@ -247,6 +249,48 @@ public struct ReviewView: View {
     }
 }
 
+/// What the user needs to judge a pre-filled value: a mark when it needs a second look (or was not read from
+/// the letter at all), where it stands in the letter, and a proposal that was not pre-filled. Nothing once the
+/// user changed the value: it is theirs.
+private struct FieldNotes: View {
+    let draft: ReviewModel.Draft
+    let field: ReviewField
+    /// The field's name, so VoiceOver says which value a mark belongs to.
+    let title: String
+    let showSource: (String) -> Void
+
+    var body: some View {
+        if draft.isUnchecked(field) {
+            mark(DocumentStrings.unchecked, systemImage: "questionmark.circle.fill")
+        } else if draft.needsAttention(field) {
+            mark(DocumentStrings.checkCarefully, systemImage: "exclamationmark.triangle.fill")
+        }
+        let quote = draft.quote(for: field)
+        if !quote.isEmpty {
+            Button {
+                showSource(quote)
+            } label: {
+                Label(DocumentStrings.whereIsThis, systemImage: "text.magnifyingglass")
+            }
+            .accessibilityLabel("\(title). \(DocumentStrings.whereIsThis)")
+        }
+        if let value = draft.unverified[field] {
+            Label(
+                String(format: DocumentStrings.unverifiedFormat, value), systemImage: "exclamationmark.triangle.fill"
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private func mark(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage)
+            .font(.footnote)
+            .foregroundStyle(.orange)
+            .accessibilityLabel("\(title). \(text)")
+    }
+}
+
 /// The quote whose place in the letter is being shown.
 private struct SourceQuote: Identifiable {
     let text: String
@@ -261,8 +305,11 @@ private struct ConfirmedTaskRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(task.description)
                 .font(.headline)
-            Text("\(DocumentTypes.taskTypeLabel(task.type)) · \(task.deadline?.display ?? DocumentStrings.noDeadline)")
-                .font(.subheadline)
+            Text(String(
+                format: DocumentStrings.taskLineFormat,
+                DocumentTypes.taskTypeLabel(task.type), task.deadline?.display ?? DocumentStrings.noDeadline
+            ))
+            .font(.subheadline)
             if task.deadlineQuote.isEmpty {
                 if task.deadline != nil {
                     Text(DocumentStrings.manualSource)

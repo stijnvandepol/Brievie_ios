@@ -55,13 +55,4 @@ struct SourceView: View {
         return attributed
     }
 }
-
-extension CalendarDate {
-    /// "1 december 2026": the day as written in Dutch, whatever the device's time zone.
-    var display: String {
-        let utc = TimeZone(identifier: "UTC") ?? .gmt
-        let style = Date.FormatStyle(date: .long, time: .omitted, locale: Locale(identifier: "nl_NL"), timeZone: utc)
-        return date(in: utc).formatted(style)
-    }
-}
 #endif

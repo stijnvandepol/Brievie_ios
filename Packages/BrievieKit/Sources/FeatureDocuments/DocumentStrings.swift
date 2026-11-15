@@ -358,6 +358,16 @@ extension DocumentStrings {
         "task.other": taskTypeOther,
         "review.page.unreadable": pageUnreadable,
         "documents.upload.otherServer": otherServer,
-        "review.ai.note": aiProposalsNote
+        "review.ai.note": aiProposalsNote,
+        "review.unchecked": unchecked,
+        "review.error.conflict": confirmConflict,
+        "review.discard.title": discardEditsTitle,
+        "review.discard.message": discardEditsMessage,
+        "review.discard.confirm": discardEdits,
+        "review.discard.keep": keepEdits,
+        "review.done.taskLine": taskLineFormat,
+        "scan.camera.denied": cameraDenied,
+        "scan.camera.restricted": cameraRestricted,
+        "scan.camera.openSettings": openSettings
     ]
 }

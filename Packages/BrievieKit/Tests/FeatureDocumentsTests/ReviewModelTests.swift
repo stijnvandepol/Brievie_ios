@@ -127,12 +127,12 @@ struct ReviewHarness {
         await model.load()
 
         #expect(model.draft.sender.isEmpty)
-        #expect(model.draft.unverified["sender"] == "CAK")
+        #expect(model.draft.unverified[.sender] == "CAK")
         let task = try #require(model.draft.tasks.first)
         #expect(task.deadline == nil)
         #expect(task.deadlineSource == "manual")
         #expect(task.deadlineQuote.isEmpty)
-        #expect(task.needsAttention)
+        #expect(model.draft.unverified[.taskDeadline(task.id)] != nil)
     }
 
     @Test func lowConfidenceDeadlineIsPrefilledButFlagged() async throws {
