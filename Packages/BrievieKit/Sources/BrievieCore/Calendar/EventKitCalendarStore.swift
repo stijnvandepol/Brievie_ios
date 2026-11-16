@@ -1,5 +1,6 @@
 import EventKit
 import Foundation
+import OSLog
 
 /// `CalendarStore` over EventKit. One `EKEventStore`, used only inside this actor.
 ///
@@ -8,6 +9,8 @@ import Foundation
 public actor EventKitCalendarStore: CalendarStore {
     /// Seconds from the start of the all-day event (00:00 on the deadline).
     private static let alarmOffsets: [TimeInterval] = [-7 * 86_400 + 9 * 3_600, -2 * 86_400 + 9 * 3_600, 9 * 3_600]
+
+    private static let logger = Logger(subsystem: "nl.stijnvdpol.brievie", category: "calendar")
 
     private let eventStore = EKEventStore()
     /// The store was reset after access was granted. A store made before the first grant (in the prompt, or in
@@ -38,9 +41,14 @@ public actor EventKitCalendarStore: CalendarStore {
         if let existingID, !excluding.contains(existingID),
            let calendar = eventStore.calendar(withIdentifier: existingID), calendar.allowsContentModifications {
             if calendar.title != named {
-                // The workspace was renamed on the server.
+                // The workspace was renamed (or the user retitled the calendar). Best effort: never fails a sync.
                 calendar.title = named
-                try eventStore.saveCalendar(calendar, commit: true)
+                do {
+                    try eventStore.saveCalendar(calendar, commit: true)
+                } catch {
+                    eventStore.reset()
+                    Self.logger.error("Could not retitle the calendar: \(String(describing: type(of: error)))")
+                }
             }
             return existingID
         }
@@ -49,7 +57,7 @@ public actor EventKitCalendarStore: CalendarStore {
         }
         let calendar = EKCalendar(for: .event, eventStore: eventStore)
         calendar.title = named
-        // The phone's default calendar source (usually iCloud); then the local one and any CalDAV one.
+        // The default calendar's source, then iCloud, then the local source (see `candidateSources()`).
         var lastError: (any Error)?
         for source in candidateSources() {
             calendar.source = source
@@ -155,16 +163,16 @@ public actor EventKitCalendarStore: CalendarStore {
         event.alarms = Self.alarmOffsets.map { EKAlarm(relativeOffset: $0) }
     }
 
-    /// Where a new calendar may go: the default calendar's source, then the local and CalDAV sources (without a
-    /// default calendar, which a store can lack right after the first grant, those are all there is).
+    /// Where a new calendar may go, in order: the default calendar's source (the user's own choice, whatever kind
+    /// it is), the iCloud source, the local source. Never another CalDAV, Exchange or subscribed account: the
+    /// task's text and sender must not land on a third party's server the user did not pick as default.
     private func candidateSources() -> [EKSource] {
+        let iCloud = eventStore.sources.first { $0.sourceType == .calDAV && $0.title == "iCloud" }
+        let local = eventStore.sources.first { $0.sourceType == .local }
         var sources: [EKSource] = []
-        if let source = eventStore.defaultCalendarForNewEvents?.source { sources.append(source) }
-        for type in [EKSourceType.local, .calDAV] {
-            for source in eventStore.sources where source.sourceType == type
-                && !sources.contains(where: { $0.sourceIdentifier == source.sourceIdentifier }) {
-                sources.append(source)
-            }
+        for source in [eventStore.defaultCalendarForNewEvents?.source, iCloud, local].compactMap({ $0 })
+        where !sources.contains(where: { $0.sourceIdentifier == source.sourceIdentifier }) {
+            sources.append(source)
         }
         return sources
     }

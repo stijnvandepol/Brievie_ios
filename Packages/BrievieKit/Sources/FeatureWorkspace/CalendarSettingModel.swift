@@ -56,6 +56,8 @@ public final class CalendarSettingModel {
     /// The work started by the switch; owned by the model so that leaving the screen does not cancel it. Tests
     /// await it.
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
+    /// Counts the switch's actions: only the result of the latest one may change what the switch shows.
+    @ObservationIgnored private var generation = 0
     /// The access check started by `refreshAccess()`. Tests await it.
     @ObservationIgnored private(set) var accessTask: Task<Void, Never>?
 
@@ -85,9 +87,13 @@ public final class CalendarSettingModel {
             let sync = sync
             let workspace = workspaceID
             let previous = pendingTask
+            generation += 1
+            let action = generation
             pendingTask = Task {
                 await previous?.value
-                show(await sync.enable(workspace: workspace))
+                let result = await sync.enable(workspace: workspace)
+                // A later flip decides what the switch shows; this result is old news.
+                if action == generation { show(result) }
             }
         } else if isOn {
             isAskingToRemove = true
@@ -104,6 +110,7 @@ public final class CalendarSettingModel {
         let sync = sync
         let workspace = workspaceID
         let previous = pendingTask
+        generation += 1
         pendingTask = Task {
             await previous?.value
             await sync.disable(workspace: workspace, removeCalendar: removeCalendar)

@@ -25,6 +25,17 @@ import Testing
         #expect(await store.calendars.isEmpty)
     }
 
+    @Test func aServerWithoutATaskListIsToldBeforeTheAccessPrompt() async {
+        await store.setAccess(.notDetermined, grantsOnRequest: true)
+        let sync = CalendarSync(
+            store: store, settings: settings, tasks: { _ in throw DocumentsError.notSupported },
+            workspaceName: { _ in "Thuis" }, typeTitle: { $0 }, today: { Self.today }
+        )
+
+        #expect(await sync.enable(workspace: home) == .tasksNotSupported)
+        #expect(await store.accessRequests == 0)
+    }
+
     @Test func aFirstFillThatFailsOtherwiseStillMakesTheCalendar() async {
         let sync = CalendarSync(
             store: store, settings: settings, tasks: { _ in throw DocumentsError.unreachable },

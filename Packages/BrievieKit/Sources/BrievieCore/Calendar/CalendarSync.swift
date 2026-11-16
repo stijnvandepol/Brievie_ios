@@ -60,13 +60,13 @@ public actor CalendarSync {
     }
 
     /// Turns the switch on: asks for access when needed, makes (or finds) the calendar, remembers it and syncs.
-    /// The open tasks are read first: a server without a task list gets no calendar. Any other failure to read
-    /// them still makes the calendar; the next sync fills it.
+    /// The open tasks are read first, before the access prompt: a server without a task list gets no prompt and
+    /// no calendar. Any other failure to read them still makes the calendar; the next sync fills it.
     public func enable(workspace: UUID) async -> CalendarSyncResult {
         await exclusively(workspace) { sync in
-            guard await sync.requestAccessIfNeeded() else { return .noAccess }
             let open = await sync.openTasks(workspace)
             if case .failure(let error) = open, error as? DocumentsError == .notSupported { return .tasksNotSupported }
+            guard await sync.requestAccessIfNeeded() else { return .noAccess }
             guard await sync.makeCalendar(workspace) else { return .failed }
             return await sync.performSync(workspace, open: open)
         }

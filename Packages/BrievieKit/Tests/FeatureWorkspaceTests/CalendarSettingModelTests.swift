@@ -185,6 +185,32 @@ import Testing
         #expect(await store.storedEvents(calendarID: id).count == 1)
     }
 
+    @Test func anOldFailedEnableDoesNotTurnOffALaterOne() async throws {
+        // The first enable finds no workspace name yet (no calendar, `.failed`); the second one works.
+        let nameCalls = Locked(0)
+        let sync = CalendarSync(
+            store: store, settings: settings, tasks: { _ in [] },
+            workspaceName: { _ in
+                nameCalls.value += 1
+                return nameCalls.value == 1 ? "" : "Thuis"
+            },
+            typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 16) }
+        )
+        let model = CalendarSettingModel(
+            workspaceID: workspace, workspaceName: "Thuis", sync: sync, settings: settings, openSettings: {}
+        )
+
+        model.toggle(true)
+        model.toggle(false)
+        model.switchOff(removeCalendar: false)
+        model.toggle(true)
+        await model.pendingTask?.value
+
+        #expect(settings.isEnabled(for: workspace))
+        #expect(model.isOn)
+        #expect(model.message == nil)
+    }
+
     @Test func aServerWithoutATaskListTurnsTheSwitchOffWithoutACalendar() async {
         let model = makeModel(tasksFail: .notSupported)
 
