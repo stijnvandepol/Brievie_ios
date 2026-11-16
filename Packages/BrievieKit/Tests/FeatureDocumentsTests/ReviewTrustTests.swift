@@ -15,37 +15,54 @@ import Testing
         return model
     }
 
-    @Test func everyFieldBelowTheThresholdIsMarked() async throws {
+    @Test func valueReadFromTheLetterBelowTheThresholdIsMarked() async throws {
         let model = try await load([
             DocumentFixtures.proposal("sender", "CAK", quote: "CAK", confidence: "0.6"),
-            DocumentFixtures.proposal("document_type", "invoice", quote: "Factuur", confidence: "0.84"),
             DocumentFixtures.proposal("letter_date", "2026-11-03", quote: "3 november", confidence: "0.5"),
-            DocumentFixtures.proposal("action_type", "pay", quote: "betalen", group: 1, confidence: "0.7"),
             DocumentFixtures.proposal(
-                "action_description", "Betaal de rekening", quote: "betalen", group: 1, confidence: "0.7"
+                "action_deadline", "2026-12-15", quote: "vóór 15 december", group: 1, confidence: "0.84"
             )
         ])
         let task = try #require(model.draft.tasks.first)
 
-        let fields: [ReviewField] = [
-            .sender, .documentType, .letterDate, .taskType(task.id), .taskDescription(task.id)
-        ]
-        for field in fields {
+        for field in [ReviewField.sender, .letterDate, .taskDeadline(task.id)] {
             #expect(model.draft.needsAttention(field), "\(field)")
             #expect(!model.draft.quote(for: field).isEmpty, "\(field)")
         }
     }
 
-    @Test func valueWithoutAQuoteIsMarked() async throws {
+    @Test func valueReadFromTheLetterWithoutAQuoteIsMarked() async throws {
         let model = try await load([
-            DocumentFixtures.proposal("sender", "CAK", confidence: "0.99"),
-            DocumentFixtures.proposal("document_type", "invoice", confidence: "0.99")
+            DocumentFixtures.proposal("sender", "CAK", confidence: "0.99")
         ])
 
         #expect(model.draft.sender == "CAK")
         #expect(model.draft.needsAttention(.sender))
-        #expect(model.draft.needsAttention(.documentType))
         #expect(model.draft.quote(for: .sender).isEmpty)
+    }
+
+    /// The server gives what the AI wrote itself a fixed 0.5 and no quote: marking those would mark every letter.
+    @Test func valueTheAIWroteItselfIsNotMarked() async throws {
+        let model = try await load([
+            DocumentFixtures.proposal("document_type", "invoice", confidence: "0.5"),
+            DocumentFixtures.proposal("action_type", "pay", group: 1, confidence: "0.5"),
+            DocumentFixtures.proposal("action_description", "Betaal de rekening", group: 1, confidence: "0.5")
+        ])
+        let task = try #require(model.draft.tasks.first)
+
+        #expect(model.draft.documentType == "invoice")
+        #expect(task.description == "Betaal de rekening")
+        for field in [ReviewField.documentType, .taskType(task.id), .taskDescription(task.id)] {
+            #expect(!model.draft.needsAttention(field), "\(field)")
+        }
+    }
+
+    @Test func valueTheAIWroteItselfIsMarkedWhenTheServerFlagsIt() async throws {
+        let model = try await load([
+            DocumentFixtures.proposal("document_type", "invoice", confidence: "0.5", needsAttention: true)
+        ])
+
+        #expect(model.draft.needsAttention(.documentType))
     }
 
     @Test func valueTheServerFlagsIsMarkedWhateverItsConfidence() async throws {
@@ -127,7 +144,7 @@ import Testing
         #expect(model.draft.quote(for: .sender) == "CAK")
         #expect(model.draft.needsAttention(.sender))
         #expect(model.draft.letterDateQuote == "3 november")
-        #expect(model.draft.needsAttention(.taskType(task.id)))
+        #expect(model.draft.quote(for: .taskType(task.id)) == "betalen")
     }
 
     @Test func restoringTheOriginalDeadlineRestoresItsSource() async throws {

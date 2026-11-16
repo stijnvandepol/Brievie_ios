@@ -9,6 +9,15 @@ public enum ReviewField: Hashable, Sendable {
     case taskType(UUID)
     case taskDescription(UUID)
     case taskDeadline(UUID)
+
+    /// The value stands in the letter itself, so a quote and a confidence say something about it. A type or
+    /// a task's text is the AI's own wording: the server gives those a fixed confidence and no quote.
+    var isReadFromLetter: Bool {
+        switch self {
+        case .sender, .letterDate, .taskDeadline: true
+        case .documentType, .taskType, .taskDescription: false
+        }
+    }
 }
 
 /// Where a pre-filled value came from, kept for as long as the value is the one that was pre-filled.
@@ -17,15 +26,16 @@ public struct ValueOrigin: Equatable, Sendable {
     public let value: String
     /// The words in the letter the value was read from; empty when the AI gave none.
     public let quote: String
-    /// Low confidence, flagged by the server, or no quote: the user should look twice.
+    /// Flagged by the server, or read from the letter with low confidence or without a quote: the user
+    /// should look twice.
     public let needsAttention: Bool
     /// Filled in by the app itself, not read from the letter: there is no confidence or quote to show.
     public let isUnchecked: Bool
 }
 
 extension ReviewModel {
-    /// Below this confidence a value needs the user's attention. Equal to the server's threshold for
-    /// deadlines and amounts (`NEEDS_ATTENTION_BELOW`, spec section 10), here applied to every value.
+    /// Below this confidence a value read from the letter needs the user's attention. Equal to the server's
+    /// threshold for deadlines and amounts (`NEEDS_ATTENTION_BELOW`, spec section 10).
     nonisolated static let attentionBelow = Decimal(string: "0.85") ?? 1
 
     /// What the user is about to confirm, pre-filled from the proposals.
@@ -95,8 +105,8 @@ extension ReviewModel {
             }
             origins[field] = ValueOrigin(
                 value: text, quote: proposal.quote,
-                needsAttention: proposal.needsAttention || proposal.confidence < ReviewModel.attentionBelow
-                    || proposal.quote.isEmpty,
+                needsAttention: proposal.needsAttention || field.isReadFromLetter
+                    && (proposal.confidence < ReviewModel.attentionBelow || proposal.quote.isEmpty),
                 isUnchecked: false
             )
             return true
