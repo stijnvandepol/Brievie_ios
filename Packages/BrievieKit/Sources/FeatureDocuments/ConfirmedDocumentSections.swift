@@ -71,12 +71,11 @@ struct ConfirmedDocumentSections: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(model.tasks) { task in
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    TaskTickBox(task: task, isEditable: model.canEdit) {
-                        Task { await model.setTask(task.id, done: !task.isDone) }
-                    }
-                    ConfirmedTaskRow(task: task) { onShowQuote(task.deadlineQuote) }
-                }
+                TaskTickRow(
+                    task: task, isEditable: model.canEdit,
+                    toggle: { Task { await model.setTask(task.id, done: !task.isDone) } },
+                    showSource: { onShowQuote(task.deadlineQuote) }
+                )
             }
         } header: {
             Text(DocumentStrings.confirmedTasks)
@@ -85,8 +84,8 @@ struct ConfirmedDocumentSections: View {
 
     private var actions: OrganiseActions {
         OrganiseActions(
-            setAddressees: { ids in Task { await model.setAddressees(ids) } },
-            setLabels: { ids in Task { await model.setLabels(ids) } },
+            removeAddressee: { id in Task { await model.removeAddressee(id) } },
+            removeLabel: { id in Task { await model.removeLabel(id) } },
             proposals: .acceptOrDismiss(
                 accept: { suggestion in Task { await model.accept(suggestion) } },
                 dismiss: { suggestion in Task { await model.dismiss(suggestion) } }
@@ -127,24 +126,48 @@ struct ConfirmedPicker: View {
     }
 }
 
-/// Whether a task is done: a box to tick for a member, the same mark without a button for a viewer.
-/// VoiceOver reads the task's text with "afgerond" or "open".
-private struct TaskTickBox: View {
+/// A confirmed task with its tick box (for a viewer the same mark without a button). For VoiceOver the row is
+/// one element: the task's text, "afgerond" or "open", the tick as its action; the type and deadline are extra
+/// content, "Waar staat dit?" a named action.
+private struct TaskTickRow: View {
     let task: ConfirmedTask
     let isEditable: Bool
     let toggle: () -> Void
+    let showSource: () -> Void
 
     var body: some View {
         if isEditable {
-            Button(action: toggle) { mark }
-                .buttonStyle(.borderless)
-                .accessibilityLabel(task.description)
-                .accessibilityValue(value)
+            row
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction(.default, toggle)
         } else {
-            mark
-                .accessibilityElement()
-                .accessibilityLabel(task.description)
-                .accessibilityValue(value)
+            row
+        }
+    }
+
+    private var row: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            if isEditable {
+                Button(action: toggle) { mark }
+                    .buttonStyle(.borderless)
+            } else {
+                mark
+            }
+            ConfirmedTaskRow(task: task, showSource: showSource)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(task.description)
+        .accessibilityValue(task.isDone ? DocumentStrings.taskDone : DocumentStrings.taskOpen)
+        .accessibilityCustomContent(
+            Text(DocumentStrings.taskType), Text(DocumentTypes.taskTypeLabel(task.type))
+        )
+        .accessibilityCustomContent(
+            Text(DocumentStrings.deadline), Text(task.deadline?.display ?? DocumentStrings.noDeadline)
+        )
+        .accessibilityActions {
+            if !task.deadlineQuote.isEmpty {
+                Button(DocumentStrings.whereIsThis, action: showSource)
+            }
         }
     }
 
@@ -158,8 +181,6 @@ private struct TaskTickBox: View {
         if task.isDone { return "checkmark.circle.fill" }
         return "circle"
     }
-
-    private var value: String { task.isDone ? DocumentStrings.taskDone : DocumentStrings.taskOpen }
 }
 
 /// A confirmed task: what to do, by when, and where the deadline stands in the letter.

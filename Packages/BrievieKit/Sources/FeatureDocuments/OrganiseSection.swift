@@ -13,8 +13,9 @@ struct OrganiseActions {
         case acceptOrDismiss(accept: (Suggestion) -> Void, dismiss: (Suggestion) -> Void)
     }
 
-    let setAddressees: (Set<UUID>) -> Void
-    let setLabels: (Set<UUID>) -> Void
+    /// Takes the letter off one name; the receiver works from its own current state, not from this view's.
+    let removeAddressee: (UUID) -> Void
+    let removeLabel: (UUID) -> Void
     let proposals: Proposals
     let pickPersons: () -> Void
     let pickLabels: () -> Void
@@ -24,8 +25,10 @@ struct OrganiseActions {
         _ draft: Binding<OrganiseDraft>, pickPersons: @escaping () -> Void, pickLabels: @escaping () -> Void
     ) -> Self {
         Self(
-            setAddressees: { draft.wrappedValue.setAddressees($0) },
-            setLabels: { draft.wrappedValue.setLabels($0) },
+            removeAddressee: { id in
+                draft.wrappedValue.setAddressees(draft.wrappedValue.addresseeIDs.subtracting([id]))
+            },
+            removeLabel: { id in draft.wrappedValue.setLabels(draft.wrappedValue.labelIDs.subtracting([id])) },
             proposals: .toggle { draft.wrappedValue.toggle($0) },
             pickPersons: pickPersons,
             pickLabels: pickLabels
@@ -53,7 +56,7 @@ struct OrganiseSection: View {
                 ChoiceRow(origin: origin, name: person.displayName, onShowQuote: onShowQuote) {
                     if let actions {
                         Button {
-                            actions.setAddressees(draft.addresseeIDs.subtracting([person.id]))
+                            actions.removeAddressee(person.id)
                         } label: {
                             PersonChip(name: person.displayName, isChosen: true, isEditable: true)
                         }
@@ -81,7 +84,7 @@ struct OrganiseSection: View {
                 ChoiceRow(origin: draft.origin(ofLabel: label.id), name: label.name, onShowQuote: onShowQuote) {
                     if let actions {
                         Button {
-                            actions.setLabels(draft.labelIDs.subtracting([label.id]))
+                            actions.removeLabel(label.id)
                         } label: {
                             HStack(spacing: 6) {
                                 LabelChip(name: label.name, colorKey: label.colorKey)

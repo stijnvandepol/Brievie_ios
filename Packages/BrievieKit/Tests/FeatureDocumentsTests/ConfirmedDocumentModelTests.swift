@@ -55,14 +55,18 @@ import Testing
         )
     }
 
-    private func model(canEdit: Bool = true) throws -> ConfirmedDocumentModel {
+    private func model(
+        canEdit: Bool = true, detail: DocumentDetail? = nil, server: (any DocumentServer)? = nil
+    ) throws -> ConfirmedDocumentModel {
         let connection = ServerConnection(
             urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn"
         )
         try store.save(connection, token: "tok")
         return ConfirmedDocumentModel(
-            detail: detail(), persons: DocumentFixtures.persons, labels: DocumentFixtures.labels,
-            documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
+            detail: detail ?? self.detail(), persons: DocumentFixtures.persons, labels: DocumentFixtures.labels,
+            documents: WorkspaceDocuments(
+                workspaceID: UUID(), connection: connection, store: store, server: server ?? self.server
+            ),
             canEdit: canEdit,
             onRevoked: { [events] in events.add("revoked") },
             onMissingPairing: { [events] in events.add("missing") }
@@ -187,6 +191,44 @@ import Testing
         #expect(model.changeError == DocumentStrings.changeFailed)
     }
 
+    @Test func twoRemovalsBackToBackEndWithBothRemoved() async throws {
+        let model = try model(detail: detail(addressees: [stijn, anne]))
+        server.onOrganise { [documentID] _, _ in
+            DocumentFixtures.detail(id: documentID, status: .done)
+        }
+
+        let first = Task { await model.removeAddressee(stijn) }
+        let second = Task { await model.removeAddressee(anne) }
+        await first.value
+        await second.value
+
+        let sent = server.calls.compactMap { call -> Set<UUID>? in
+            guard case let .setAddressees(_, _, ids) = call else { return nil }
+            return Set(ids)
+        }
+        #expect(sent == [[anne], []])
+        #expect(model.organise.addresseeIDs.isEmpty)
+    }
+
+    @Test func aFailedTickGoesBackToTheServersValue() async throws {
+        server.onCompleteTask { _, _ in throw ServerError.other("task_not_found") }
+        server.onReopenTask { _, _ in throw ServerError.other("task_not_found") }
+        let gated = GatedDocumentServer(server)
+        gated.holdTasks()
+        let model = try model(server: gated)
+
+        let complete = Task { await model.setTask(taskID, done: true) }
+        while gated.heldTaskCalls == 0 { await Task.yield() }
+        let reopen = Task { await model.setTask(taskID, done: false) }
+        while model.tasks.first?.isDone == true { await Task.yield() }
+        gated.releaseTasks()
+        await complete.value
+        await reopen.value
+
+        #expect(model.tasks.first?.isDone == false)
+        #expect(model.changeError == DocumentStrings.changeFailed)
+    }
+
     @Test func aViewerCannotChangeAnything() async throws {
         let model = try model(canEdit: false)
         let before = (model.organise, model.detail)
@@ -273,6 +315,53 @@ import Testing
         await confirmed.setTask(task.id, done: true)
 
         #expect(hookCalls == 1)
+    }
+
+    @Test func aTickAnsweredAfterTheReviewClosedStillCallsTheHook() async throws {
+        let task = ConfirmedTask(
+            id: UUID(), type: "pay", description: "Betaal", deadline: nil, deadlineSource: "manual",
+            deadlineQuote: ""
+        )
+        harness.answer { id in DocumentFixtures.detail(id: id, status: .done, tasks: [task]) }
+        let gated = GatedDocumentServer(harness.server)
+        let connection = ServerConnection(
+            urls: [URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")], caCertificateDER: nil,
+            deviceID: UUID(), userName: "Stijn"
+        )
+        try harness.store.save(connection, token: "tok")
+        var review: ReviewModel? = ReviewModel(
+            documentID: harness.documentID,
+            documents: WorkspaceDocuments(
+                workspaceID: UUID(), connection: connection, store: harness.store, server: gated
+            ),
+            canEdit: true, onRevoked: {}, onMissingPairing: {}
+        )
+        var hookCalls = 0
+        review?.onTasksChanged = { hookCalls += 1 }
+        await review?.load()
+        let confirmed = try #require(review?.confirmed)
+        gated.holdTasks()
+        let tick = Task { await confirmed.setTask(task.id, done: true) }
+        while gated.heldTaskCalls == 0 { await Task.yield() }
+
+        weak let released = review
+        review = nil
+        #expect(released == nil)
+        gated.releaseTasks()
+        await tick.value
+
+        #expect(hookCalls == 1)
+    }
+
+    @Test func loadingAConfirmedLetterAgainKeepsItsModel() async throws {
+        harness.answer { id in DocumentFixtures.detail(id: id, status: .done) }
+        let model = try harness.model()
+        await model.load()
+        let first = try #require(model.confirmed)
+
+        await model.load()
+
+        #expect(model.confirmed === first)
     }
 
     @Test func aFailedConfirmDoesNotCallTheHook() async throws {

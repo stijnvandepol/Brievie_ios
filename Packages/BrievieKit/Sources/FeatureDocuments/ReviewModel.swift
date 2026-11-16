@@ -39,8 +39,11 @@ public final class ReviewModel {
     /// The confirmed letter, to change its addressees, labels and tasks; `nil` before it is confirmed and on a
     /// 1b server.
     public private(set) var confirmed: ConfirmedDocumentModel?
-    /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again.
-    public var onTasksChanged: (@MainActor () -> Void)?
+    /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
+    /// on to `confirmed` itself, so a tick that is answered after this screen closed still reaches it.
+    public var onTasksChanged: (@MainActor () -> Void)? {
+        didSet { confirmed?.onTasksChanged = onTasksChanged }
+    }
 
     private let documentID: UUID
     private let documents: WorkspaceDocuments
@@ -224,7 +227,7 @@ public final class ReviewModel {
             detail: detail, persons: persons, labels: labels, documents: documents, canEdit: canEdit,
             onRevoked: onRevoked, onMissingPairing: onMissingPairing
         )
-        model.onTasksChanged = { [weak self] in self?.onTasksChanged?() }
+        model.onTasksChanged = onTasksChanged
         return model
     }
 
@@ -242,7 +245,14 @@ public final class ReviewModel {
             }
             state = .review
         case .done:
-            confirmed = organiseAvailable ? confirmedModel(detail) : nil
+            if !organiseAvailable {
+                confirmed = nil
+            } else if let confirmed, confirmed.detail.summary.id == detail.summary.id {
+                // Keep the model: its message and the changes on their way stay with it.
+                confirmed.show(detail)
+            } else {
+                confirmed = confirmedModel(detail)
+            }
             state = .done
         case .unknown:
             state = .done

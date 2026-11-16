@@ -39,6 +39,10 @@ public final class ConfirmedDocumentModel {
     @ObservationIgnored private var queue: Task<Void, Never>?
     /// Changes of addressees, labels or suggestions sent but not answered yet.
     @ObservationIgnored private var pendingOrganise = 0
+    /// Task ticks sent but not answered yet.
+    @ObservationIgnored private var pendingTasks = 0
+    /// Whether each task is done according to the server's last answer, to go back to when a tick fails.
+    @ObservationIgnored private var serverDone: [UUID: Bool]
 
     public init(
         detail: DocumentDetail,
@@ -58,6 +62,17 @@ public final class ConfirmedDocumentModel {
         self.onMissingPairing = onMissingPairing
         organise = OrganiseDraft(confirmed: detail)
         tasks = detail.tasks
+        serverDone = Self.doneByID(detail.tasks)
+    }
+
+    /// The letter as the server has it now (loaded again). Changes still on their way stay shown.
+    public func show(_ detail: DocumentDetail) {
+        self.detail = detail
+        if pendingOrganise == 0 { organise = OrganiseDraft(confirmed: detail) }
+        if pendingTasks == 0 {
+            tasks = detail.tasks
+            serverDone = Self.doneByID(detail.tasks)
+        }
     }
 
     /// Puts the letter on exactly these names.
@@ -65,6 +80,16 @@ public final class ConfirmedDocumentModel {
         guard canEdit else { return }
         organise.setAddressees(ids)
         await send(.addressees(ids))
+    }
+
+    /// Takes the letter off one name, from what the screen shows now.
+    public func removeAddressee(_ id: UUID) async {
+        await setAddressees(organise.addresseeIDs.subtracting([id]))
+    }
+
+    /// Takes one label off, from what the screen shows now.
+    public func removeLabel(_ id: UUID) async {
+        await setLabels(organise.labelIDs.subtracting([id]))
     }
 
     /// Gives the letter exactly these labels.
@@ -136,7 +161,7 @@ public final class ConfirmedDocumentModel {
 
     private func send(_ change: Change) async {
         changeError = nil
-        if case .task = change {} else { pendingOrganise += 1 }
+        if case .task = change { pendingTasks += 1 } else { pendingOrganise += 1 }
         let previous = queue
         let next = Task {
             await previous?.value
@@ -163,13 +188,16 @@ public final class ConfirmedDocumentModel {
                 } else {
                     try await documents.reopenTask(id)
                 }
+                pendingTasks -= 1
+                serverDone[id] = answer.isDone
                 setDone(answer.isDone, for: id)
                 onTasksChanged?()
             }
         } catch {
             switch change {
             case let .task(id, done):
-                setDone(!done, for: id)
+                pendingTasks -= 1
+                setDone(serverDone[id] ?? !done, for: id)
             case .addressees, .labels, .accept, .dismiss:
                 pendingOrganise -= 1
                 organise = OrganiseDraft(confirmed: detail)
@@ -191,6 +219,10 @@ public final class ConfirmedDocumentModel {
     private func setDone(_ done: Bool, for id: UUID) {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         tasks[index].isDone = done
+    }
+
+    private static func doneByID(_ tasks: [ConfirmedTask]) -> [UUID: Bool] {
+        Dictionary(tasks.map { ($0.id, $0.isDone) }, uniquingKeysWith: { _, last in last })
     }
 
     private static func sorted(_ ids: Set<UUID>) -> [UUID] {

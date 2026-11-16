@@ -3,11 +3,13 @@ import Foundation
 import Synchronization
 
 /// A `FakeDocumentServer` whose list for a chosen person waits until the test opens its gate, to play out a
-/// slow answer for a scope the user has already left.
+/// slow answer for a scope the user has already left. Task ticks can be held the same way.
 final class GatedDocumentServer: DocumentServer {
     private struct State {
         var gated: Set<UUID> = []
         var waiters: [UUID: [CheckedContinuation<Void, Never>]] = [:]
+        var holdsTasks = false
+        var taskWaiters: [CheckedContinuation<Void, Never>] = []
     }
 
     let inner: FakeDocumentServer
@@ -32,6 +34,35 @@ final class GatedDocumentServer: DocumentServer {
             return state.waiters.removeValue(forKey: personID) ?? []
         }
         for waiter in waiters { waiter.resume() }
+    }
+
+    /// Completing and reopening a task waits from now on until `releaseTasks()`.
+    func holdTasks() {
+        state.withLock { $0.holdsTasks = true }
+    }
+
+    var heldTaskCalls: Int {
+        state.withLock { $0.taskWaiters.count }
+    }
+
+    func releaseTasks() {
+        let waiters = state.withLock { state in
+            state.holdsTasks = false
+            defer { state.taskWaiters = [] }
+            return state.taskWaiters
+        }
+        for waiter in waiters { waiter.resume() }
+    }
+
+    private func waitIfTasksHeld() async {
+        await withCheckedContinuation { continuation in
+            let waits = state.withLock { state in
+                guard state.holdsTasks else { return false }
+                state.taskWaiters.append(continuation)
+                return true
+            }
+            if !waits { continuation.resume() }
+        }
     }
 
     func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {
@@ -97,10 +128,12 @@ final class GatedDocumentServer: DocumentServer {
     }
 
     func completeTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
-        try await inner.completeTask(id, in: scope)
+        await waitIfTasksHeld()
+        return try await inner.completeTask(id, in: scope)
     }
 
     func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
-        try await inner.reopenTask(id, in: scope)
+        await waitIfTasksHeld()
+        return try await inner.reopenTask(id, in: scope)
     }
 }
