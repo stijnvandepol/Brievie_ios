@@ -62,6 +62,8 @@ public enum CalendarSyncResult: Equatable, Sendable {
     /// Brievie may not use the calendar: nothing was written.
     case noAccess
     case done(created: Int, updated: Int, deleted: Int)
+    /// The server has no task list (a 1b server): no calendar was made.
+    case tasksNotSupported
     case failed
 }
 

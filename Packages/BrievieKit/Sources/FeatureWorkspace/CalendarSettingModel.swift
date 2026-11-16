@@ -30,6 +30,11 @@ public final class CalendarSettingModel {
     public let workspaceID: UUID
     public let workspaceName: String
     public private(set) var isOn: Bool
+    /// What the switch puts where, under it: "Je taken met een deadline komen in een eigen agenda 'Brievie – …'".
+    public var footer: String {
+        String(format: WorkspaceStrings.calendarFooterFormat, CalendarSync.calendarName(workspaceName: workspaceName))
+    }
+
     /// Why the switch went back off; `nil` when there is nothing to say.
     public private(set) var message: String?
     /// The message is about refused access: offer "Open Instellingen".
@@ -70,7 +75,7 @@ public final class CalendarSettingModel {
     }
 
     /// The switch was flipped. On: asks for access, makes the calendar and fills it. Off: asks first whether the
-    /// calendar should go too.
+    /// calendar should go too. Work for the switch runs in the order of the flips.
     public func toggle(_ wantsOn: Bool) {
         if wantsOn {
             guard !isOn else { return }
@@ -79,7 +84,9 @@ public final class CalendarSettingModel {
             showsOpenSettings = false
             let sync = sync
             let workspace = workspaceID
+            let previous = pendingTask
             pendingTask = Task {
+                await previous?.value
                 show(await sync.enable(workspace: workspace))
             }
         } else if isOn {
@@ -101,6 +108,12 @@ public final class CalendarSettingModel {
             await previous?.value
             await sync.disable(workspace: workspace, removeCalendar: removeCalendar)
         }
+    }
+
+    /// The app leaves the foreground: the "ook verwijderen?" question (with the workspace's name) must not stay
+    /// above the lock screen. Not answering keeps the switch on.
+    public func sceneLeftForeground() {
+        isAskingToRemove = false
     }
 
     /// While the switch is on: says so when calendar access was taken away in Settings, and drops that line once
@@ -134,6 +147,10 @@ public final class CalendarSettingModel {
             isOn = false
             message = WorkspaceStrings.calendarNoAccess
             showsOpenSettings = true
+        case .tasksNotSupported:
+            isOn = false
+            message = WorkspaceStrings.calendarTasksNotSupported
+            showsOpenSettings = false
         case .failed:
             // The switch stays on when the calendar exists and only this first fill failed: the next sync retries.
             if !isOn { return }

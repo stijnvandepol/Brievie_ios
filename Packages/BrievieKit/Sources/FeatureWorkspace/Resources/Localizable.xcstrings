@@ -14,13 +14,13 @@
       }
     },
     "workspaces.calendar.footer": {
-      "comment": "Explains the calendar switches: what the events contain and where they go.",
+      "comment": "Under a calendar switch: what the events contain and where they go; %@ is the calendar's name.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je taken met een datum komen in een eigen agenda 'Brievie'. De tekst van de taak en de afzender staan erin, ook als je agenda met iCloud synchroniseert."
+            "value": "Je taken met een deadline komen in een eigen agenda '%@'. De tekst van de taak en de afzender staan erin. Die agenda kan via iCloud op je andere apparaten komen."
           }
         }
       }
@@ -44,7 +44,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Brievie mag niet bij je agenda. Zet het aan in Instellingen."
+            "value": "Geef Brievie toegang tot je agenda in Instellingen."
           }
         }
       }
@@ -81,6 +81,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Agenda '%@' ook verwijderen?"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.tasksNotSupported": {
+      "comment": "Under the calendar switch when the server cannot list tasks yet; the switch stays off.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze server kan nog geen taken doorgeven. Werk de server bij."
           }
         }
       }

@@ -19,6 +19,8 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case nameTaken
     /// The document is still being processed: try again in a moment.
     case busy
+    /// The server does not know this request: it is older than the app (a 1b server has no task list).
+    case notSupported
     case cancelled
     case failed
 }
@@ -148,6 +150,8 @@ public struct WorkspaceDocuments: Sendable {
         case "validation_error": .invalid
         case "person_exists": .nameTaken
         case "document_processing": .busy
+        // Our own codes all pass through; a 404 without one is the server's catch-all for a path it lacks.
+        case "http_404": .notSupported
         default: .failed
         }
     }

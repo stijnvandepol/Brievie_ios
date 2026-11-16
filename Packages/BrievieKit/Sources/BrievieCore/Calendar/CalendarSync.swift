@@ -51,7 +51,7 @@ public actor CalendarSync {
     /// Brings the workspace's calendar in line with its open tasks. Does nothing while the switch is off or
     /// without calendar access; makes the calendar again when the user deleted it.
     public func sync(workspace: UUID) async -> CalendarSyncResult {
-        await exclusively(workspace) { await $0.performSync(workspace) }
+        await exclusively(workspace) { await $0.performSync(workspace, open: nil) }
     }
 
     /// Whether Brievie may use the calendars now; the switch shows a message when access was taken away.
@@ -60,11 +60,15 @@ public actor CalendarSync {
     }
 
     /// Turns the switch on: asks for access when needed, makes (or finds) the calendar, remembers it and syncs.
+    /// The open tasks are read first: a server without a task list gets no calendar. Any other failure to read
+    /// them still makes the calendar; the next sync fills it.
     public func enable(workspace: UUID) async -> CalendarSyncResult {
         await exclusively(workspace) { sync in
             guard await sync.requestAccessIfNeeded() else { return .noAccess }
+            let open = await sync.openTasks(workspace)
+            if case .failure(let error) = open, error as? DocumentsError == .notSupported { return .tasksNotSupported }
             guard await sync.makeCalendar(workspace) else { return .failed }
-            return await sync.performSync(workspace)
+            return await sync.performSync(workspace, open: open)
         }
     }
 
@@ -115,14 +119,25 @@ public actor CalendarSync {
         }
     }
 
-    private func performSync(_ workspace: UUID) async -> CalendarSyncResult {
+    /// The open tasks of the workspace as calendar events-to-be.
+    private func openTasks(_ workspace: UUID) async -> Result<[CalendarTask], any Error> {
+        do {
+            return .success(try await tasks(workspace).compactMap { CalendarTask.from($0, typeTitle: typeTitle) })
+        } catch {
+            return .failure(error)
+        }
+    }
+
+    /// - Parameter open: the open tasks when the caller read them already; `nil` reads them here.
+    private func performSync(_ workspace: UUID, open: Result<[CalendarTask], any Error>?) async -> CalendarSyncResult {
         guard let storedID = settings.calendarID(for: workspace) else { return .off }
         guard await store.access() == .granted else { return .noAccess }
         // Without the workspace's name no calendar is made: it would be called "Brievie – ".
         let name = workspaceName(workspace)
         guard !name.isEmpty else { return .failed }
         do {
-            let open = try await tasks(workspace).compactMap { CalendarTask.from($0, typeTitle: typeTitle) }
+            let fetched = if let open { open } else { await openTasks(workspace) }
+            let open = try fetched.get()
             let window = CalendarSyncPlanner.window(today: today())
             let calendarID = try await store.ensureCalendar(
                 named: Self.calendarName(workspaceName: name), existingID: storedID,
@@ -135,6 +150,8 @@ public actor CalendarSync {
             let changes = CalendarSyncPlanner.plan(tasks: open, events: events, window: window)
             if !changes.isEmpty { try await store.apply(changes, calendarID: calendarID) }
             return Self.counted(changes)
+        } catch DocumentsError.notSupported {
+            return .tasksNotSupported
         } catch {
             Self.logger.error("Calendar sync failed: \(String(describing: error), privacy: .private)")
             return .failed

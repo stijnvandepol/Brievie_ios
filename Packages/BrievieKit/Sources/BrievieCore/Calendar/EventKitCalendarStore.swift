@@ -10,16 +10,23 @@ public actor EventKitCalendarStore: CalendarStore {
     private static let alarmOffsets: [TimeInterval] = [-7 * 86_400 + 9 * 3_600, -2 * 86_400 + 9 * 3_600, 9 * 3_600]
 
     private let eventStore = EKEventStore()
+    /// The store was reset after access was granted. A store made before the first grant (in the prompt, or in
+    /// Settings while the app ran) can keep answering without calendars or a default calendar until then.
+    private var isFreshAfterGrant = false
 
     public init() {}
 
     public func access() async -> CalendarAccess {
-        Self.access(EKEventStore.authorizationStatus(for: .event))
+        let access = Self.access(EKEventStore.authorizationStatus(for: .event))
+        if access == .granted { resetOnceAfterGrant() }
+        return access
     }
 
     public func requestAccess() async -> CalendarAccess {
         do {
-            return try await eventStore.requestFullAccessToEvents() ? .granted : .denied
+            guard try await eventStore.requestFullAccessToEvents() else { return .denied }
+            resetOnceAfterGrant()
+            return .granted
         } catch {
             return .denied
         }
@@ -30,6 +37,11 @@ public actor EventKitCalendarStore: CalendarStore {
     ) async throws -> String {
         if let existingID, !excluding.contains(existingID),
            let calendar = eventStore.calendar(withIdentifier: existingID), calendar.allowsContentModifications {
+            if calendar.title != named {
+                // The workspace was renamed on the server.
+                calendar.title = named
+                try eventStore.saveCalendar(calendar, commit: true)
+            }
             return existingID
         }
         if let match = adoptableCalendar(named: named, excluding: excluding, window: window) {
@@ -37,7 +49,7 @@ public actor EventKitCalendarStore: CalendarStore {
         }
         let calendar = EKCalendar(for: .event, eventStore: eventStore)
         calendar.title = named
-        // The phone's default calendar source (usually iCloud); the local one when that one takes no new calendar.
+        // The phone's default calendar source (usually iCloud); then the local one and any CalDAV one.
         var lastError: (any Error)?
         for source in candidateSources() {
             calendar.source = source
@@ -48,7 +60,7 @@ public actor EventKitCalendarStore: CalendarStore {
                 lastError = error
             }
         }
-        throw lastError ?? CalendarStoreError()
+        throw lastError ?? CalendarStoreError(.noSourceForNewCalendar)
     }
 
     public func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot] {
@@ -95,6 +107,12 @@ public actor EventKitCalendarStore: CalendarStore {
         try eventStore.removeCalendar(calendar, commit: true)
     }
 
+    private func resetOnceAfterGrant() {
+        guard !isFreshAfterGrant else { return }
+        eventStore.reset()
+        isFreshAfterGrant = true
+    }
+
     /// An event of that calendar that carries a task link: the only kind the app changes or deletes.
     private func ownEvent(_ eventID: String, calendarID: String) -> EKEvent? {
         guard let event = eventStore.calendarItem(withIdentifier: eventID) as? EKEvent,
@@ -137,12 +155,16 @@ public actor EventKitCalendarStore: CalendarStore {
         event.alarms = Self.alarmOffsets.map { EKAlarm(relativeOffset: $0) }
     }
 
+    /// Where a new calendar may go: the default calendar's source, then the local and CalDAV sources (without a
+    /// default calendar, which a store can lack right after the first grant, those are all there is).
     private func candidateSources() -> [EKSource] {
         var sources: [EKSource] = []
         if let source = eventStore.defaultCalendarForNewEvents?.source { sources.append(source) }
-        if let local = eventStore.sources.first(where: { $0.sourceType == .local }),
-           !sources.contains(where: { $0.sourceIdentifier == local.sourceIdentifier }) {
-            sources.append(local)
+        for type in [EKSourceType.local, .calDAV] {
+            for source in eventStore.sources where source.sourceType == type
+                && !sources.contains(where: { $0.sourceIdentifier == source.sourceIdentifier }) {
+                sources.append(source)
+            }
         }
         return sources
     }

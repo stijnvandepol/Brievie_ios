@@ -12,13 +12,18 @@ import Testing
     private let workspace = UUID()
     private let openedSettings = Locked(0)
 
-    private func makeModel() -> CalendarSettingModel {
+    private func makeModel(tasksFail: DocumentsError? = nil) -> CalendarSettingModel {
         let task = WorkspaceTask(
             id: UUID(), type: "pay", description: "Factuur", deadline: CalendarDate(year: 2026, month: 12, day: 1),
             isDone: false, documentID: nil, sender: "Eneco"
         )
         let sync = CalendarSync(
-            store: store, settings: settings, tasks: { _ in [task] }, workspaceName: { _ in "Thuis" },
+            store: store, settings: settings,
+            tasks: { _ in
+                if let tasksFail { throw tasksFail }
+                return [task]
+            },
+            workspaceName: { _ in "Thuis" },
             typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 16) }
         )
         let openedSettings = openedSettings
@@ -60,7 +65,7 @@ import Testing
         await model.pendingTask?.value
 
         #expect(!model.isOn)
-        #expect(model.message == "Brievie mag niet bij je agenda. Zet het aan in Instellingen.")
+        #expect(model.message == "Geef Brievie toegang tot je agenda in Instellingen.")
         #expect(model.showsOpenSettings)
         #expect(!settings.isEnabled(for: workspace))
         #expect(await store.calendars.isEmpty)
@@ -79,7 +84,7 @@ import Testing
         await model.accessTask?.value
 
         #expect(model.isOn, "The switch stays on: syncing resumes when access is back")
-        #expect(model.message == "Brievie mag niet bij je agenda. Zet het aan in Instellingen.")
+        #expect(model.message == "Geef Brievie toegang tot je agenda in Instellingen.")
         #expect(model.showsOpenSettings)
         #expect(settings.isEnabled(for: workspace))
     }
@@ -164,10 +169,63 @@ import Testing
         #expect(await store.calendars == [id: "Brievie – Thuis"])
     }
 
+    @Test func onOffOnInARowEndsOn() async throws {
+        let model = makeModel()
+
+        model.toggle(true)
+        model.toggle(false)
+        model.switchOff(removeCalendar: true)
+        model.toggle(true)
+        await model.pendingTask?.value
+
+        #expect(model.isOn)
+        #expect(model.message == nil)
+        let id = try calendarID()
+        #expect(await store.calendars == [id: "Brievie – Thuis"])
+        #expect(await store.storedEvents(calendarID: id).count == 1)
+    }
+
+    @Test func aServerWithoutATaskListTurnsTheSwitchOffWithoutACalendar() async {
+        let model = makeModel(tasksFail: .notSupported)
+
+        model.toggle(true)
+        await model.pendingTask?.value
+
+        #expect(!model.isOn)
+        #expect(model.message == "Deze server kan nog geen taken doorgeven. Werk de server bij.")
+        #expect(!model.showsOpenSettings)
+        #expect(!settings.isEnabled(for: workspace))
+        #expect(await store.calendars.isEmpty)
+    }
+
+    @Test func leavingTheForegroundClosesTheRemoveQuestion() async {
+        settings.enable(workspace: workspace, calendarID: "calendar-1")
+        let model = makeModel()
+        model.toggle(false)
+        #expect(model.isAskingToRemove)
+
+        model.sceneLeftForeground()
+
+        #expect(!model.isAskingToRemove)
+        #expect(model.isOn, "Not answering keeps the switch on")
+        #expect(settings.isEnabled(for: workspace))
+    }
+
+    @Test func theFooterNamesTheWorkspacesCalendar() {
+        #expect(makeModel().footer == """
+            Je taken met een deadline komen in een eigen agenda 'Brievie – Thuis'. De tekst van de taak en de \
+            afzender staan erin. Die agenda kan via iCloud op je andere apparaten komen.
+            """)
+    }
+
     @Test func catalogAndCodeAgreeOnTheFormats() throws {
         #expect(
             try CatalogParity.dutchValue(forKey: "workspaces.calendar.remove.question", target: "FeatureWorkspace")
                 == WorkspaceStrings.calendarRemoveQuestionFormat
+        )
+        #expect(
+            try CatalogParity.dutchValue(forKey: "workspaces.calendar.footer", target: "FeatureWorkspace")
+                == WorkspaceStrings.calendarFooterFormat
         )
     }
 }
@@ -253,6 +311,31 @@ import Testing
 
         #expect(calendar.isOn)
         #expect(calendar.showsOpenSettings)
+    }
+
+    @Test func leavingTheForegroundClosesEveryRemoveQuestion() async throws {
+        let thuis = summary("Thuis")
+        server.answer = { _ in [thuis] }
+        let settings = InMemoryCalendarSettings()
+        settings.enable(workspace: thuis.id, calendarID: "calendar-1")
+        let model = WorkspacesModel(
+            connection: connection, store: store, server: server, appModel: appModel,
+            unpairing: Unpairing(server: server, uploads: ScriptedUploadQueue(count: 0)),
+            calendar: WorkspaceCalendar(
+                sync: CalendarSync(
+                    store: FakeCalendarStore(), settings: settings, tasks: { _ in [] }, workspaceName: { _ in "Thuis" },
+                    typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 16) }
+                ),
+                settings: settings, openSettings: {}, didLoad: { _ in }
+            )
+        )
+        await model.load()
+        let calendar = try #require(model.calendarModel(for: thuis.id))
+        calendar.toggle(false)
+
+        model.sceneLeftForeground()
+
+        #expect(!calendar.isAskingToRemove)
     }
 
     @Test func withoutCalendarSupportThereIsNoSwitch() async {

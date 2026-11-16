@@ -9,6 +9,7 @@ public struct WorkspacesView<Destination: View>: View {
     private let showsNoPasscodeWarning: Bool
     /// What a workspace opens: supplied by the app, so this target does not know the documents feature.
     private let destination: (WorkspacesModel.Row) -> Destination
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(
         model: WorkspacesModel,
@@ -42,6 +43,9 @@ public struct WorkspacesView<Destination: View>: View {
             .refreshable { await model.load() }
             .task { await model.load() }
             .onDisappear { model.stop() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { model.sceneLeftForeground() }
+            }
         }
     }
 }
@@ -78,10 +82,6 @@ struct WorkspacesList<Destination: View>: View {
                 content
             } header: {
                 Text("workspaces.section.workspaces", bundle: .module)
-            } footer: {
-                if hasCalendarSwitches {
-                    Text("workspaces.calendar.footer", bundle: .module)
-                }
             }
             serverSection
             // Its own section, last, away from everything else on the screen.
@@ -117,11 +117,6 @@ struct WorkspacesList<Destination: View>: View {
         case .failed(let message):
             ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module), action: retry)
         }
-    }
-
-    private var hasCalendarSwitches: Bool {
-        guard case .loaded(let rows) = state else { return false }
-        return rows.contains { calendarModel($0) != nil }
     }
 
     private var serverSection: some View {
@@ -204,6 +199,9 @@ private struct CalendarSwitchRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            Text(model.footer)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             if let message = model.message {
                 ErrorBanner(
                     message,

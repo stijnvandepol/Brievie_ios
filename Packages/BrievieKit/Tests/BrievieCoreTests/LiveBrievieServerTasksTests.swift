@@ -89,6 +89,20 @@ import Testing
         await #expect(throws: DocumentsError.notFound) { try await documents.completeTask(Self.taskID) }
     }
 
+    /// A 1b server has no task list: its catch-all for an unknown API path answers 404 `not_found`.
+    @Test func aServerWithoutATaskListMapsToNotSupported() async throws {
+        let body = #"{"code":"not_found","message":"We kunnen dit niet vinden."}"#
+        let url = try StubURLProtocol.serve(.response(status: 404, json: body))
+        let store = ConnectionStore(secrets: InMemorySecretStore())
+        let connection = ServerConnection(urls: [url], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn")
+        try store.save(connection, token: "tok")
+        let documents = WorkspaceDocuments(
+            workspaceID: Self.workspaceID, connection: connection, store: store, server: server
+        )
+
+        await #expect(throws: DocumentsError.notSupported) { try await documents.openTasks() }
+    }
+
     @Test func aTaskInADocumentReadsItsStatus() async throws {
         let json = """
             {"id":"\(Self.documentID)","client_id":"0b7f6b0e-6a5d-4c59-9d0e-0d6a3c3b9a11",

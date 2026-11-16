@@ -88,6 +88,11 @@ public final class WorkspacesModel {
         appModel.requestUnpair(unpairing)
     }
 
+    /// The app leaves the foreground: questions that name a workspace close (they would sit above the lock).
+    public func sceneLeftForeground() {
+        for model in calendarModels.values { model.sceneLeftForeground() }
+    }
+
     /// For the retry button: loads again, tied to this model so that `stop()` can cancel it.
     public func retry() {
         retryTask?.cancel()

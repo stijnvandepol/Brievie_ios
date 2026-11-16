@@ -53,7 +53,24 @@ enum WorkspaceStrings {
 
     static let calendarNoAccess = String(
         localized: "workspaces.calendar.noAccess",
-        defaultValue: "Brievie mag niet bij je agenda. Zet het aan in Instellingen.",
+        defaultValue: "Geef Brievie toegang tot je agenda in Instellingen.",
+        bundle: .module
+    )
+
+    /// The server has no task list yet (a 1b server): the switch stays off.
+    static let calendarTasksNotSupported = String(
+        localized: "workspaces.calendar.tasksNotSupported",
+        defaultValue: "Deze server kan nog geen taken doorgeven. Werk de server bij.",
+        bundle: .module
+    )
+
+    /// Under a calendar switch; `%@` is the calendar's name ("Brievie – Thuis").
+    static let calendarFooterFormat = String(
+        localized: "workspaces.calendar.footer",
+        defaultValue: """
+            Je taken met een deadline komen in een eigen agenda '%@'. De tekst van de taak en de afzender staan \
+            erin. Die agenda kan via iCloud op je andere apparaten komen.
+            """,
         bundle: .module
     )
 
@@ -77,6 +94,8 @@ enum WorkspaceStrings {
         "error.generic": generic,
         "workspaces.unpair.message": unpairMessage,
         "workspaces.calendar.noAccess": calendarNoAccess,
+        "workspaces.calendar.tasksNotSupported": calendarTasksNotSupported,
+        "workspaces.calendar.footer": calendarFooterFormat,
         "workspaces.calendar.remove.question": calendarRemoveQuestionFormat
     ]
 }

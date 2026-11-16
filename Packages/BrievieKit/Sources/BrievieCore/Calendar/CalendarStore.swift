@@ -13,10 +13,11 @@ public protocol CalendarStore: Sendable {
     func access() async -> CalendarAccess
     /// Asks the user (once; afterwards the system answers with the earlier choice).
     func requestAccess() async -> CalendarAccess
-    /// The calendar `existingID` when it still exists, is writable and is not in `excluding`. Else a calendar
-    /// titled `named` is adopted, but only when it is in the default calendar source, is not in `excluding` (the
-    /// calendars of other workspaces) and has no event without a task link in `window` (it is empty, or only
-    /// Brievie's). Else a new calendar with that title is made in the default source. Returns its identifier.
+    /// The calendar `existingID` when it still exists, is writable and is not in `excluding` (retitled `named`
+    /// when the workspace was renamed). Else a calendar titled `named` is adopted, but only when it is in the
+    /// default calendar source, is not in `excluding` (the calendars of other workspaces) and has no event without
+    /// a task link in `window` (it is empty, or only Brievie's). Else a new calendar with that title is made in
+    /// the default source. Returns its identifier.
     func ensureCalendar(
         named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
     ) async throws -> String
@@ -28,7 +29,18 @@ public protocol CalendarStore: Sendable {
 }
 
 public struct CalendarStoreError: Error, Equatable {
-    public init() {}
+    public enum Reason: Equatable, Sendable {
+        case failed
+        /// The phone has no calendar source that takes a new calendar (no default calendar, no local or CalDAV
+        /// source).
+        case noSourceForNewCalendar
+    }
+
+    public let reason: Reason
+
+    public init(_ reason: Reason = .failed) {
+        self.reason = reason
+    }
 }
 
 /// `CalendarStore` in memory, for tests and previews. It can refuse access and fail every call.
@@ -113,7 +125,10 @@ public actor FakeCalendarStore: CalendarStore {
         named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
     ) async throws -> String {
         try check()
-        if let existingID, calendars[existingID] != nil, !excluding.contains(existingID) { return existingID }
+        if let existingID, calendars[existingID] != nil, !excluding.contains(existingID) {
+            calendars[existingID] = named
+            return existingID
+        }
         let adoptable = calendarOrder.first { id in
             calendars[id] == named && !excluding.contains(id) && !otherSource.contains(id)
                 && !hasEventOfTheUser(calendarID: id, window: window)
