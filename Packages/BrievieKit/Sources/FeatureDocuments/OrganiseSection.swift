@@ -120,7 +120,8 @@ struct OrganiseSection: View {
     }
 
     /// An open proposal: a chip to tap in the review, a chip with "Toevoegen" and "Negeren" on a confirmed
-    /// letter, the plain chip for a viewer.
+    /// letter, the plain chip for a viewer. Always with the word "Voorstel", so it never differs from a chosen
+    /// one by its look alone; VoiceOver says it too.
     @ViewBuilder
     private func proposal<Chip: View>(
         _ suggestion: Suggestion, name: String, @ViewBuilder chip: (_ isEditable: Bool) -> Chip
@@ -130,12 +131,15 @@ struct OrganiseSection: View {
             Button {
                 toggle(suggestion)
             } label: {
-                chip(true)
+                ProposalMarked(chip: chip(true))
             }
             .accessibilityLabel(String(format: DocumentStrings.addFormat, name))
+            .accessibilityValue(DocumentStrings.suggestion)
         case let .acceptOrDismiss(accept, dismiss):
             VStack(alignment: .leading, spacing: 6) {
-                chip(false)
+                ProposalMarked(chip: chip(false))
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(name). \(DocumentStrings.suggestion)")
                 HStack(spacing: 16) {
                     Button(DocumentStrings.acceptSuggestion) { accept(suggestion) }
                         .accessibilityLabel(String(format: DocumentStrings.addFormat, name))
@@ -145,7 +149,9 @@ struct OrganiseSection: View {
                 .font(.subheadline.weight(.medium))
             }
         case nil:
-            chip(false)
+            ProposalMarked(chip: chip(false))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(name). \(DocumentStrings.suggestion)")
         }
     }
 
@@ -213,6 +219,26 @@ private struct ChoiceRow<Chip: View>: View {
         case .nameMatch: "text.magnifyingglass"
         case .rule: "gearshape"
         case .unknown: "lightbulb"
+        }
+    }
+}
+
+/// A proposed person or label: its chip and the word "Voorstel" in a small tag (text, not colour).
+private struct ProposalMarked<Chip: View>: View {
+    let chip: Chip
+
+    var body: some View {
+        HStack(spacing: 8) {
+            chip
+            Text(DocumentStrings.suggestion)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(Color.secondary, lineWidth: 1)
+                }
         }
     }
 }

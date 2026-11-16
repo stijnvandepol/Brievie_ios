@@ -458,7 +458,7 @@
       }
     },
     "documents.suggestion": {
-      "comment": "Marker on a letter with open proposals for addressees or labels.",
+      "comment": "Marker on a letter with open proposals, and the tag next to a proposed person or label.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
@@ -836,7 +836,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, op naam van. Tik om weg te halen"
+            "value": "Op naam van %@. Tik om weg te halen."
           }
         }
       }

@@ -147,6 +147,8 @@ public final class ConfirmedDocumentModel {
             return true
         } catch .nameTaken {
             personError = DocumentStrings.nameTaken
+            // Probably made in the web meanwhile: show them in the list.
+            if let fresh = try? await documents.persons() { persons = fresh }
         } catch {
             handle(error) { personError = DocumentsModel.message(for: $0) }
         }

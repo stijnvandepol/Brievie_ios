@@ -273,6 +273,17 @@ import Testing
         })
         #expect(model.organise.addresseeIDs == [stijn, papa.id])
     }
+
+    @Test func aDuplicateNameReloadsThePersonsMadeInTheWebMeanwhile() async throws {
+        let papa = Person(id: UUID(), displayName: "Papa", nameVariants: [], isArchived: false)
+        server.onCreatePerson { _, _ in throw ServerError.other("person_exists") }
+        server.onPersons { _ in DocumentFixtures.persons + [papa] }
+        let model = try model()
+        #expect(await !model.createPerson(named: "Papa"))
+        #expect(model.personError == DocumentStrings.nameTaken)
+        #expect(model.persons.contains(papa))
+        #expect(model.organise.addresseeIDs == [stijn])
+    }
 }
 
 /// The review hands a confirmed letter to `ConfirmedDocumentModel` and reports that its tasks changed.

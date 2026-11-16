@@ -62,7 +62,7 @@ extension DocumentStrings {
     static let addFormat = String(localized: "review.organise.add", defaultValue: "%@ toevoegen", bundle: .module)
     static let chosenPersonFormat = String(
         localized: "review.organise.chosenPerson",
-        defaultValue: "%@, op naam van. Tik om weg te halen",
+        defaultValue: "Op naam van %@. Tik om weg te halen.",
         bundle: .module
     )
     static let chosenLabelFormat = String(
