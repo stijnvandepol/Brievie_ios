@@ -52,6 +52,8 @@ extension ReviewModel {
         public var unverified: [ReviewField: String] = [:]
         /// Where each pre-filled value came from.
         public internal(set) var origins: [ReviewField: ValueOrigin] = [:]
+        /// On whose name the letter is and its labels.
+        public var organise = OrganiseDraft()
 
         public init() {}
 
@@ -117,8 +119,10 @@ extension ReviewModel {
         }
     }
 
-    static func draft(from proposals: [Proposal]) -> Draft {
+    static func draft(from detail: DocumentDetail) -> Draft {
+        let proposals = detail.proposals
         var draft = Draft()
+        draft.organise = OrganiseDraft(detail: detail)
         draft.isFromAI = !proposals.isEmpty
         for proposal in proposals where proposal.group == 0 {
             addDocumentValue(proposal, to: &draft)

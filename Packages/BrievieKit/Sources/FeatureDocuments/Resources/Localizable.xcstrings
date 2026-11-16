@@ -709,6 +709,222 @@
         }
       }
     },
+    "review.organise.add": {
+      "comment": "A proposed person or label in the review, e.g. 'Papa toevoegen'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ toevoegen"
+          }
+        }
+      }
+    },
+    "review.organise.addressees": {
+      "comment": "Review section: the persons a letter is addressed to.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op naam van"
+          }
+        }
+      }
+    },
+    "review.organise.chosenLabel": {
+      "comment": "VoiceOver: a chosen label in the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label %@. Tik om weg te halen"
+          }
+        }
+      }
+    },
+    "review.organise.chosenPerson": {
+      "comment": "VoiceOver: a chosen person in the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, op naam van. Tik om weg te halen"
+          }
+        }
+      }
+    },
+    "review.organise.done": {
+      "comment": "Person or label picker: closes the list.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar"
+          }
+        }
+      }
+    },
+    "review.organise.gone": {
+      "comment": "Review: a chosen person or label was deleted meanwhile.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een persoon of label bestaat niet meer. Controleer je keuze en bevestig opnieuw."
+          }
+        }
+      }
+    },
+    "review.organise.labels": {
+      "comment": "Review section: the labels of a letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        }
+      }
+    },
+    "review.organise.labelsInWeb": {
+      "comment": "Label picker footer: labels cannot be made in the app.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe labels maak je in de webinterface."
+          }
+        }
+      }
+    },
+    "review.organise.nameTaken": {
+      "comment": "Person picker: a person with this name exists already.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is al iemand met deze naam."
+          }
+        }
+      }
+    },
+    "review.organise.newPerson": {
+      "comment": "Person picker: section to add a person.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe persoon"
+          }
+        }
+      }
+    },
+    "review.organise.newPerson.add": {
+      "comment": "Person picker: button that adds the new person.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen"
+          }
+        }
+      }
+    },
+    "review.organise.newPerson.name": {
+      "comment": "Person picker: placeholder of the new person's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naam"
+          }
+        }
+      }
+    },
+    "review.organise.noAddressee": {
+      "comment": "Review: no person chosen and none proposed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog op niemands naam."
+          }
+        }
+      }
+    },
+    "review.organise.origin.ai": {
+      "comment": "Under a person or label in the review: the AI proposed it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voorstel van AI"
+          }
+        }
+      }
+    },
+    "review.organise.origin.nameMatch": {
+      "comment": "Under a person in the review: their name was found in the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herkend in de brief"
+          }
+        }
+      }
+    },
+    "review.organise.origin.rule": {
+      "comment": "Under a person or label in the review: the rule that proposed it, by name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regel: %@"
+          }
+        }
+      }
+    },
+    "review.organise.pickLabels": {
+      "comment": "Review: opens the list of labels to choose from.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies labels"
+          }
+        }
+      }
+    },
+    "review.organise.pickPersons": {
+      "comment": "Review: opens the list of persons to choose from.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies personen"
+          }
+        }
+      }
+    },
     "review.page.loading": {
       "comment": "Shown while a page image loads.",
       "extractionState": "manual",

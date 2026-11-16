@@ -28,6 +28,14 @@ public final class ReviewModel {
     public private(set) var confirmsDiscardingEdits = false
     /// Members and admins confirm; a viewer only reads.
     public let canEdit: Bool
+    /// The persons and labels of the workspace, to choose from.
+    public private(set) var persons: [Person] = []
+    public private(set) var labels: [DocumentLabel] = []
+    /// Both lists loaded: the server knows persons and labels. A 1b server does not; the review then hides
+    /// "Op naam van" and "Labels" and confirms without them.
+    public private(set) var organiseAvailable = false
+    /// Why "Nieuwe persoon" did not work.
+    public private(set) var personError: String?
 
     private let documentID: UUID
     private let documents: WorkspaceDocuments
@@ -38,6 +46,8 @@ public final class ReviewModel {
     /// The draft as it was pre-filled, to tell whether the user changed anything.
     @ObservationIgnored private var pristineDraft = Draft()
     @ObservationIgnored private var loadingPages: Set<Int> = []
+    /// The lists were asked once from a server that answered: a 1b server is not asked again on every poll.
+    @ObservationIgnored private var askedOrganiseLists = false
 
     public init(
         documentID: UUID,
@@ -61,8 +71,15 @@ public final class ReviewModel {
     public var processingFailed: Bool { detail?.summary.status == .failed }
 
     public func load() async {
+        let asksLists = !askedOrganiseLists
+        async let lists = asksLists ? Self.organiseLists(from: documents) : nil
         do {
-            show(try await documents.detail(documentID))
+            let detail = try await documents.detail(documentID)
+            if asksLists {
+                askedOrganiseLists = true
+                apply(await lists)
+            }
+            show(detail)
         } catch {
             handle(error) { state = .failed(message: DocumentsModel.message(for: $0)) }
         }
@@ -120,6 +137,25 @@ public final class ReviewModel {
         draft.syncDeadlineSource(of: index)
     }
 
+    /// Adds a person to the workspace and puts the letter on their name. Returns whether it worked.
+    @discardableResult
+    public func createPerson(named name: String) async -> Bool {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard canEdit, !name.isEmpty else { return false }
+        personError = nil
+        do {
+            let person = try await documents.createPerson(named: name)
+            persons.append(person)
+            draft.organise.addresseeIDs.insert(person.id)
+            return true
+        } catch .nameTaken {
+            personError = DocumentStrings.nameTaken
+        } catch {
+            handle(error) { personError = DocumentsModel.message(for: $0) }
+        }
+        return false
+    }
+
     /// The user changed something since the draft was pre-filled (or started empty).
     public var draftHasUserEdits: Bool { draft != pristineDraft }
 
@@ -134,7 +170,10 @@ public final class ReviewModel {
         defer { isSaving = false }
         let review = ConfirmedReview(
             sender: draft.sender, documentType: draft.documentType, letterDate: draft.letterDate,
-            summary: draft.summary, summaryByAI: draft.summaryIsByAI, tasks: draft.tasks
+            summary: draft.summary, summaryByAI: draft.summaryIsByAI, tasks: draft.tasks,
+            addresseeIDs: organiseAvailable ? Self.sorted(draft.organise.addresseeIDs) : [],
+            labelIDs: organiseAvailable ? Self.sorted(draft.organise.labelIDs) : [],
+            setsOrganisation: organiseAvailable
         )
         do {
             show(try await documents.confirm(documentID, review: review))
@@ -177,9 +216,49 @@ public final class ReviewModel {
             if state == .review { saveError = DocumentStrings.confirmConflict }
         case .invalid:
             saveError = DocumentStrings.reviewRefused
+        case .notFound where organiseAvailable:
+            await handleMissingChoice()
         default:
             handle(error) { saveError = DocumentsModel.message(for: $0) }
         }
+    }
+
+    /// Confirm found no such person or label, or no such document. A document that is still there means a
+    /// chosen person or label was deleted meanwhile: keep the draft without it and let the user look again.
+    private func handleMissingChoice() async {
+        let detail: DocumentDetail
+        do {
+            detail = try await documents.detail(documentID)
+        } catch {
+            handle(error) { state = .failed(message: DocumentsModel.message(for: $0)) }
+            return
+        }
+        apply(await Self.organiseLists(from: documents))
+        show(detail)
+        guard state == .review else { return }
+        draft.organise.setAddressees(draft.organise.addresseeIDs.intersection(persons.map(\.id)))
+        draft.organise.setLabels(draft.organise.labelIDs.intersection(labels.map(\.id)))
+        saveError = DocumentStrings.organiseGone
+    }
+
+    /// Both lists, or `nil` when either could not be loaded (a 1b server has neither).
+    private nonisolated static func organiseLists(
+        from documents: WorkspaceDocuments
+    ) async -> (persons: [Person], labels: [DocumentLabel])? {
+        async let persons = try? documents.persons()
+        async let labels = try? documents.labels()
+        guard let persons = await persons, let labels = await labels else { return nil }
+        return (persons, labels)
+    }
+
+    private func apply(_ lists: (persons: [Person], labels: [DocumentLabel])?) {
+        persons = lists?.persons ?? []
+        labels = lists?.labels ?? []
+        organiseAvailable = lists != nil
+    }
+
+    private static func sorted(_ ids: Set<UUID>) -> [UUID] {
+        ids.sorted { $0.uuidString < $1.uuidString }
     }
 
     private func handle(_ error: DocumentsError, otherwise: (DocumentsError) -> Void) {
@@ -200,7 +279,7 @@ public final class ReviewModel {
         case .needsReview, .failed:
             // A refresh must not throw away what the user typed.
             if !wasReviewing {
-                draft = Self.draft(from: detail.proposals)
+                draft = Self.draft(from: detail)
                 pristineDraft = draft
             }
             state = .review

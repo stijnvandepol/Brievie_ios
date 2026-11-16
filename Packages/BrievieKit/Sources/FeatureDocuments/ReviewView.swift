@@ -8,6 +8,7 @@ import SwiftUI
 public struct ReviewView: View {
     @Bindable private var model: ReviewModel
     @State private var source: SourceQuote?
+    @State private var picker: OrganisePicker?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(model: ReviewModel) {
@@ -54,6 +55,17 @@ public struct ReviewView: View {
         }
         .sheet(item: $source) { quote in
             SourceView(quote: quote.text, pageTexts: model.pageTexts) { source = nil }
+        }
+        .sheet(item: $picker) { picker in
+            switch picker {
+            case .persons:
+                PersonPickerView(
+                    persons: model.persons, selection: $model.draft.organise.addresseeIDs, error: model.personError,
+                    onCreate: { await model.createPerson(named: $0) }, close: { self.picker = nil }
+                )
+            case .labels:
+                LabelPickerView(labels: model.labels, selection: $model.draft.organise.labelIDs) { self.picker = nil }
+            }
         }
         .confirmationDialog(
             DocumentStrings.discardEditsTitle,
@@ -135,6 +147,13 @@ public struct ReviewView: View {
             notes(for: .documentType, title: DocumentStrings.documentType)
             OptionalDateRow(title: DocumentStrings.letterDate, date: $model.draft.letterDate)
             notes(for: .letterDate, title: DocumentStrings.letterDate)
+        }
+        if model.organiseAvailable {
+            OrganiseSection(
+                draft: $model.draft.organise, persons: model.persons, labels: model.labels,
+                onPickPersons: { picker = .persons }, onPickLabels: { picker = .labels },
+                onShowQuote: { source = SourceQuote(text: $0) }
+            )
         }
         Section {
             TextField(DocumentStrings.summary, text: $model.draft.summary, axis: .vertical)
@@ -291,6 +310,12 @@ private struct FieldNotes: View {
     }
 }
 
+/// The list a sheet shows to choose persons or labels from.
+private enum OrganisePicker: Identifiable {
+    case persons, labels
+    var id: Self { self }
+}
+
 /// The quote whose place in the letter is being shown.
 private struct SourceQuote: Identifiable {
     let text: String
@@ -351,39 +376,6 @@ private struct OptionalDateRow: View {
                 Button(DocumentStrings.addDate) { date = CalendarDate(Date(), in: .current) }
             }
         }
-    }
-}
-
-private struct PageImageView: View {
-    let data: Data?
-    let label: String
-
-    var body: some View {
-        Group {
-            if let data, let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .accessibilityLabel(label)
-            } else if data != nil {
-                // Loaded, but not an image this phone can show.
-                Label(DocumentStrings.pageUnreadable, systemImage: "photo")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("\(label). \(DocumentStrings.pageUnreadable)")
-            } else {
-                VStack(spacing: 8) {
-                    ProgressView()
-                    Text(DocumentStrings.pageLoading)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(label)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.bottom, 32)
     }
 }
 #endif

@@ -262,7 +262,7 @@ extension DocumentStrings {
 }
 
 extension DocumentStrings {
-    /// Every string above by catalog key, for the parity test.
+    /// Every string of this target by catalog key, for the parity test.
     static let all: [String: String] = [
         "documents.new": newDocument,
         "documents.pages.one": pagesOne,
@@ -380,5 +380,5 @@ extension DocumentStrings {
         "documents.addressees": addresseesFormat,
         "documents.labels": labelsFormat,
         "documents.suggestion": suggestion
-    ]
+    ].merging(organise) { current, _ in current }
 }
