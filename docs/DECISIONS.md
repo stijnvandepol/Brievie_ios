@@ -88,12 +88,19 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **A review pre-filled by AI says so at the top** ("Ingevuld door AI. Controleer of het klopt voordat je bevestigt."), next to the label on the summary.
 - **The paired app stays in the view tree while locked**, under an opaque lock screen, so a half-filled review survives a trip to another app. Sheets above it close when the scene leaves the foreground (the letter-text sheet when inactive, the scanner and photo picker in the background), and polling stops while the app is not active.
 
-## Organising in the review (phase 1c)
+## Organising (phase 1c)
 
 - Persons and labels are loaded once per review screen, next to the document. When either list cannot be loaded, the screen behaves as against a 1b server: "Op naam van" and "Labels" are hidden and confirm sends `sets_organisation: false`, which leaves labels and addressees alone.
 - Which proposal starts ticked comes from the server (`preselected`), so web and app agree; what an automatic rule already put on the letter starts chosen too.
 - After confirming with the lists, every proposal the user did not choose is dismissed for good on that letter: nothing automatic proposes it there again.
 - A person or label deleted while the review is open makes confirm answer "not found": the app reloads the lists, drops what is gone and keeps the rest of the draft. Only "not found" for the document itself leaves the review; any other failure while reloading keeps the draft and shows an error.
+- **The `DocumentServer` seam grew** (persons, labels, suggestions, tasks) instead of a third seam. The fake (`FakeDocumentServer`, in `BrievieCore`) serves every test target, so one fake covers the post list, the review, the confirmed letter and the calendar; a third seam would have meant a second fake to keep equal.
+- **A 1c app reads a 1b server.** People update the app before the server. Fields the server added in 1c are optional in the contract (host decision, `957e2e9`): missing lists read as empty, a missing inbox state is derived from the status (processing is new, needs review and failed are review, done is sorted). Against a 1b server the organise sections and the task tick boxes do not show.
+- **Unknown values never break decoding** (API v1 is additive): an unknown inbox state is `.unknown`, an unknown suggestion action is dropped (not shown), an unknown origin is kept as unknown, an unknown label colour is grey.
+- **Preselection comes from the server**; labels are created in the web only (the app picks, never creates or edits them; persons can be added in the review); there is no history or undo of rule actions in the app.
+- **The post list** groups the inbox as "Te controleren", "Op niemands naam" and "Onderweg". Persons and labels are fetched on the first load, on pull-to-refresh and on a scope change, not on the 3-second refresh. A slow answer for an earlier scope never touches the current one (also not its error). A person scope falls back to the inbox when that person is gone.
+- **A confirmed letter** (name, labels, tasks): a change is sent at once, in tap order, built on the model's own state (not on what the screen showed when it was tapped). A failed change restores what the server last said. The task hook (`onTasksChanged`, which triggers the calendar sync) is held by the confirmed model, not by the review screen, so it survives the screen closing mid-tick.
+- **Label colours are defined in code** with a light and a dark value (`LabelChip`; `BrievieUI` has no asset catalog), text against fill at least 4.5:1 in both. A label always shows its name; colour is never the only signal.
 
 ## Unpair
 
@@ -114,6 +121,10 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 
 ## Open items
 
+- **Phase 1c, not verified on a device or in the simulator:** the post list with its filters and chips, the organise sections and pickers in the review, ticking tasks off, and everything about the calendar (it has only run against `FakeCalendarStore`; `EventKitCalendarStore` has never run, not even a test instantiates it: access prompt, calendar creation in the default source, adoption by title, all-day events, the three alarms, deleting). Also the VoiceOver and largest-Dynamic-Type pass over the new screens (spoken labels of chips and suggestions, wrapping of chip rows and the calendar switch).
+- **Not in 1c:** the Today screen and the tab bar, local notifications, background calendar sync (a deadline confirmed elsewhere appears when this app opens), thumbnails in the list, history and undo of rule actions in the app, creating or editing labels and rules, a document cache for offline reading.
+- **Known gaps in 1c:** `DocumentFilter` with `.sorted` or `.unknown` sends no filter (the list shows everything). The "voorstel" mark can show while every suggestion has an action this app does not know (the count includes dropped suggestions). Persons and labels are not refreshed when a confirmed letter's model is reused.
+- **Calendar, still standing:** a sync learns a workspace's name from the Workspaces list's last load, so the first unlock after a launch syncs nothing until the list has loaded. A sync that finds access gone only shows it on the Workspaces screen, not on the post. `brievie://task/<id>` only opens the app (design section 16 says it opens that workspace's post). Alarms shift by an hour across a change to or from summer time. A deadline on the last day of the window gets its event a day later. A calendar the user made with the exact title is adopted only under the rules in "Calendar (phase 1c)", so in rare cases a second calendar with the same title appears.
 - A clear message when the server's API major version becomes newer after pairing (today it surfaces as a generic error).
 - A hint when local-network access is denied (today it looks like an unreachable server).
 - The device name is always "iPhone" on iOS 16+ without the user-assigned-device-name entitlement.

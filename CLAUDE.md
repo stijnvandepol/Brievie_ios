@@ -3,7 +3,7 @@
 Native SwiftUI app that pairs with a self-hosted Brievie server.
 
 - Spec: `../Brievie_host/docs/SPEC.md` (sections 11, 13, 14, 16 step 1a, 18, 19)
-- Current plan: `docs/superpowers/plans/2026-11-14-ios-fase-1b.md` (phase 1a: `2026-11-13-ios-fundament.md`)
+- Current plan: `docs/superpowers/plans/2026-11-16-ios-fase-1c.md` (earlier: `2026-11-14-ios-fase-1b.md`, `2026-11-13-ios-fundament.md`)
 - Dependency and design decisions: `docs/DECISIONS.md`
 
 ## Make targets
@@ -34,4 +34,6 @@ Native SwiftUI app that pairs with a self-hosted Brievie server.
 - File paths from a `URL`: `path(percentEncoded: false)`; the default breaks on the space in `Application Support`.
 - A deadline or letter date is a `CalendarDate`, never a `Date`. Scans are on disk in the upload queue before any
   upload starts and leave only after the server confirmed them.
+- The app writes only in calendars it made itself (one per workspace), and never without the switch being on.
+- A field the server added later is optional: read it with a default, so the app still works against an older server.
 - Tests use Swift Testing. Conventional commits. Never push without being asked.
