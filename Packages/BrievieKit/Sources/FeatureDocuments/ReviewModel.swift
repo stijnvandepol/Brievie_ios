@@ -39,6 +39,10 @@ public final class ReviewModel {
     /// The confirmed letter, to change its addressees, labels and tasks; `nil` before it is confirmed and on a
     /// 1b server.
     public private(set) var confirmed: ConfirmedDocumentModel?
+    /// The person or label list on screen (a sheet), in the review and on a confirmed letter.
+    public var picker: OrganisePicker?
+    /// The letter text with a quote marked (a sheet).
+    public var shownQuote: SourceQuote?
     /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
     /// on to `confirmed` itself, so a tick that is answered after this screen closed still reaches it.
     public var onTasksChanged: (@MainActor () -> Void)? {
@@ -113,6 +117,30 @@ public final class ReviewModel {
     public func stopPolling() {
         pollTask?.cancel()
         pollTask = nil
+    }
+
+    /// Back in the foreground: look again while the letter is processed. Leaving it: a sheet sits above the lock
+    /// screen and the app-switcher cover, so the letter text, the names, the labels and a half-typed new person
+    /// close; no polling while nobody looks either. The draft stays.
+    public func sceneDidChange(isActive: Bool) {
+        if isActive {
+            startPolling()
+        } else {
+            picker = nil
+            shownQuote = nil
+            stopPolling()
+        }
+    }
+
+    /// Opens the person or label list. An error of an earlier "Nieuwe persoon" no longer applies.
+    public func pick(_ picker: OrganisePicker) {
+        if picker == .persons { personError = nil }
+        self.picker = picker
+    }
+
+    /// Shows where `quote` stands in the letter.
+    public func showQuote(_ quote: String) {
+        shownQuote = SourceQuote(text: quote)
     }
 
     public func loadPage(_ index: Int) async {
@@ -284,11 +312,6 @@ extension ReviewModel {
         return false
     }
 
-    /// The person picker opens: an error of an earlier attempt no longer applies.
-    public func clearPersonError() {
-        personError = nil
-    }
-
     /// Confirm found no such person or label, or no such document. A document that is still there means a
     /// chosen person or label was deleted meanwhile: keep the draft without it and let the user look again.
     /// Only the document's own `.notFound` leaves the review; any other failure keeps the draft as it is.
@@ -335,4 +358,16 @@ extension ReviewModel {
     private static func sorted(_ ids: Set<UUID>) -> [UUID] {
         ids.sorted { $0.uuidString < $1.uuidString }
     }
+}
+
+/// The list a sheet shows to choose persons or labels from.
+public enum OrganisePicker: Identifiable, Sendable {
+    case persons, labels
+    public var id: Self { self }
+}
+
+/// The quote whose place in the letter is being shown.
+public struct SourceQuote: Identifiable, Equatable, Sendable {
+    public let text: String
+    public var id: String { text }
 }

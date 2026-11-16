@@ -7,8 +7,6 @@ import SwiftUI
 /// letter can show where it stands; nothing becomes a task before "Bevestigen".
 public struct ReviewView: View {
     @Bindable private var model: ReviewModel
-    @State private var source: SourceQuote?
-    @State private var picker: OrganisePicker?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(model: ReviewModel) {
@@ -34,8 +32,8 @@ public struct ReviewView: View {
                 pagesSection
                 if let detail = model.detail {
                     DoneSections(
-                        detail: detail, confirmed: model.confirmed, onPick: { picker = $0 },
-                        onShowQuote: { source = SourceQuote(text: $0) }
+                        detail: detail, confirmed: model.confirmed, onPick: { model.pick($0) },
+                        onShowQuote: { model.showQuote($0) }
                     )
                 }
             }
@@ -48,33 +46,25 @@ public struct ReviewView: View {
             model.startPolling()
         }
         .onDisappear { model.stopPolling() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
-                model.startPolling()
-            } else {
-                // A sheet sits above the lock screen and the app-switcher cover: the letter text must not
-                // stay on screen when the app leaves the foreground. No polling while nobody looks either.
-                source = nil
-                model.stopPolling()
-            }
+        // Closes every sheet when the app leaves the foreground (they would sit above the lock screen).
+        .onChange(of: scenePhase) { _, phase in model.sceneDidChange(isActive: phase == .active) }
+        .sheet(item: $model.shownQuote) { quote in
+            SourceView(quote: quote.text, pageTexts: model.pageTexts) { model.shownQuote = nil }
         }
-        .sheet(item: $source) { quote in
-            SourceView(quote: quote.text, pageTexts: model.pageTexts) { source = nil }
-        }
-        .sheet(item: $picker) { picker in
+        .sheet(item: $model.picker) { picker in
             if let confirmed = model.confirmed {
-                ConfirmedPicker(model: confirmed, picker: picker) { self.picker = nil }
+                ConfirmedPicker(model: confirmed, picker: picker) { model.picker = nil }
             } else {
                 switch picker {
                 case .persons:
                     PersonPickerView(
                         persons: model.persons, selection: $model.draft.organise.addresseeIDs,
                         error: model.personError, onCreate: { await model.createPerson(named: $0) },
-                        close: { self.picker = nil }
+                        close: { model.picker = nil }
                     )
                 case .labels:
                     LabelPickerView(labels: model.labels, selection: $model.draft.organise.labelIDs) {
-                        self.picker = nil
+                        model.picker = nil
                     }
                 }
             }
@@ -164,12 +154,9 @@ public struct ReviewView: View {
             OrganiseSection(
                 draft: model.draft.organise, persons: model.persons, labels: model.labels,
                 actions: model.canEdit ? .review(
-                    $model.draft.organise, pickPersons: {
-                        model.clearPersonError()
-                        picker = .persons
-                    }, pickLabels: { picker = .labels }
+                    $model.draft.organise, pickPersons: { model.pick(.persons) }, pickLabels: { model.pick(.labels) }
                 ) : nil,
-                onShowQuote: { source = SourceQuote(text: $0) }
+                onShowQuote: { model.showQuote($0) }
             )
         }
         Section {
@@ -243,7 +230,7 @@ public struct ReviewView: View {
     }
 
     private func notes(for field: ReviewField, title: String) -> some View {
-        FieldNotes(draft: model.draft, field: field, title: title) { source = SourceQuote(text: $0) }
+        FieldNotes(draft: model.draft, field: field, title: title) { model.showQuote($0) }
     }
 }
 
@@ -287,18 +274,6 @@ private struct FieldNotes: View {
             .foregroundStyle(.orange)
             .accessibilityLabel("\(title). \(text)")
     }
-}
-
-/// The list a sheet shows to choose persons or labels from.
-enum OrganisePicker: Identifiable {
-    case persons, labels
-    var id: Self { self }
-}
-
-/// The quote whose place in the letter is being shown.
-private struct SourceQuote: Identifiable {
-    let text: String
-    var id: String { text }
 }
 
 /// A date that may be absent: a button to add one, or a picker with a way to remove it.

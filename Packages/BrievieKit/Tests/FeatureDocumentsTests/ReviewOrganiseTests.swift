@@ -142,6 +142,36 @@ import Testing
         #expect(model.draft.organise.addresseeIDs == [stijn])
     }
 
+    @Test func leavingTheForegroundClosesThePickerAndTheLetterText() async throws {
+        let model = try harness.model()
+        await model.load()
+        model.pick(.persons)
+        #expect(model.picker == .persons)
+
+        model.sceneDidChange(isActive: false)
+
+        #expect(model.picker == nil, "Names and a half-typed new person must not show above the lock screen")
+        model.showQuote("Stijn de Vries")
+        #expect(model.shownQuote?.text == "Stijn de Vries")
+
+        model.sceneDidChange(isActive: false)
+
+        #expect(model.shownQuote == nil)
+        #expect(model.draft.organise.addresseeIDs == [stijn], "Closing the sheets keeps the draft")
+    }
+
+    @Test func leavingTheForegroundClosesTheLabelPickerOfAConfirmedLetter() async throws {
+        harness.answer { id in DocumentFixtures.detail(id: id, status: .done) }
+        let model = try harness.model()
+        await model.load()
+        #expect(model.confirmed != nil)
+        model.pick(.labels)
+
+        model.sceneDidChange(isActive: false)
+
+        #expect(model.picker == nil)
+    }
+
     @Test func openingThePersonPickerClearsAnOldError() async throws {
         harness.server.onCreatePerson { _, _ in throw ServerError.other("person_exists") }
         let model = try harness.model()
@@ -149,7 +179,7 @@ import Testing
         await model.createPerson(named: "Stijn")
         #expect(model.personError != nil)
 
-        model.clearPersonError()
+        model.pick(.persons)
 
         #expect(model.personError == nil)
     }
