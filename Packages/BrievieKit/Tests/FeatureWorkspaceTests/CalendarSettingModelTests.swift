@@ -69,6 +69,48 @@ import Testing
         #expect(openedSettings.value == 1)
     }
 
+    @Test func refusedLaterShowsTheMessage() async {
+        let model = makeModel()
+        model.toggle(true)
+        await model.pendingTask?.value
+        await store.setAccess(.denied, grantsOnRequest: false)
+
+        model.refreshAccess()
+        await model.accessTask?.value
+
+        #expect(model.isOn, "The switch stays on: syncing resumes when access is back")
+        #expect(model.message == "Brievie mag niet bij je agenda. Zet het aan in Instellingen.")
+        #expect(model.showsOpenSettings)
+        #expect(settings.isEnabled(for: workspace))
+    }
+
+    @Test func theMessageGoesAwayOnceAccessIsBack() async {
+        let model = makeModel()
+        model.toggle(true)
+        await model.pendingTask?.value
+        await store.setAccess(.denied, grantsOnRequest: false)
+        model.refreshAccess()
+        await model.accessTask?.value
+
+        await store.setAccess(.granted, grantsOnRequest: true)
+        model.refreshAccess()
+        await model.accessTask?.value
+
+        #expect(model.isOn)
+        #expect(model.message == nil)
+        #expect(!model.showsOpenSettings)
+    }
+
+    @Test func aSwitchThatIsOffDoesNotCheckAccess() async {
+        await store.setAccess(.denied, grantsOnRequest: false)
+        let model = makeModel()
+
+        model.refreshAccess()
+
+        #expect(model.accessTask == nil)
+        #expect(model.message == nil)
+    }
+
     @Test func aCalendarThatCannotBeMadeTurnsTheSwitchOffWithAnError() async {
         await store.setFailing(true)
         let model = makeModel()
@@ -185,6 +227,32 @@ import Testing
         let first = model.calendarModel(for: thuis.id)
         await model.load()
         #expect(model.calendarModel(for: thuis.id) === first, "A reload keeps the switch's model")
+    }
+
+    @Test func loadingTheListShowsWhenAccessWasTakenAway() async throws {
+        let thuis = summary("Thuis")
+        server.answer = { _ in [thuis] }
+        let settings = InMemoryCalendarSettings()
+        settings.enable(workspace: thuis.id, calendarID: "calendar-1")
+        let store = FakeCalendarStore(access: .denied, grantsOnRequest: false)
+        let model = WorkspacesModel(
+            connection: connection, store: self.store, server: server, appModel: appModel,
+            unpairing: Unpairing(server: server, uploads: ScriptedUploadQueue(count: 0)),
+            calendar: WorkspaceCalendar(
+                sync: CalendarSync(
+                    store: store, settings: settings, tasks: { _ in [] }, workspaceName: { _ in "Thuis" },
+                    typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 16) }
+                ),
+                settings: settings, openSettings: {}, didLoad: { _ in }
+            )
+        )
+
+        await model.load()
+        let calendar = try #require(model.calendarModel(for: thuis.id))
+        await calendar.accessTask?.value
+
+        #expect(calendar.isOn)
+        #expect(calendar.showsOpenSettings)
     }
 
     @Test func withoutCalendarSupportThereIsNoSwitch() async {

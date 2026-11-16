@@ -54,6 +54,11 @@ public actor CalendarSync {
         await exclusively(workspace) { await $0.performSync(workspace) }
     }
 
+    /// Whether Brievie may use the calendars now; the switch shows a message when access was taken away.
+    public func access() async -> CalendarAccess {
+        await store.access()
+    }
+
     /// Turns the switch on: asks for access when needed, makes (or finds) the calendar, remembers it and syncs.
     public func enable(workspace: UUID) async -> CalendarSyncResult {
         await exclusively(workspace) { sync in
@@ -93,10 +98,14 @@ public actor CalendarSync {
     }
 
     private func makeCalendar(_ workspace: UUID) async -> Bool {
+        let name = workspaceName(workspace)
+        guard !name.isEmpty else { return false }
         do {
             let id = try await store.ensureCalendar(
-                named: Self.calendarName(workspaceName: workspaceName(workspace)),
-                existingID: settings.calendarID(for: workspace)
+                named: Self.calendarName(workspaceName: name),
+                existingID: settings.calendarID(for: workspace),
+                excluding: calendarsOfOtherWorkspaces(workspace),
+                window: CalendarSyncPlanner.window(today: today())
             )
             settings.enable(workspace: workspace, calendarID: id)
             return true
@@ -109,13 +118,19 @@ public actor CalendarSync {
     private func performSync(_ workspace: UUID) async -> CalendarSyncResult {
         guard let storedID = settings.calendarID(for: workspace) else { return .off }
         guard await store.access() == .granted else { return .noAccess }
+        // Without the workspace's name no calendar is made: it would be called "Brievie – ".
+        let name = workspaceName(workspace)
+        guard !name.isEmpty else { return .failed }
         do {
             let open = try await tasks(workspace).compactMap { CalendarTask.from($0, typeTitle: typeTitle) }
-            let calendarID = try await store.ensureCalendar(
-                named: Self.calendarName(workspaceName: workspaceName(workspace)), existingID: storedID
-            )
-            if calendarID != storedID { settings.enable(workspace: workspace, calendarID: calendarID) }
             let window = CalendarSyncPlanner.window(today: today())
+            let calendarID = try await store.ensureCalendar(
+                named: Self.calendarName(workspaceName: name), existingID: storedID,
+                excluding: calendarsOfOtherWorkspaces(workspace), window: window
+            )
+            // Unpairing (or the switch) may have cleared the setting while this sync waited: never write it back.
+            guard settings.calendarID(for: workspace) == storedID else { return .off }
+            if calendarID != storedID { settings.enable(workspace: workspace, calendarID: calendarID) }
             let events = try await store.events(calendarID: calendarID, window: window)
             let changes = CalendarSyncPlanner.plan(tasks: open, events: events, window: window)
             if !changes.isEmpty { try await store.apply(changes, calendarID: calendarID) }
@@ -124,6 +139,10 @@ public actor CalendarSync {
             Self.logger.error("Calendar sync failed: \(String(describing: error), privacy: .private)")
             return .failed
         }
+    }
+
+    private func calendarsOfOtherWorkspaces(_ workspace: UUID) -> Set<String> {
+        Set(settings.calendarIDs().filter { $0.key != workspace }.values)
     }
 
     private func performDisable(_ workspace: UUID, removeCalendar: Bool) async {

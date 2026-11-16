@@ -119,6 +119,7 @@ public final class WorkspacesModel {
         case .workspaces(let workspaces):
             let rows = workspaces.map(Row.init(workspace:))
             updateCalendarModels(rows)
+            for model in calendarModels.values { model.refreshAccess() }
             state = .loaded(rows)
             calendar?.didLoad(rows)
         case .revoked:

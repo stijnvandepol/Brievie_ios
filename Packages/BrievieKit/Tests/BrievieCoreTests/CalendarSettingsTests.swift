@@ -21,6 +21,18 @@ import Testing
         #expect(UserDefaults(suiteName: suiteName)?.string(forKey: "calendar.\(workspace.uuidString)") == "calendar-1")
     }
 
+    @Test func calendarIDsListsTheWorkspacesThatAreOn() {
+        let settings = UserDefaultsCalendarSettings(suiteName: suiteName)
+        UserDefaults(suiteName: suiteName)?.set(true, forKey: "hasLaunchedBefore")
+        let home = UUID()
+        let business = UUID()
+        settings.enable(workspace: home, calendarID: "a")
+        settings.enable(workspace: business, calendarID: "b")
+        settings.disable(workspace: business)
+
+        #expect(settings.calendarIDs() == [home: "a"])
+    }
+
     @Test func disableTurnsOnlyThatWorkspaceOff() {
         let settings = UserDefaultsCalendarSettings(suiteName: suiteName)
         let home = UUID()

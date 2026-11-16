@@ -12,9 +12,9 @@ import Testing
     private let home = UUID()
     private let business = UUID()
 
-    private func makeSync() -> CalendarSync {
+    private func makeSync(names: [UUID: String]? = nil) -> CalendarSync {
         let tasks = tasks
-        let names = [home: "Thuis", business: "Zaak"]
+        let names = names ?? [home: "Thuis", business: "Zaak"]
         return CalendarSync(
             store: store,
             settings: settings,
@@ -22,7 +22,7 @@ import Testing
                 await Task.yield()
                 return tasks.value[workspace] ?? []
             },
-            workspaceName: { names[$0] ?? "?" },
+            workspaceName: { names[$0] ?? "" },
             typeTitle: { $0 == "pay" ? "Betalen" : "Overig" },
             today: { Self.today }
         )
@@ -162,6 +162,88 @@ import Testing
         #expect(await store.calendars == [homeID: "Brievie – Thuis", businessID: "Brievie – Zaak"])
         #expect(await store.storedEvents(calendarID: homeID).map(\.title) == ["Betalen: Thuisfactuur"])
         #expect(await store.storedEvents(calendarID: businessID).map(\.title) == ["Betalen: Zaakfactuur"])
+    }
+
+    // MARK: - Which calendar is the workspace's
+
+    @Test func twoWorkspacesWithTheSameNameGetTwoCalendarsAndKeepTheirOwnEvents() async throws {
+        let homeTask = openTask("Van thuis")
+        let otherTask = openTask("Van de andere")
+        tasks.value = [home: [homeTask], business: [otherTask]]
+        let sync = makeSync(names: [home: "Thuis", business: "Thuis"])
+
+        _ = await sync.enable(workspace: home)
+        _ = await sync.enable(workspace: business)
+        #expect(await sync.sync(workspace: home) == .done(created: 0, updated: 0, deleted: 0))
+        #expect(await sync.sync(workspace: business) == .done(created: 0, updated: 0, deleted: 0))
+
+        let homeID = try calendarID(home)
+        let otherID = try calendarID(business)
+        #expect(homeID != otherID)
+        #expect(await store.calendars == [homeID: "Brievie – Thuis", otherID: "Brievie – Thuis"])
+        #expect(await store.storedEvents(calendarID: homeID).map(\.taskID) == [homeTask.id])
+        #expect(await store.storedEvents(calendarID: otherID).map(\.taskID) == [otherTask.id])
+
+        await sync.disable(workspace: home, removeCalendar: true)
+        #expect(await store.calendars == [otherID: "Brievie – Thuis"])
+    }
+
+    @Test func aCalendarWithTheSameTitleHoldingAnEventOfTheUserIsNotAdopted() async throws {
+        let usersCalendar = await store.userAddsCalendar(title: "Brievie – Thuis")
+        await store.userAddsEvent(title: "Verjaardag", day: Self.today, calendarID: usersCalendar)
+        tasks.value = [home: [openTask()]]
+
+        _ = await makeSync().enable(workspace: home)
+
+        let id = try calendarID(home)
+        #expect(id != usersCalendar)
+        #expect(await store.storedEvents(calendarID: usersCalendar).map(\.title) == ["Verjaardag"])
+    }
+
+    @Test func aCalendarWithTheSameTitleInAnotherSourceIsNotAdopted() async throws {
+        let elsewhere = await store.userAddsCalendar(title: "Brievie – Thuis", inDefaultSource: false)
+
+        _ = await makeSync().enable(workspace: home)
+
+        #expect(try calendarID(home) != elsewhere)
+    }
+
+    @Test func anEmptyCalendarWithTheSameTitleInTheDefaultSourceIsAdopted() async throws {
+        // Pairing again: the calendar of the earlier pairing is still there.
+        let earlier = await store.userAddsCalendar(title: "Brievie – Thuis")
+
+        _ = await makeSync().enable(workspace: home)
+
+        #expect(try calendarID(home) == earlier)
+        #expect(await store.calendars.count == 1)
+    }
+
+    @Test func withoutTheWorkspacesNameNoCalendarIsMade() async {
+        let sync = makeSync(names: [:])
+
+        #expect(await sync.enable(workspace: home) == .failed)
+        settings.enable(workspace: home, calendarID: "earlier")
+        #expect(await sync.sync(workspace: home) == .failed)
+        #expect(await store.calendars.isEmpty)
+    }
+
+    @Test func unpairingDuringASyncIsNotUndoneByIt() async throws {
+        tasks.value = [home: [openTask()]]
+        _ = await makeSync().enable(workspace: home)
+        await store.userDeletesCalendar(id: try calendarID(home))
+        let settings = settings
+        // The settings are cleared while this sync waits for the server.
+        let sync = CalendarSync(
+            store: store, settings: settings,
+            tasks: { _ in
+                settings.removeAll()
+                return []
+            },
+            workspaceName: { _ in "Thuis" }, typeTitle: { $0 }, today: { Self.today }
+        )
+
+        #expect(await sync.sync(workspace: home) == .off)
+        #expect(settings.calendarIDs().isEmpty)
     }
 
     @Test func disableWithRemoveDeletesOnlyThatCalendar() async throws {

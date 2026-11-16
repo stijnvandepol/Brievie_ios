@@ -25,14 +25,14 @@ public actor EventKitCalendarStore: CalendarStore {
         }
     }
 
-    public func ensureCalendar(named: String, existingID: String?) async throws -> String {
-        if let existingID, let calendar = eventStore.calendar(withIdentifier: existingID),
-           calendar.allowsContentModifications {
+    public func ensureCalendar(
+        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
+    ) async throws -> String {
+        if let existingID, !excluding.contains(existingID),
+           let calendar = eventStore.calendar(withIdentifier: existingID), calendar.allowsContentModifications {
             return existingID
         }
-        if let match = eventStore.calendars(for: .event).first(where: {
-            $0.title == named && $0.allowsContentModifications
-        }) {
+        if let match = adoptableCalendar(named: named, excluding: excluding, window: window) {
             return match.calendarIdentifier
         }
         let calendar = EKCalendar(for: .event, eventStore: eventStore)
@@ -53,12 +53,7 @@ public actor EventKitCalendarStore: CalendarStore {
 
     public func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot] {
         guard let calendar = eventStore.calendar(withIdentifier: calendarID) else { throw CalendarStoreError() }
-        let predicate = eventStore.predicateForEvents(
-            withStart: Self.startOfDay(window.lowerBound),
-            end: Self.startOfDay(window.upperBound.adding(days: 1)),
-            calendars: [calendar]
-        )
-        return eventStore.events(matching: predicate).map { event in
+        return events(in: calendar, window: window).map { event in
             CalendarEventSnapshot(
                 eventID: event.calendarItemIdentifier,
                 taskID: TaskLink.taskID(in: event.url),
@@ -80,15 +75,11 @@ public actor EventKitCalendarStore: CalendarStore {
                     fill(event, with: task)
                     try eventStore.save(event, span: .thisEvent, commit: false)
                 case .update(let eventID, let task):
-                    guard let event = eventStore.calendarItem(withIdentifier: eventID) as? EKEvent,
-                          event.calendar.calendarIdentifier == calendarID
-                    else { continue }
+                    guard let event = ownEvent(eventID, calendarID: calendarID) else { continue }
                     fill(event, with: task)
                     try eventStore.save(event, span: .thisEvent, commit: false)
                 case .delete(let eventID):
-                    guard let event = eventStore.calendarItem(withIdentifier: eventID) as? EKEvent,
-                          event.calendar.calendarIdentifier == calendarID
-                    else { continue }
+                    guard let event = ownEvent(eventID, calendarID: calendarID) else { continue }
                     try eventStore.remove(event, span: .thisEvent, commit: false)
                 }
             }
@@ -102,6 +93,37 @@ public actor EventKitCalendarStore: CalendarStore {
     public func removeCalendar(id: String) async throws {
         guard let calendar = eventStore.calendar(withIdentifier: id) else { return }
         try eventStore.removeCalendar(calendar, commit: true)
+    }
+
+    /// An event of that calendar that carries a task link: the only kind the app changes or deletes.
+    private func ownEvent(_ eventID: String, calendarID: String) -> EKEvent? {
+        guard let event = eventStore.calendarItem(withIdentifier: eventID) as? EKEvent,
+              event.calendar.calendarIdentifier == calendarID, TaskLink.taskID(in: event.url) != nil
+        else { return nil }
+        return event
+    }
+
+    /// A calendar titled `named` in the default source, held by no other workspace, with no event of the user's
+    /// own (without a task link) in `window`.
+    private func adoptableCalendar(
+        named: String, excluding: Set<String>, window: ClosedRange<CalendarDate>
+    ) -> EKCalendar? {
+        guard let source = eventStore.defaultCalendarForNewEvents?.source else { return nil }
+        return eventStore.calendars(for: .event).first { calendar in
+            calendar.title == named && calendar.allowsContentModifications
+                && calendar.source.sourceIdentifier == source.sourceIdentifier
+                && !excluding.contains(calendar.calendarIdentifier)
+                && events(in: calendar, window: window).allSatisfy { TaskLink.taskID(in: $0.url) != nil }
+        }
+    }
+
+    private func events(in calendar: EKCalendar, window: ClosedRange<CalendarDate>) -> [EKEvent] {
+        let predicate = eventStore.predicateForEvents(
+            withStart: Self.startOfDay(window.lowerBound),
+            end: Self.startOfDay(window.upperBound.adding(days: 1)),
+            calendars: [calendar]
+        )
+        return eventStore.events(matching: predicate)
     }
 
     private func fill(_ event: EKEvent, with task: CalendarTask) {

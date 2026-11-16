@@ -13,9 +13,13 @@ public protocol CalendarStore: Sendable {
     func access() async -> CalendarAccess
     /// Asks the user (once; afterwards the system answers with the earlier choice).
     func requestAccess() async -> CalendarAccess
-    /// The calendar `existingID` when it still exists, else one titled `named` that Brievie can write to, else a
-    /// new one with that title. Returns its identifier.
-    func ensureCalendar(named: String, existingID: String?) async throws -> String
+    /// The calendar `existingID` when it still exists, is writable and is not in `excluding`. Else a calendar
+    /// titled `named` is adopted, but only when it is in the default calendar source, is not in `excluding` (the
+    /// calendars of other workspaces) and has no event without a task link in `window` (it is empty, or only
+    /// Brievie's). Else a new calendar with that title is made in the default source. Returns its identifier.
+    func ensureCalendar(
+        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
+    ) async throws -> String
     /// The events of the calendar `calendarID` on the days of `window`.
     func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot]
     /// Writes `changes` into the calendar `calendarID`, all or nothing as far as the store allows.
@@ -35,6 +39,10 @@ public actor FakeCalendarStore: CalendarStore {
     }
 
     public private(set) var calendars: [String: String] = [:]
+    /// Calendar ids in the order they were made: the adoption by title picks the oldest.
+    private var calendarOrder: [String] = []
+    /// Calendars outside the default calendar source.
+    private var otherSource: Set<String> = []
     private var stored: [StoredEvent] = []
     private var accessState: CalendarAccess
     private var grantsOnRequest: Bool
@@ -71,13 +79,14 @@ public actor FakeCalendarStore: CalendarStore {
     /// The user deleted a calendar in the Calendar app.
     public func userDeletesCalendar(id: String) {
         calendars[id] = nil
+        calendarOrder.removeAll { $0 == id }
         stored.removeAll { $0.calendarID == id }
     }
 
-    /// The user made a calendar of their own.
-    public func userAddsCalendar(title: String) -> String {
-        let id = makeID("calendar")
-        calendars[id] = title
+    /// The user made a calendar of their own, in the default calendar source or in another one.
+    public func userAddsCalendar(title: String, inDefaultSource: Bool = true) -> String {
+        let id = addCalendar(title: title)
+        if !inDefaultSource { otherSource.insert(id) }
         return id
     }
 
@@ -100,13 +109,16 @@ public actor FakeCalendarStore: CalendarStore {
         return accessState
     }
 
-    public func ensureCalendar(named: String, existingID: String?) async throws -> String {
+    public func ensureCalendar(
+        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
+    ) async throws -> String {
         try check()
-        if let existingID, calendars[existingID] != nil { return existingID }
-        if let match = calendars.first(where: { $0.value == named }) { return match.key }
-        let id = makeID("calendar")
-        calendars[id] = named
-        return id
+        if let existingID, calendars[existingID] != nil, !excluding.contains(existingID) { return existingID }
+        let adoptable = calendarOrder.first { id in
+            calendars[id] == named && !excluding.contains(id) && !otherSource.contains(id)
+                && !hasEventOfTheUser(calendarID: id, window: window)
+        }
+        return adoptable ?? addCalendar(title: named)
     }
 
     public func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot] {
@@ -145,6 +157,19 @@ public actor FakeCalendarStore: CalendarStore {
 
     private func snapshot(_ task: CalendarTask, eventID: String) -> CalendarEventSnapshot {
         CalendarEventSnapshot(eventID: eventID, taskID: task.id, title: task.title, notes: task.notes, day: task.day)
+    }
+
+    private func hasEventOfTheUser(calendarID: String, window: ClosedRange<CalendarDate>) -> Bool {
+        stored.contains {
+            $0.calendarID == calendarID && $0.snapshot.taskID == nil && window.contains($0.snapshot.day)
+        }
+    }
+
+    private func addCalendar(title: String) -> String {
+        let id = makeID("calendar")
+        calendars[id] = title
+        calendarOrder.append(id)
+        return id
     }
 
     private func check() throws {

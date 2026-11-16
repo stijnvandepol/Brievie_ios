@@ -2,11 +2,11 @@ import Foundation
 
 /// Works out what a sync writes. Pure: the calendar is the state, matched on each event's task link.
 public enum CalendarSyncPlanner {
-    /// One year back to three years ahead, today included. The end stops a day short of three years so that the
-    /// search EventKit runs (from the first day's start to the day after the last) never exceeds the four years
-    /// it searches at most.
+    /// One year back to three years ahead, today included. The end stops 30 days short of three years so that the
+    /// search EventKit runs (from the first day's start to the day after the last) stays clearly under the four
+    /// years it searches at most.
     public static func window(today: CalendarDate) -> ClosedRange<CalendarDate> {
-        today.adding(years: -1)...today.adding(years: 3).adding(days: -1)
+        today.adding(years: -1)...today.adding(years: 3).adding(days: -30)
     }
 
     /// - A task inside the window without an event is created; with an event that differs, updated.

@@ -7,6 +7,8 @@ import Synchronization
 /// `UserDefaults` (see `docs/DECISIONS.md`). Unpairing clears it; the calendars themselves stay.
 public protocol CalendarSettings: Sendable {
     func calendarID(for workspace: UUID) -> String?
+    /// The calendar of every workspace that is on.
+    func calendarIDs() -> [UUID: String]
     func isEnabled(for workspace: UUID) -> Bool
     func enable(workspace: UUID, calendarID: String)
     func disable(workspace: UUID)
@@ -30,6 +32,16 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
 
     public func calendarID(for workspace: UUID) -> String? {
         defaults.string(forKey: Self.key(workspace))
+    }
+
+    public func calendarIDs() -> [UUID: String] {
+        var result: [UUID: String] = [:]
+        for (key, value) in defaults.dictionaryRepresentation() where key.hasPrefix(Self.prefix) {
+            if let workspace = UUID(uuidString: String(key.dropFirst(Self.prefix.count))), let id = value as? String {
+                result[workspace] = id
+            }
+        }
+        return result
     }
 
     public func isEnabled(for workspace: UUID) -> Bool {
@@ -64,6 +76,10 @@ public final class InMemoryCalendarSettings: CalendarSettings {
 
     public func calendarID(for workspace: UUID) -> String? {
         calendars.withLock { $0[workspace] }
+    }
+
+    public func calendarIDs() -> [UUID: String] {
+        calendars.withLock { $0 }
     }
 
     public func isEnabled(for workspace: UUID) -> Bool {

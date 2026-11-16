@@ -97,16 +97,16 @@ import Testing
 
     // MARK: - The window
 
-    @Test func theWindowRunsFromOneYearBackToJustBeforeThreeYearsAhead() {
+    @Test func theWindowRunsFromOneYearBackTo30DaysBeforeThreeYearsAhead() {
         #expect(window.lowerBound == CalendarDate(year: 2025, month: 11, day: 16))
-        #expect(window.upperBound == CalendarDate(year: 2029, month: 11, day: 15))
+        #expect(window.upperBound == CalendarDate(year: 2029, month: 10, day: 17))
     }
 
     @Test func aLeapDayWindowEndsOnTheLastDayOfFebruary() {
         let window = CalendarSyncPlanner.window(today: CalendarDate(year: 2028, month: 2, day: 29))
 
         #expect(window.lowerBound == CalendarDate(year: 2027, month: 2, day: 28))
-        #expect(window.upperBound == CalendarDate(year: 2031, month: 2, day: 27))
+        #expect(window.upperBound == CalendarDate(year: 2031, month: 1, day: 29))
     }
 
     private static func day(_ year: Int, _ month: Int, _ day: Int) -> CalendarDate {

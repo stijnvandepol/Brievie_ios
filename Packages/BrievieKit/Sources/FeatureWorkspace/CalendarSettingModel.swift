@@ -51,6 +51,8 @@ public final class CalendarSettingModel {
     /// The work started by the switch; owned by the model so that leaving the screen does not cancel it. Tests
     /// await it.
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
+    /// The access check started by `refreshAccess()`. Tests await it.
+    @ObservationIgnored private(set) var accessTask: Task<Void, Never>?
 
     public init(
         workspaceID: UUID,
@@ -98,6 +100,26 @@ public final class CalendarSettingModel {
         pendingTask = Task {
             await previous?.value
             await sync.disable(workspace: workspace, removeCalendar: removeCalendar)
+        }
+    }
+
+    /// While the switch is on: says so when calendar access was taken away in Settings, and drops that line once
+    /// it is back. The switch stays on either way; syncing resumes by itself when access returns.
+    public func refreshAccess() {
+        guard isOn else { return }
+        let sync = sync
+        accessTask = Task {
+            let access = await sync.access()
+            guard isOn else { return }
+            if access == .granted {
+                if showsOpenSettings {
+                    message = nil
+                    showsOpenSettings = false
+                }
+            } else {
+                message = WorkspaceStrings.calendarNoAccess
+                showsOpenSettings = true
+            }
         }
     }
 

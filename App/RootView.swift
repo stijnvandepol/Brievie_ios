@@ -32,12 +32,10 @@ struct RootView: View {
                     break
                 }
             }
-            // Queued scans go out as soon as there is a usable pairing (at launch, after pairing again). The
-            // calendars follow the server on every unlock, which comes with every return to the foreground.
+            // Queued scans go out as soon as there is a usable pairing (at launch, after pairing again).
             .onChange(of: isReady, initial: true) { _, ready in
                 if ready {
                     Task { await environment.uploads.resume() }
-                    environment.syncCalendars()
                 }
             }
             // A deadline in the calendar links to `brievie://task/<id>`. The link only brings the app to the
@@ -147,6 +145,12 @@ private struct WorkspacesScreen: View {
             DocumentsScreen(
                 appModel: appModel, environment: environment, connection: connection, workspace: workspace
             )
+        }
+        // This screen stays in the view tree while locked: every unlock after the first loads the list again, and
+        // that load syncs the calendars and checks calendar access (the first unlock loads when the screen
+        // appears). So each unlock syncs every workspace once.
+        .onChange(of: appModel.state) { old, new in
+            if old == .locked, case .ready = new { model.retry() }
         }
     }
 }
