@@ -10,8 +10,9 @@ public struct Unpairing: Sendable {
     private let timeout: Duration
 
     /// - Parameters:
-    ///   - calendarSettings: cleared on unpairing; the calendars themselves stay (pairing again finds them by
-    ///     their title).
+    ///   - calendarSettings: cleared on unpairing; the calendars themselves stay. Pairing again takes one over by
+    ///     its title only when it is in the default calendar source, no other workspace holds it and it has no
+    ///     event of the user's own (without a task link) in the window; otherwise a new one is made.
     ///   - timeout: how long the server gets, over all its addresses together, before the app unpairs without it.
     public init(
         server: any BrievieServer, uploads: any UploadQueue, calendarSettings: (any CalendarSettings)? = nil,
