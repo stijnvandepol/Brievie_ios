@@ -95,38 +95,10 @@ public final class DocumentsModel {
     /// Something on screen is still on its way (uploading, being processed).
     public var needsRefresh: Bool { rows.contains { $0.status.isMoving } }
 
-    /// Reads the queue and the server. A list that is already on screen stays when the server cannot be reached.
+    /// Reads the queue, the server's list and the workspace's persons and labels. A list that is already on
+    /// screen stays when the server cannot be reached. For the first load, pull-to-refresh and retry.
     public func load() async {
-        let removed = await uploads.takeRemovedUnreadableCount()
-        if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
-        queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-        rebuild()
-        let filter = Self.filter(for: scope)
-        async let fetchedPersons = try? documents.persons()
-        async let fetchedLabels = try? documents.labels()
-        do {
-            let listed = try await documents.list(filter: filter)
-            // Another scope was chosen while the server answered: its own load shows it.
-            guard filter == Self.filter(for: scope) else { return }
-            serverDocuments = listed
-            // The queue may have moved on while the server answered.
-            queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-            state = .loaded
-        } catch {
-            switch error {
-            case .revoked:
-                onRevoked()
-            case .missingPairing:
-                onMissingPairing()
-            case .cancelled:
-                break
-            default:
-                if state != .loaded { state = .failed(message: Self.message(for: error)) }
-            }
-        }
-        if let fetched = await fetchedPersons { persons = fetched }
-        if let fetched = await fetchedLabels { labels = fetched }
-        rebuild()
+        await load(organisation: true)
     }
 
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
@@ -141,9 +113,63 @@ public final class DocumentsModel {
         await load()
     }
 
+    /// The automatic refresh while something moves: the list only, not the persons and labels.
     public func refreshIfNeeded() async {
         guard needsRefresh else { return }
-        await load()
+        await load(organisation: false)
+    }
+
+    /// Every write that belongs to one scope is checked against the scope after each wait: a slow answer
+    /// for a scope the user has left never touches the current one.
+    private func load(organisation: Bool) async {
+        let filter = Self.filter(for: scope)
+        let removed = await uploads.takeRemovedUnreadableCount()
+        if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
+        queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+        rebuild()
+        async let fetchedPersons = Self.persons(of: documents, if: organisation)
+        async let fetchedLabels = Self.labels(of: documents, if: organisation)
+        do {
+            let listed = try await documents.list(filter: filter)
+            // The queue may have moved on while the server answered.
+            let waiting = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+            queued = waiting
+            if isCurrent(filter) {
+                serverDocuments = listed
+                state = .loaded
+            }
+        } catch {
+            if await handleFailure(error, filter: filter) { return }
+        }
+        // Persons and labels belong to the workspace, not to a scope.
+        let freshPersons = await fetchedPersons
+        if let freshPersons { persons = freshPersons }
+        if let fetched = await fetchedLabels { labels = fetched }
+        // The chosen person was archived or removed meanwhile: back to the inbox.
+        if let freshPersons, isCurrent(filter), !isActivePersonScope(in: freshPersons) {
+            await select(.inbox)
+            return
+        }
+        rebuild()
+    }
+
+    /// `true` when the load stops here (it went back to the inbox).
+    private func handleFailure(_ error: DocumentsError, filter: DocumentFilter) async -> Bool {
+        switch error {
+        case .revoked:
+            onRevoked()
+        case .missingPairing:
+            onMissingPairing()
+        case .cancelled:
+            break
+        case .notFound where isCurrent(filter) && scope.isPerson:
+            // The person is gone: back to the inbox rather than "this document no longer exists".
+            await select(.inbox)
+            return true
+        default:
+            if isCurrent(filter), state != .loaded { state = .failed(message: Self.message(for: error)) }
+        }
+        return false
     }
 
     /// While the screen is visible: follow upload progress and refresh as long as something is moving.
@@ -203,12 +229,12 @@ public final class DocumentsModel {
 
     public func retryUpload(_ id: UUID) async {
         await uploads.retry(id)
-        await load()
+        await load(organisation: false)
     }
 
     public func deleteUpload(_ id: UUID) async {
         await uploads.delete(id)
-        await load()
+        await load(organisation: false)
     }
 
     private func rebuild() {
@@ -270,33 +296,5 @@ public final class DocumentsModel {
         // A status this app does not know yet is at least a document that can be opened.
         case .done, .unknown: .done
         }
-    }
-
-    private static func uploadMessage(for code: String?) -> String {
-        switch code {
-        case "untrusted": DocumentStrings.notVerified
-        case "workspace_not_found": DocumentStrings.workspaceGone
-        case "server_changed": DocumentStrings.otherServer
-        case "payload_too_large": DocumentStrings.tooLarge
-        default: DocumentStrings.uploadFailed
-        }
-    }
-
-    static func message(for error: DocumentsError) -> String {
-        switch error {
-        case .unreachable: DocumentStrings.unreachable
-        case .notVerified: DocumentStrings.notVerified
-        case .notFound: DocumentStrings.notFound
-        default: DocumentStrings.generic
-        }
-    }
-
-    private static let dateStyle = Date.FormatStyle(
-        date: .abbreviated, time: .omitted, locale: Locale(identifier: "nl_NL")
-    )
-
-    static func subtitle(date: Date, pages: Int) -> String {
-        let pageText = pages == 1 ? DocumentStrings.pagesOne : String(format: DocumentStrings.pagesManyFormat, pages)
-        return "\(date.formatted(dateStyle)) · \(pageText)"
     }
 }

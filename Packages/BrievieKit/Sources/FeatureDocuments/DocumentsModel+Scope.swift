@@ -63,8 +63,12 @@ extension DocumentsModel {
 extension DocumentsModel.Scope {
     /// Scans still on the phone show in the inbox and in all post, not under a person.
     var showsQueue: Bool {
-        if case .person = self { return false }
-        return true
+        !isPerson
+    }
+
+    var isPerson: Bool {
+        if case .person = self { return true }
+        return false
     }
 }
 
@@ -91,6 +95,27 @@ extension DocumentsModel {
         case .all: DocumentStrings.empty
         case .person: DocumentStrings.personEmpty
         }
+    }
+
+    /// Whether `filter` still belongs to the current scope: an answer for a scope the user left is dropped.
+    func isCurrent(_ filter: DocumentFilter) -> Bool {
+        Self.filter(for: scope) == filter
+    }
+
+    /// False for a person scope whose person is not among `persons` or is archived.
+    func isActivePersonScope(in persons: [Person]) -> Bool {
+        guard case let .person(id) = scope else { return true }
+        return persons.contains { $0.id == id && !$0.isArchived }
+    }
+
+    nonisolated static func persons(of documents: WorkspaceDocuments, if wanted: Bool) async -> [Person]? {
+        guard wanted else { return nil }
+        return try? await documents.persons()
+    }
+
+    nonisolated static func labels(of documents: WorkspaceDocuments, if wanted: Bool) async -> [DocumentLabel]? {
+        guard wanted else { return nil }
+        return try? await documents.labels()
     }
 
     /// The inbox and all post share one server list; a person has their own.
@@ -142,5 +167,37 @@ extension DocumentsModel.Row {
         }
         if hasSuggestions { parts.append(DocumentStrings.suggestion) }
         return parts.joined(separator: ", ")
+    }
+}
+
+extension DocumentsModel {
+    // Texts of rows and errors
+
+    static func uploadMessage(for code: String?) -> String {
+        switch code {
+        case "untrusted": DocumentStrings.notVerified
+        case "workspace_not_found": DocumentStrings.workspaceGone
+        case "server_changed": DocumentStrings.otherServer
+        case "payload_too_large": DocumentStrings.tooLarge
+        default: DocumentStrings.uploadFailed
+        }
+    }
+
+    static func message(for error: DocumentsError) -> String {
+        switch error {
+        case .unreachable: DocumentStrings.unreachable
+        case .notVerified: DocumentStrings.notVerified
+        case .notFound: DocumentStrings.notFound
+        default: DocumentStrings.generic
+        }
+    }
+
+    static let dateStyle = Date.FormatStyle(
+        date: .abbreviated, time: .omitted, locale: Locale(identifier: "nl_NL")
+    )
+
+    static func subtitle(date: Date, pages: Int) -> String {
+        let pageText = pages == 1 ? DocumentStrings.pagesOne : String(format: DocumentStrings.pagesManyFormat, pages)
+        return "\(date.formatted(dateStyle)) · \(pageText)"
     }
 }

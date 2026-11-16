@@ -13,14 +13,14 @@ import Testing
     private let server = FakeDocumentServer { _, id in DocumentFixtures.detail(id: id) }
     private let queue = FakeUploadQueue()
 
-    private func model() throws -> DocumentsModel {
+    private func model(server: (any DocumentServer)? = nil) throws -> DocumentsModel {
         let connection = ServerConnection(
             urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn"
         )
         try store.save(connection, token: "tok")
         return DocumentsModel(
             documents: WorkspaceDocuments(
-                workspaceID: workspaceID, connection: connection, store: store, server: server
+                workspaceID: workspaceID, connection: connection, store: store, server: server ?? self.server
             ),
             uploads: queue, canScan: true, camera: FakeScanCamera(.allowed), openSettings: {}, onRevoked: {},
             onMissingPairing: {}
@@ -172,5 +172,99 @@ import Testing
             DocumentStrings.scopeInbox, DocumentStrings.scopeAll, "Stijn", "Anne"
         ])
         #expect(model.scopeTitle == DocumentStrings.scopeInbox)
+    }
+
+    @Test func unknownInboxStateShowsInAllPostOnly() async throws {
+        let unknown = Self.document(.unknown)
+        server.onList { _ in [unknown] }
+        let model = try model()
+
+        await model.load()
+        #expect(model.groups.isEmpty)
+
+        await model.select(.all)
+        #expect(model.rows.map(\.id) == [unknown.id])
+    }
+
+    @Test func aRefreshTickAsksForTheListOnly() async throws {
+        server.onList { _ in [Self.document(.new, status: .processing)] }
+        let model = try model()
+        await model.load()
+        let before = server.calls.count
+
+        await model.refreshIfNeeded()
+
+        #expect(server.calls.count == before + 1)
+        guard case .list = server.calls.last else {
+            Issue.record("expected a list call")
+            return
+        }
+    }
+
+    @Test func aPersonTheServerNoLongerKnowsFallsBackToTheInbox() async throws {
+        let stijn = DocumentFixtures.persons[0]
+        server.onList { _, filter in
+            if filter.personID != nil { throw ServerError.other("person_not_found") }
+            return []
+        }
+        let model = try model()
+        await model.load()
+
+        await model.select(.person(stijn.id))
+
+        #expect(model.scope == .inbox)
+        #expect(model.state == .loaded)
+    }
+
+    @Test func anArchivedPersonFallsBackToTheInbox() async throws {
+        let stijn = DocumentFixtures.persons[0]
+        let model = try model()
+        await model.load()
+        server.onPersons { _ in
+            [Person(id: stijn.id, displayName: stijn.displayName, nameVariants: [], isArchived: true)]
+        }
+
+        await model.select(.person(stijn.id))
+
+        #expect(model.scope == .inbox)
+        #expect(model.state == .loaded)
+    }
+
+    @Test(arguments: [false, true])
+    func aSlowAnswerForAnEarlierScopeNeverTouchesTheCurrentOne(earlierFails: Bool) async throws {
+        let (stijn, anne) = (DocumentFixtures.persons[0], DocumentFixtures.persons[1])
+        let stijnsLetter = Self.document(.sorted, addressees: [stijn.id])
+        let annesLetter = Self.document(.sorted, addressees: [anne.id])
+        server.onList { _, filter in
+            switch filter.personID {
+            case stijn.id:
+                if earlierFails { throw ServerError.unreachable }
+                return [stijnsLetter]
+            case anne.id: return [annesLetter]
+            default: return []
+            }
+        }
+        let gated = GatedDocumentServer(server)
+        let model = try model(server: gated)
+        await model.load()
+        gated.close(stijn.id)
+        gated.close(anne.id)
+
+        let toStijn = Task { await model.select(.person(stijn.id)) }
+        while !gated.isWaiting(stijn.id) { await Task.yield() }
+        let toAnne = Task { await model.select(.person(anne.id)) }
+        while !gated.isWaiting(anne.id) { await Task.yield() }
+
+        // Stijn's answer arrives while Anne's list is still on its way: nothing changes for Anne.
+        gated.open(stijn.id)
+        await toStijn.value
+        #expect(model.scope == .person(anne.id))
+        #expect(model.state == .loading)
+        #expect(model.rows.isEmpty)
+
+        gated.open(anne.id)
+        await toAnne.value
+        #expect(model.state == .loaded)
+        #expect(model.rows.map(\.id) == [annesLetter.id])
     }
 }
