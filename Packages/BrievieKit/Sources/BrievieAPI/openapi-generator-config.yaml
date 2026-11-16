@@ -23,6 +23,9 @@ filter:
     - setDocumentLabels
     - acceptSuggestion
     - dismissSuggestion
+    - listTasks
+    - completeTask
+    - reopenTask
   # The JSON inside the `metadata` field of the multipart upload (createDocument), which the
   # app sends through a background URLSession, not through the generated client.
   schemas:

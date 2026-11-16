@@ -3,14 +3,43 @@ import BrievieCore
 import BrievieUI
 import SwiftUI
 
-/// "Op naam van" and "Labels" in the review: what is chosen (with where a proposal came from), the proposals
-/// still open, and a row that opens the full list.
+/// What the user can do in `OrganiseSection`; a screen without it (a viewer) shows everything plain.
+struct OrganiseActions {
+    /// What tapping an open proposal does.
+    enum Proposals {
+        /// The review: a tap takes the proposal into the draft.
+        case toggle((Suggestion) -> Void)
+        /// A confirmed letter: "Toevoegen" and "Negeren", sent at once.
+        case acceptOrDismiss(accept: (Suggestion) -> Void, dismiss: (Suggestion) -> Void)
+    }
+
+    let setAddressees: (Set<UUID>) -> Void
+    let setLabels: (Set<UUID>) -> Void
+    let proposals: Proposals
+    let pickPersons: () -> Void
+    let pickLabels: () -> Void
+
+    /// The review: every change goes into the draft that "Bevestigen" sends.
+    static func review(
+        _ draft: Binding<OrganiseDraft>, pickPersons: @escaping () -> Void, pickLabels: @escaping () -> Void
+    ) -> Self {
+        Self(
+            setAddressees: { draft.wrappedValue.setAddressees($0) },
+            setLabels: { draft.wrappedValue.setLabels($0) },
+            proposals: .toggle { draft.wrappedValue.toggle($0) },
+            pickPersons: pickPersons,
+            pickLabels: pickLabels
+        )
+    }
+}
+
+/// "Op naam van" and "Labels": what is chosen (with where a proposal came from), the proposals still open,
+/// and a row that opens the full list. Without `actions` it only shows.
 struct OrganiseSection: View {
-    @Binding var draft: OrganiseDraft
+    let draft: OrganiseDraft
     let persons: [Person]
     let labels: [DocumentLabel]
-    let onPickPersons: () -> Void
-    let onPickLabels: () -> Void
+    let actions: OrganiseActions?
     let onShowQuote: (String) -> Void
 
     var body: some View {
@@ -22,60 +51,98 @@ struct OrganiseSection: View {
             ForEach(chosenPersons) { person in
                 let origin = draft.origin(ofAddressee: person.id)
                 ChoiceRow(origin: origin, name: person.displayName, onShowQuote: onShowQuote) {
-                    Button {
-                        draft.setAddressees(draft.addresseeIDs.subtracting([person.id]))
-                    } label: {
-                        PersonChip(name: person.displayName, isChosen: true)
+                    if let actions {
+                        Button {
+                            actions.setAddressees(draft.addresseeIDs.subtracting([person.id]))
+                        } label: {
+                            PersonChip(name: person.displayName, isChosen: true, isEditable: true)
+                        }
+                        .accessibilityLabel(String(format: DocumentStrings.chosenPersonFormat, person.displayName))
+                    } else {
+                        PersonChip(name: person.displayName, isChosen: true, isEditable: false)
                     }
-                    .accessibilityLabel(String(format: DocumentStrings.chosenPersonFormat, person.displayName))
                 }
             }
             ForEach(openPersons, id: \.0.id) { suggestion, person in
                 ChoiceRow(origin: suggestion, name: person.displayName, onShowQuote: onShowQuote) {
-                    Button {
-                        draft.toggle(suggestion)
-                    } label: {
-                        PersonChip(name: person.displayName, isChosen: false)
+                    proposal(suggestion, name: person.displayName) { isEditable in
+                        PersonChip(name: person.displayName, isChosen: false, isEditable: isEditable)
                     }
-                    .accessibilityLabel(String(format: DocumentStrings.addFormat, person.displayName))
                 }
             }
-            Button(DocumentStrings.pickPersons, action: onPickPersons)
+            if let actions {
+                Button(DocumentStrings.pickPersons, action: actions.pickPersons)
+            }
         } header: {
             Text(DocumentStrings.addressees)
         }
         Section {
             ForEach(chosenLabels) { label in
                 ChoiceRow(origin: draft.origin(ofLabel: label.id), name: label.name, onShowQuote: onShowQuote) {
-                    Button {
-                        draft.setLabels(draft.labelIDs.subtracting([label.id]))
-                    } label: {
-                        HStack(spacing: 6) {
-                            LabelChip(name: label.name, colorKey: label.colorKey)
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+                    if let actions {
+                        Button {
+                            actions.setLabels(draft.labelIDs.subtracting([label.id]))
+                        } label: {
+                            HStack(spacing: 6) {
+                                LabelChip(name: label.name, colorKey: label.colorKey)
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        .accessibilityLabel(String(format: DocumentStrings.chosenLabelFormat, label.name))
+                    } else {
+                        LabelChip(name: label.name, colorKey: label.colorKey)
                     }
-                    .accessibilityLabel(String(format: DocumentStrings.chosenLabelFormat, label.name))
                 }
             }
             ForEach(openLabels, id: \.0.id) { suggestion, label in
                 ChoiceRow(origin: suggestion, name: label.name, onShowQuote: onShowQuote) {
-                    Button {
-                        draft.toggle(suggestion)
-                    } label: {
+                    proposal(suggestion, name: label.name) { isEditable in
                         HStack(spacing: 6) {
-                            Image(systemName: "plus.circle")
+                            if isEditable {
+                                Image(systemName: "plus.circle")
+                            }
                             LabelChip(name: label.name, colorKey: label.colorKey)
                                 .opacity(0.7)
                         }
                     }
-                    .accessibilityLabel(String(format: DocumentStrings.addFormat, label.name))
                 }
             }
-            Button(DocumentStrings.pickLabels, action: onPickLabels)
+            if let actions {
+                Button(DocumentStrings.pickLabels, action: actions.pickLabels)
+            }
         } header: {
             Text(DocumentStrings.labels)
+        }
+    }
+
+    /// An open proposal: a chip to tap in the review, a chip with "Toevoegen" and "Negeren" on a confirmed
+    /// letter, the plain chip for a viewer.
+    @ViewBuilder
+    private func proposal<Chip: View>(
+        _ suggestion: Suggestion, name: String, @ViewBuilder chip: (_ isEditable: Bool) -> Chip
+    ) -> some View {
+        switch actions?.proposals {
+        case let .toggle(toggle):
+            Button {
+                toggle(suggestion)
+            } label: {
+                chip(true)
+            }
+            .accessibilityLabel(String(format: DocumentStrings.addFormat, name))
+        case let .acceptOrDismiss(accept, dismiss):
+            VStack(alignment: .leading, spacing: 6) {
+                chip(false)
+                HStack(spacing: 16) {
+                    Button(DocumentStrings.acceptSuggestion) { accept(suggestion) }
+                        .accessibilityLabel(String(format: DocumentStrings.addFormat, name))
+                    Button(DocumentStrings.dismissSuggestion) { dismiss(suggestion) }
+                        .accessibilityLabel(String(format: DocumentStrings.dismissFormat, name))
+                }
+                .font(.subheadline.weight(.medium))
+            }
+        case nil:
+            chip(false)
         }
     }
 
@@ -147,21 +214,23 @@ private struct ChoiceRow<Chip: View>: View {
     }
 }
 
-/// A person as a rounded chip: filled with a remove mark when chosen, outlined with a plus when proposed.
+/// A person as a rounded chip: filled when chosen, outlined when proposed. When it can be tapped, a chosen one
+/// has a remove mark and a proposed one a plus.
 private struct PersonChip: View {
     let name: String
     let isChosen: Bool
+    let isEditable: Bool
 
     var body: some View {
         HStack(spacing: 4) {
             if isChosen {
                 Image(systemName: "person.fill")
-            } else {
+            } else if isEditable {
                 Image(systemName: "plus")
             }
             Text(name)
                 .fixedSize(horizontal: false, vertical: true)
-            if isChosen {
+            if isChosen, isEditable {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundStyle(.secondary)
             }

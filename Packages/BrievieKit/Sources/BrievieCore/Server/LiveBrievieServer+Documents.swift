@@ -236,7 +236,7 @@ extension DocumentDetail {
             tasks.append(ConfirmedTask(
                 id: taskID, type: task._type, description: task.description,
                 deadline: task.deadline.flatMap(CalendarDate.init(iso:)), deadlineSource: task.deadlineSource,
-                deadlineQuote: task.deadlineQuote
+                deadlineQuote: task.deadlineQuote, isDone: task.status == "done"
             ))
         }
         self.init(

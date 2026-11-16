@@ -17,6 +17,9 @@ public final class FakeDocumentServer: DocumentServer {
         case setLabels(URL, UUID, [UUID])
         case acceptSuggestion(URL, UUID, UUID)
         case dismissSuggestion(URL, UUID, UUID)
+        case openTasks(URL)
+        case completeTask(URL, UUID)
+        case reopenTask(URL, UUID)
     }
 
     private struct State {
@@ -35,6 +38,13 @@ public final class FakeDocumentServer: DocumentServer {
         /// Answers every call that changes a document's organisation (addressees, labels, suggestions);
         /// `nil` answers with `detail`.
         var organise: (@Sendable (URL, UUID) throws -> DocumentDetail)?
+        var openTasks: @Sendable (URL) throws -> [WorkspaceTask] = { _ in [] }
+        var completeTask: @Sendable (URL, UUID) throws -> WorkspaceTask = { _, id in
+            FakeDocumentServer.task(id, done: true)
+        }
+        var reopenTask: @Sendable (URL, UUID) throws -> WorkspaceTask = { _, id in
+            FakeDocumentServer.task(id, done: false)
+        }
     }
 
     private let state: Mutex<State>
@@ -85,6 +95,18 @@ public final class FakeDocumentServer: DocumentServer {
     /// The answer to `setAddressees`, `setLabels`, `acceptSuggestion` and `dismissSuggestion`, by document.
     public func onOrganise(_ answer: @escaping @Sendable (URL, UUID) throws -> DocumentDetail) {
         state.withLock { $0.organise = answer }
+    }
+
+    public func onOpenTasks(_ answer: @escaping @Sendable (URL) throws -> [WorkspaceTask]) {
+        state.withLock { $0.openTasks = answer }
+    }
+
+    public func onCompleteTask(_ answer: @escaping @Sendable (URL, UUID) throws -> WorkspaceTask) {
+        state.withLock { $0.completeTask = answer }
+    }
+
+    public func onReopenTask(_ answer: @escaping @Sendable (URL, UUID) throws -> WorkspaceTask) {
+        state.withLock { $0.reopenTask = answer }
     }
 
     public func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {
@@ -143,6 +165,23 @@ public final class FakeDocumentServer: DocumentServer {
         _ id: UUID, document: UUID, in scope: DocumentScope
     ) async throws -> DocumentDetail {
         try organise(.dismissSuggestion(scope.url, document, id), document: document, scope)
+    }
+
+    public func openTasks(in scope: DocumentScope) async throws -> [WorkspaceTask] {
+        try record(.openTasks(scope.url), scope) { $0.openTasks }(scope.url)
+    }
+
+    public func completeTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
+        try record(.completeTask(scope.url, id), scope) { $0.completeTask }(scope.url, id)
+    }
+
+    public func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
+        try record(.reopenTask(scope.url, id), scope) { $0.reopenTask }(scope.url, id)
+    }
+
+    /// The default answer to completing or reopening a task.
+    fileprivate static func task(_ id: UUID, done: Bool) -> WorkspaceTask {
+        WorkspaceTask(id: id, type: "", description: "", deadline: nil, isDone: done, documentID: nil, sender: "")
     }
 
     private func organise(_ call: Call, document: UUID, _ scope: DocumentScope) throws -> DocumentDetail {

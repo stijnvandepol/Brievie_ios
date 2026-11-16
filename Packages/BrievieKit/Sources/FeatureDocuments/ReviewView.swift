@@ -32,7 +32,12 @@ public struct ReviewView: View {
                 reviewSections
             case .done:
                 pagesSection
-                doneSections
+                if let detail = model.detail {
+                    DoneSections(
+                        detail: detail, confirmed: model.confirmed, onPick: { picker = $0 },
+                        onShowQuote: { source = SourceQuote(text: $0) }
+                    )
+                }
             }
         }
         .listStyle(.insetGrouped)
@@ -57,14 +62,21 @@ public struct ReviewView: View {
             SourceView(quote: quote.text, pageTexts: model.pageTexts) { source = nil }
         }
         .sheet(item: $picker) { picker in
-            switch picker {
-            case .persons:
-                PersonPickerView(
-                    persons: model.persons, selection: $model.draft.organise.addresseeIDs, error: model.personError,
-                    onCreate: { await model.createPerson(named: $0) }, close: { self.picker = nil }
-                )
-            case .labels:
-                LabelPickerView(labels: model.labels, selection: $model.draft.organise.labelIDs) { self.picker = nil }
+            if let confirmed = model.confirmed {
+                ConfirmedPicker(model: confirmed, picker: picker) { self.picker = nil }
+            } else {
+                switch picker {
+                case .persons:
+                    PersonPickerView(
+                        persons: model.persons, selection: $model.draft.organise.addresseeIDs,
+                        error: model.personError, onCreate: { await model.createPerson(named: $0) },
+                        close: { self.picker = nil }
+                    )
+                case .labels:
+                    LabelPickerView(labels: model.labels, selection: $model.draft.organise.labelIDs) {
+                        self.picker = nil
+                    }
+                }
             }
         }
         .confirmationDialog(
@@ -150,8 +162,10 @@ public struct ReviewView: View {
         }
         if model.organiseAvailable {
             OrganiseSection(
-                draft: $model.draft.organise, persons: model.persons, labels: model.labels,
-                onPickPersons: { picker = .persons }, onPickLabels: { picker = .labels },
+                draft: model.draft.organise, persons: model.persons, labels: model.labels,
+                actions: model.canEdit ? .review(
+                    $model.draft.organise, pickPersons: { picker = .persons }, pickLabels: { picker = .labels }
+                ) : nil,
                 onShowQuote: { source = SourceQuote(text: $0) }
             )
         }
@@ -228,44 +242,6 @@ public struct ReviewView: View {
     private func notes(for field: ReviewField, title: String) -> some View {
         FieldNotes(draft: model.draft, field: field, title: title) { source = SourceQuote(text: $0) }
     }
-
-    // MARK: - Done
-
-    @ViewBuilder private var doneSections: some View {
-        if let detail = model.detail {
-            Section {
-                LabeledContent(DocumentStrings.sender, value: detail.summary.sender)
-                LabeledContent(
-                    DocumentStrings.documentType, value: DocumentTypes.documentTypeLabel(detail.summary.documentType)
-                )
-                if let date = detail.summary.letterDate {
-                    LabeledContent(DocumentStrings.letterDate, value: date.display)
-                }
-            }
-            if !detail.summaryText.isEmpty {
-                Section {
-                    Text(detail.summaryText)
-                } header: {
-                    Text(DocumentStrings.summary)
-                } footer: {
-                    if detail.summaryByAI {
-                        Label(DocumentStrings.summaryByAI, systemImage: "sparkles")
-                    }
-                }
-            }
-            Section {
-                if detail.tasks.isEmpty {
-                    Text(DocumentStrings.noTasks)
-                        .foregroundStyle(.secondary)
-                }
-                ForEach(detail.tasks) { task in
-                    ConfirmedTaskRow(task: task) { source = SourceQuote(text: task.deadlineQuote) }
-                }
-            } header: {
-                Text(DocumentStrings.tasks)
-            }
-        }
-    }
 }
 
 /// What the user needs to judge a pre-filled value: a mark when it needs a second look (or was not read from
@@ -311,7 +287,7 @@ private struct FieldNotes: View {
 }
 
 /// The list a sheet shows to choose persons or labels from.
-private enum OrganisePicker: Identifiable {
+enum OrganisePicker: Identifiable {
     case persons, labels
     var id: Self { self }
 }
@@ -320,38 +296,6 @@ private enum OrganisePicker: Identifiable {
 private struct SourceQuote: Identifiable {
     let text: String
     var id: String { text }
-}
-
-private struct ConfirmedTaskRow: View {
-    let task: ConfirmedTask
-    let showSource: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(task.description)
-                .font(.headline)
-            Text(String(
-                format: DocumentStrings.taskLineFormat,
-                DocumentTypes.taskTypeLabel(task.type), task.deadline?.display ?? DocumentStrings.noDeadline
-            ))
-            .font(.subheadline)
-            if task.deadlineQuote.isEmpty {
-                if task.deadline != nil {
-                    Text(DocumentStrings.manualSource)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Text(String(format: DocumentStrings.sourceFormat, task.deadlineQuote))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Button(DocumentStrings.whereIsThis, action: showSource)
-                    .font(.footnote)
-                    .buttonStyle(.borderless)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
 }
 
 /// A date that may be absent: a button to add one, or a picker with a way to remove it.

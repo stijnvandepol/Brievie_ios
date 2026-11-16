@@ -81,6 +81,31 @@ extension DocumentStrings {
         bundle: .module
     )
 
+    // A confirmed letter: changes go to the server at once
+    static let changeFailed = String(
+        localized: "document.change.failed",
+        defaultValue: "Dit lukte niet. Probeer het opnieuw.",
+        bundle: .module
+    )
+    static let acceptSuggestion = String(
+        localized: "document.suggestion.accept",
+        defaultValue: "Toevoegen",
+        bundle: .module
+    )
+    static let dismissSuggestion = String(
+        localized: "document.suggestion.dismiss",
+        defaultValue: "Negeren",
+        bundle: .module
+    )
+    static let dismissFormat = String(
+        localized: "document.suggestion.dismissNamed",
+        defaultValue: "%@ negeren",
+        bundle: .module
+    )
+    static let confirmedTasks = String(localized: "document.tasks", defaultValue: "Taken", bundle: .module)
+    static let taskDone = String(localized: "document.task.done", defaultValue: "afgerond", bundle: .module)
+    static let taskOpen = String(localized: "document.task.open", defaultValue: "open", bundle: .module)
+
     /// The strings of this part by catalog key, for the parity test (merged into `all`).
     static let organise: [String: String] = [
         "review.organise.addressees": addressees,
@@ -100,6 +125,13 @@ extension DocumentStrings {
         "review.organise.chosenPerson": chosenPersonFormat,
         "review.organise.chosenLabel": chosenLabelFormat,
         "review.organise.nameTaken": nameTaken,
-        "review.organise.gone": organiseGone
+        "review.organise.gone": organiseGone,
+        "document.change.failed": changeFailed,
+        "document.suggestion.accept": acceptSuggestion,
+        "document.suggestion.dismiss": dismissSuggestion,
+        "document.suggestion.dismissNamed": dismissFormat,
+        "document.tasks": confirmedTasks,
+        "document.task.done": taskDone,
+        "document.task.open": taskOpen
     ]
 }

@@ -89,6 +89,18 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.dismissSuggestion(id, document: document, in: $0) }
     }
 
+    public func openTasks() async throws(DocumentsError) -> [WorkspaceTask] {
+        try await perform { try await server.openTasks(in: $0) }
+    }
+
+    public func completeTask(_ id: UUID) async throws(DocumentsError) -> WorkspaceTask {
+        try await perform { try await server.completeTask(id, in: $0) }
+    }
+
+    public func reopenTask(_ id: UUID) async throws(DocumentsError) -> WorkspaceTask {
+        try await perform { try await server.reopenTask(id, in: $0) }
+    }
+
     private func perform<Result: Sendable>(
         _ call: (DocumentScope) async throws -> Result
     ) async throws(DocumentsError) -> Result {
@@ -131,7 +143,7 @@ public struct WorkspaceDocuments: Sendable {
     private static func verdict(_ code: String) -> DocumentsError {
         switch code {
         case "document_not_found", "page_not_found", "workspace_not_found", "person_not_found", "label_not_found",
-             "suggestion_not_found": .notFound
+             "suggestion_not_found", "task_not_found": .notFound
         case "document_not_reviewable", "document_not_failed": .conflict
         case "validation_error": .invalid
         case "person_exists": .nameTaken

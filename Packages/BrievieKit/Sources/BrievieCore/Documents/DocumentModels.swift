@@ -80,10 +80,12 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
     public let deadline: CalendarDate?
     public let deadlineSource: String
     public let deadlineQuote: String
+    /// Ticked off (`status` is `done`).
+    public var isDone: Bool
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String
+        deadlineQuote: String, isDone: Bool = false
     ) {
         self.id = id
         self.type = type
@@ -91,6 +93,7 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
         self.deadline = deadline
         self.deadlineSource = deadlineSource
         self.deadlineQuote = deadlineQuote
+        self.isDone = isDone
     }
 }
 
@@ -211,6 +214,10 @@ public protocol DocumentServer: Sendable {
     func setLabels(_ ids: [UUID], document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
     func acceptSuggestion(_ id: UUID, document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
     func dismissSuggestion(_ id: UUID, document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    /// The open tasks of the workspace, by deadline (undated last).
+    func openTasks(in scope: DocumentScope) async throws -> [WorkspaceTask]
+    func completeTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
+    func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
 }
 
 public extension DocumentServer {

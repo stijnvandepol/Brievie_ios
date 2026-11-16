@@ -36,6 +36,11 @@ public final class ReviewModel {
     public private(set) var organiseAvailable = false
     /// Why "Nieuwe persoon" did not work.
     public private(set) var personError: String?
+    /// The confirmed letter, to change its addressees, labels and tasks; `nil` before it is confirmed and on a
+    /// 1b server.
+    public private(set) var confirmed: ConfirmedDocumentModel?
+    /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again.
+    public var onTasksChanged: (@MainActor () -> Void)?
 
     private let documentID: UUID
     private let documents: WorkspaceDocuments
@@ -177,6 +182,7 @@ public final class ReviewModel {
         )
         do {
             show(try await documents.confirm(documentID, review: review))
+            onTasksChanged?()
         } catch {
             await handleSaveFailure(error)
         }
@@ -270,6 +276,15 @@ public final class ReviewModel {
         }
     }
 
+    private func confirmedModel(_ detail: DocumentDetail) -> ConfirmedDocumentModel {
+        let model = ConfirmedDocumentModel(
+            detail: detail, persons: persons, labels: labels, documents: documents, canEdit: canEdit,
+            onRevoked: onRevoked, onMissingPairing: onMissingPairing
+        )
+        model.onTasksChanged = { [weak self] in self?.onTasksChanged?() }
+        return model
+    }
+
     private func show(_ detail: DocumentDetail) {
         let wasReviewing = state == .review && self.detail?.summary.status == detail.summary.status
         self.detail = detail
@@ -283,7 +298,10 @@ public final class ReviewModel {
                 pristineDraft = draft
             }
             state = .review
-        case .done, .unknown:
+        case .done:
+            confirmed = organiseAvailable ? confirmedModel(detail) : nil
+            state = .done
+        case .unknown:
             state = .done
         }
     }

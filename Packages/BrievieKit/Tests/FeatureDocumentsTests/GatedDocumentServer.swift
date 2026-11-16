@@ -91,4 +91,16 @@ final class GatedDocumentServer: DocumentServer {
     func dismissSuggestion(_ id: UUID, document: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
         try await inner.dismissSuggestion(id, document: document, in: scope)
     }
+
+    func openTasks(in scope: DocumentScope) async throws -> [WorkspaceTask] {
+        try await inner.openTasks(in: scope)
+    }
+
+    func completeTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
+        try await inner.completeTask(id, in: scope)
+    }
+
+    func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
+        try await inner.reopenTask(id, in: scope)
+    }
 }

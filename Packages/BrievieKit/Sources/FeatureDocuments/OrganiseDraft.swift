@@ -24,6 +24,21 @@ public struct OrganiseDraft: Equatable, Sendable {
         labelIDs = Set(detail.summary.labelIDs).union(preselected.filter { $0.action == .addLabel }.map(\.targetID))
     }
 
+    public init(addresseeIDs: Set<UUID>, labelIDs: Set<UUID>, suggestions: [Suggestion]) {
+        self.addresseeIDs = addresseeIDs
+        self.labelIDs = labelIDs
+        self.suggestions = suggestions
+    }
+
+    /// A confirmed letter as it is now, with its open proposals. Nothing is ticked from the start: a proposal
+    /// is only taken when the user adds it.
+    public init(confirmed detail: DocumentDetail) {
+        self.init(
+            addresseeIDs: Set(detail.summary.addresseeIDs), labelIDs: Set(detail.summary.labelIDs),
+            suggestions: detail.suggestions
+        )
+    }
+
     /// The proposals of this kind the user has not taken (yet).
     public func openSuggestions(for action: SuggestionAction) -> [Suggestion] {
         suggestions.filter { $0.action == action && !isChosen($0) }

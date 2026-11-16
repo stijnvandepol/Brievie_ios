@@ -101,3 +101,28 @@ public struct DocumentFilter: Equatable, Sendable {
         self.personID = personID
     }
 }
+
+/// A task of the workspace, with the letter it came from.
+public struct WorkspaceTask: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public let type: String
+    public let description: String
+    public let deadline: CalendarDate?
+    public let isDone: Bool
+    /// The letter the task belongs to; `nil` for a task without one.
+    public let documentID: UUID?
+    public let sender: String
+
+    public init(
+        id: UUID, type: String, description: String, deadline: CalendarDate?, isDone: Bool, documentID: UUID?,
+        sender: String
+    ) {
+        self.id = id
+        self.type = type
+        self.description = description
+        self.deadline = deadline
+        self.isDone = isDone
+        self.documentID = documentID
+        self.sender = sender
+    }
+}

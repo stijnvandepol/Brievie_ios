@@ -1,6 +1,90 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "document.change.failed": {
+      "comment": "A change to a confirmed letter (name, label, suggestion, task) did not reach the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit lukte niet. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "document.suggestion.accept": {
+      "comment": "Button on an open proposal of a confirmed letter: take it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen"
+          }
+        }
+      }
+    },
+    "document.suggestion.dismiss": {
+      "comment": "Button on an open proposal of a confirmed letter: drop it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negeren"
+          }
+        }
+      }
+    },
+    "document.suggestion.dismissNamed": {
+      "comment": "VoiceOver label of the dismiss button on a proposal, e.g. 'Papa negeren'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ negeren"
+          }
+        }
+      }
+    },
+    "document.task.done": {
+      "comment": "VoiceOver value of a task's tick box when it is ticked off.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "afgerond"
+          }
+        }
+      }
+    },
+    "document.task.open": {
+      "comment": "VoiceOver value of a task's tick box when it still has to be done.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "open"
+          }
+        }
+      }
+    },
+    "document.tasks": {
+      "comment": "Header above the tasks of a confirmed letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
+          }
+        }
+      }
+    },
     "documents.add": {
       "comment": "Toolbar menu: add a letter by scanning or from photos.",
       "extractionState": "manual",
