@@ -15,6 +15,10 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case conflict
     /// The server refused what was sent.
     case invalid
+    /// A person with this name exists already.
+    case nameTaken
+    /// The document is still being processed: try again in a moment.
+    case busy
     case cancelled
     case failed
 }
@@ -37,8 +41,8 @@ public struct WorkspaceDocuments: Sendable {
     /// The device this pairing belongs to, for `AppModel.sessionRevoked(deviceID:)`.
     public var deviceID: UUID { connection.deviceID }
 
-    public func list() async throws(DocumentsError) -> [DocumentSummary] {
-        try await perform { try await server.documents(in: $0) }
+    public func list(filter: DocumentFilter = .all) async throws(DocumentsError) -> [DocumentSummary] {
+        try await perform { try await server.documents(in: $0, filter: filter) }
     }
 
     public func detail(_ id: UUID) async throws(DocumentsError) -> DocumentDetail {
@@ -55,6 +59,34 @@ public struct WorkspaceDocuments: Sendable {
 
     public func retryProcessing(_ id: UUID) async throws(DocumentsError) -> DocumentDetail {
         try await perform { try await server.retryProcessing(id, in: $0) }
+    }
+
+    public func persons() async throws(DocumentsError) -> [Person] {
+        try await perform { try await server.persons(in: $0) }
+    }
+
+    public func createPerson(named name: String) async throws(DocumentsError) -> Person {
+        try await perform { try await server.createPerson(named: name, in: $0) }
+    }
+
+    public func labels() async throws(DocumentsError) -> [DocumentLabel] {
+        try await perform { try await server.labels(in: $0) }
+    }
+
+    public func setAddressees(_ ids: [UUID], document: UUID) async throws(DocumentsError) -> DocumentDetail {
+        try await perform { try await server.setAddressees(ids, document: document, in: $0) }
+    }
+
+    public func setLabels(_ ids: [UUID], document: UUID) async throws(DocumentsError) -> DocumentDetail {
+        try await perform { try await server.setLabels(ids, document: document, in: $0) }
+    }
+
+    public func acceptSuggestion(_ id: UUID, document: UUID) async throws(DocumentsError) -> DocumentDetail {
+        try await perform { try await server.acceptSuggestion(id, document: document, in: $0) }
+    }
+
+    public func dismissSuggestion(_ id: UUID, document: UUID) async throws(DocumentsError) -> DocumentDetail {
+        try await perform { try await server.dismissSuggestion(id, document: document, in: $0) }
     }
 
     private func perform<Result: Sendable>(
@@ -98,9 +130,12 @@ public struct WorkspaceDocuments: Sendable {
 
     private static func verdict(_ code: String) -> DocumentsError {
         switch code {
-        case "document_not_found", "page_not_found", "workspace_not_found": .notFound
+        case "document_not_found", "page_not_found", "workspace_not_found", "person_not_found", "label_not_found",
+             "suggestion_not_found": .notFound
         case "document_not_reviewable", "document_not_failed": .conflict
         case "validation_error": .invalid
+        case "person_exists": .nameTaken
+        case "document_processing": .busy
         default: .failed
         }
     }

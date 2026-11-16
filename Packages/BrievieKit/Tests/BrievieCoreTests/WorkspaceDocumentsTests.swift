@@ -30,7 +30,7 @@ import Testing
         let result = try await documents().list()
 
         #expect(result == [summary])
-        #expect(server.calls == [.list(Self.local), .list(Self.remote)])
+        #expect(server.calls == [.list(Self.local, .all), .list(Self.remote, .all)])
         #expect(server.tokens == ["tok", "tok"])
     }
 
@@ -51,7 +51,7 @@ import Testing
         server.onList { _ in throw ServerError.unauthorized }
 
         await #expect(throws: DocumentsError.revoked) { try await documents().list() }
-        #expect(server.calls == [.list(Self.local)])
+        #expect(server.calls == [.list(Self.local, .all)])
     }
 
     @Test func missingPairingIsReported() async throws {
@@ -66,6 +66,11 @@ import Testing
         ("document_not_reviewable", DocumentsError.conflict),
         ("document_not_failed", DocumentsError.conflict),
         ("validation_error", DocumentsError.invalid),
+        ("person_not_found", DocumentsError.notFound),
+        ("label_not_found", DocumentsError.notFound),
+        ("suggestion_not_found", DocumentsError.notFound),
+        ("person_exists", DocumentsError.nameTaken),
+        ("document_processing", DocumentsError.busy),
         ("http_500", DocumentsError.failed)
     ])
     func serverVerdictsAreSorted(code: String, expected: DocumentsError) async throws {
@@ -99,5 +104,48 @@ import Testing
             .confirm(Self.local, Self.documentID, review),
             .retry(Self.local, Self.documentID)
         ])
+    }
+
+    @Test func organiseCallsGoThroughTheSameRules() async throws {
+        let person = UUID()
+        let label = UUID()
+        let suggestion = UUID()
+        let filter = DocumentFilter(inboxState: .unassigned, personID: person)
+        server.onCreatePerson { _, name in
+            Person(id: person, displayName: name, nameVariants: [], isArchived: false)
+        }
+        let all = try documents()
+
+        _ = try await all.list(filter: filter)
+        _ = try await all.persons()
+        let created = try await all.createPerson(named: "Stijn")
+        _ = try await all.labels()
+        _ = try await all.setAddressees([person], document: Self.documentID)
+        _ = try await all.setLabels([label], document: Self.documentID)
+        _ = try await all.acceptSuggestion(suggestion, document: Self.documentID)
+        _ = try await all.dismissSuggestion(suggestion, document: Self.documentID)
+
+        #expect(created.displayName == "Stijn")
+        #expect(server.calls == [
+            .list(Self.local, filter),
+            .persons(Self.local),
+            .createPerson(Self.local, "Stijn"),
+            .labels(Self.local),
+            .setAddressees(Self.local, Self.documentID, [person]),
+            .setLabels(Self.local, Self.documentID, [label]),
+            .acceptSuggestion(Self.local, Self.documentID, suggestion),
+            .dismissSuggestion(Self.local, Self.documentID, suggestion)
+        ])
+        #expect(server.tokens == Array(repeating: "tok", count: 8))
+    }
+
+    @Test func organiseFailuresAreSortedToo() async throws {
+        server.onPersons { url in
+            if url == Self.local { throw ServerError.unreachable }
+            throw ServerError.other("person_exists")
+        }
+
+        await #expect(throws: DocumentsError.nameTaken) { try await documents().persons() }
+        #expect(server.calls == [.persons(Self.local), .persons(Self.remote)])
     }
 }

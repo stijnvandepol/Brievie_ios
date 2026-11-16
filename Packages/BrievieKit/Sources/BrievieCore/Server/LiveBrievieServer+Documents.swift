@@ -6,9 +6,12 @@ extension LiveBrievieServer: DocumentServer {
     /// A page is at most a few megabytes (2400 px JPEG); more than this is not one of ours.
     static let maxPageImageBytes = 20 * 1024 * 1024
 
-    public func documents(in scope: DocumentScope) async throws -> [DocumentSummary] {
+    public func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {
         try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
-            let output = try await client.listDocuments(path: .init(workspaceId: scope.workspaceID.apiString))
+            let output = try await client.listDocuments(
+                path: .init(workspaceId: scope.workspaceID.apiString),
+                query: .init(inboxState: filter.inboxState?.queryValue, personId: filter.personID?.apiString)
+            )
             switch output {
             case let .ok(response):
                 return try response.body.json.map(DocumentSummary.init(summary:))
@@ -16,6 +19,8 @@ extension LiveBrievieServer: DocumentServer {
                 throw ServerError.unauthorized
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
+            case let .unprocessableContent(response):
+                throw ServerError(status: 422, code: try? response.body.json.code)
             case let .undocumented(status, _):
                 throw ServerError(status: status, code: nil)
             }
@@ -119,9 +124,34 @@ extension LiveBrievieServer: DocumentServer {
     }
 }
 
-private extension UUID {
+extension UUID {
     /// The API writes ids in lower case.
     var apiString: String { uuidString.lowercased() }
+}
+
+private extension InboxState {
+    /// The `inbox_state` filter for this state; the server filters on the three inbox states only.
+    var queryValue: String? {
+        switch self {
+        case .new, .review, .unassigned: rawValue
+        case .sorted, .unknown: nil
+        }
+    }
+}
+
+/// Ids the API sends; one this app cannot read means the answer is not from a compatible server.
+private func uuids(_ texts: [String]) throws(ServerError) -> [UUID] {
+    var ids: [UUID] = []
+    for text in texts {
+        guard let id = UUID(uuidString: text) else { throw .incompatible }
+        ids.append(id)
+    }
+    return ids
+}
+
+/// A confidence this app cannot read counts as "not sure at all".
+private func apiDecimal(_ text: String) -> Decimal {
+    Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")) ?? 0
 }
 
 private extension DocumentSummary {
@@ -132,12 +162,35 @@ private extension DocumentSummary {
         self.init(
             id: id, clientID: clientID, status: DocumentStatus(rawValue: summary.status) ?? .unknown,
             pageCount: summary.pageCount, createdAt: summary.createdAt, sender: summary.sender,
-            documentType: summary.documentType, letterDate: summary.letterDate.flatMap(CalendarDate.init(iso:))
+            documentType: summary.documentType, letterDate: summary.letterDate.flatMap(CalendarDate.init(iso:)),
+            inboxState: InboxState(apiValue: summary.inboxState), addresseeIDs: try uuids(summary.addresseeIds),
+            labelIDs: try uuids(summary.labelIds), openSuggestionCount: summary.openSuggestionCount
         )
     }
 }
 
-private extension DocumentDetail {
+private extension Suggestion {
+    /// `nil` for a suggestion this app cannot show: an unknown action, or no id for its target.
+    init?(suggestion: Components.Schemas.SuggestionOut) {
+        let action = SuggestionAction(rawValue: suggestion.action) ?? .unknown
+        let target: String? = switch action {
+        case .addLabel: suggestion.labelId
+        case .addAddressee: suggestion.personId
+        case .unknown: nil
+        }
+        guard let id = UUID(uuidString: suggestion.id), let targetID = target.flatMap(UUID.init(uuidString:)) else {
+            return nil
+        }
+        self.init(
+            id: id, action: action, targetID: targetID,
+            origin: SuggestionOrigin(rawValue: suggestion.origin) ?? .unknown, ruleName: suggestion.ruleName,
+            quote: suggestion.quote, confidence: apiDecimal(suggestion.confidence),
+            isPreselected: suggestion.preselected
+        )
+    }
+}
+
+extension DocumentDetail {
     init(document: Components.Schemas.DocumentOut) throws(ServerError) {
         guard let id = UUID(uuidString: document.id), let clientID = UUID(uuidString: document.clientId) else {
             throw .incompatible
@@ -156,7 +209,9 @@ private extension DocumentDetail {
                 id: id, clientID: clientID, status: DocumentStatus(rawValue: document.status) ?? .unknown,
                 pageCount: document.pageCount, createdAt: document.createdAt, sender: document.sender,
                 documentType: document.documentType,
-                letterDate: document.letterDate.flatMap(CalendarDate.init(iso:))
+                letterDate: document.letterDate.flatMap(CalendarDate.init(iso:)),
+                inboxState: InboxState(apiValue: document.inboxState), addresseeIDs: try uuids(document.addresseeIds),
+                labelIDs: try uuids(document.labelIds), openSuggestionCount: document.openSuggestionCount
             ),
             failureCode: document.failureCode,
             summaryText: document.summary,
@@ -165,12 +220,12 @@ private extension DocumentDetail {
             proposals: document.proposals.map { proposal in
                 Proposal(
                     field: proposal.field, group: proposal.group, value: proposal.value, quote: proposal.quote,
-                    // A confidence this app cannot read counts as "not sure at all".
-                    confidence: Decimal(string: proposal.confidence, locale: Locale(identifier: "en_US_POSIX")) ?? 0,
+                    confidence: apiDecimal(proposal.confidence),
                     needsAttention: proposal.needsAttention, provider: proposal.provider, model: proposal.model
                 )
             },
-            tasks: tasks
+            tasks: tasks,
+            suggestions: document.suggestions.compactMap(Suggestion.init(suggestion:))
         )
     }
 }
@@ -178,10 +233,14 @@ private extension DocumentDetail {
 private extension Components.Schemas.ConfirmIn {
     init(review: ConfirmedReview) {
         self.init(
+            // Always sent, also when empty: with `setsOrganisation` false the server leaves both as they are.
+            addresseeIds: review.addresseeIDs.map(\.apiString),
             documentType: review.documentType,
+            labelIds: review.labelIDs.map(\.apiString),
             // A nil date is left out of the JSON; the host reads a missing field as "none".
             letterDate: review.letterDate?.iso,
             sender: review.sender,
+            setsOrganisation: review.setsOrganisation,
             summary: review.summary,
             summaryByAi: review.summaryByAI,
             tasks: review.tasks.map { task in
