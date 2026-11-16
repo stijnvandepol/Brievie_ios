@@ -13,6 +13,18 @@
         }
       }
     },
+    "documents.addressees": {
+      "comment": "Under a letter in the list: the persons it is addressed to, e.g. 'Papa en Mama'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op naam van %@"
+          }
+        }
+      }
+    },
     "documents.delete": {
       "comment": "Deletes a scan that is still on the phone.",
       "extractionState": "manual",
@@ -73,6 +85,18 @@
         }
       }
     },
+    "documents.group.count": {
+      "comment": "Group header with its number of letters: title, count.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$d)"
+          }
+        }
+      }
+    },
     "documents.import": {
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",
@@ -81,6 +105,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kies foto's"
+          }
+        }
+      }
+    },
+    "documents.inbox.empty": {
+      "comment": "Shown when the inbox has nothing in it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je inbox is leeg. Alles staat op naam."
+          }
+        }
+      }
+    },
+    "documents.inbox.review": {
+      "comment": "Inbox group header: letters waiting for a review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te controleren"
+          }
+        }
+      }
+    },
+    "documents.inbox.unassigned": {
+      "comment": "Inbox group header: reviewed letters without an addressee.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op niemands naam"
+          }
+        }
+      }
+    },
+    "documents.inbox.underway": {
+      "comment": "Inbox group header: scans being uploaded or processed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onderweg"
+          }
+        }
+      }
+    },
+    "documents.labels": {
+      "comment": "Spoken by VoiceOver for a letter: its label names, comma separated.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels: %@"
           }
         }
       }
@@ -133,6 +217,18 @@
         }
       }
     },
+    "documents.person.empty": {
+      "comment": "Shown when no letter is addressed to the chosen person.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staat nog geen post op deze naam."
+          }
+        }
+      }
+    },
     "documents.retry": {
       "comment": "Retry button.",
       "extractionState": "manual",
@@ -153,6 +249,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan een brief"
+          }
+        }
+      }
+    },
+    "documents.scope.all": {
+      "comment": "Scope menu in the post list: every letter of the workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle post"
+          }
+        }
+      }
+    },
+    "documents.scope.inbox": {
+      "comment": "Scope menu in the post list: the letters that still need something.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbox"
           }
         }
       }
@@ -249,6 +369,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wacht op verbinding"
+          }
+        }
+      }
+    },
+    "documents.suggestion": {
+      "comment": "Marker on a letter with open proposals for addressees or labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voorstel"
           }
         }
       }

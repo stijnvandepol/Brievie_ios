@@ -368,6 +368,17 @@ extension DocumentStrings {
         "review.done.taskLine": taskLineFormat,
         "scan.camera.denied": cameraDenied,
         "scan.camera.restricted": cameraRestricted,
-        "scan.camera.openSettings": openSettings
+        "scan.camera.openSettings": openSettings,
+        "documents.scope.inbox": scopeInbox,
+        "documents.scope.all": scopeAll,
+        "documents.inbox.review": inboxReview,
+        "documents.inbox.unassigned": inboxUnassigned,
+        "documents.inbox.underway": inboxUnderway,
+        "documents.inbox.empty": inboxEmpty,
+        "documents.person.empty": personEmpty,
+        "documents.group.count": groupCountFormat,
+        "documents.addressees": addresseesFormat,
+        "documents.labels": labelsFormat,
+        "documents.suggestion": suggestion
     ]
 }

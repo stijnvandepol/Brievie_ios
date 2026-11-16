@@ -72,7 +72,9 @@ let package = Package(
             exclude: ["Fixtures/make-letter.swift"],
             resources: [.copy("Fixtures")]
         ),
-        .testTarget(name: "FeatureDocumentsTests", dependencies: ["FeatureDocuments", "BrievieCore", "BrievieScan"]),
+        .testTarget(
+            name: "FeatureDocumentsTests", dependencies: ["FeatureDocuments", "BrievieCore", "BrievieScan", "BrievieUI"]
+        ),
         .testTarget(name: "FeaturePairingTests", dependencies: ["FeaturePairing", "BrievieCore"]),
         .testTarget(name: "FeatureWorkspaceTests", dependencies: ["FeatureWorkspace", "BrievieCore", "BrievieScan"])
     ]

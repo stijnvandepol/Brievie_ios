@@ -26,16 +26,6 @@ public final class DocumentsModel {
         }
     }
 
-    public struct Row: Equatable, Identifiable, Sendable {
-        /// The server's id, or the queue item's id while the scan is still on the phone.
-        public let id: UUID
-        /// `nil` while the scan has not reached the server: there is nothing to open yet.
-        public let documentID: UUID?
-        public let title: String
-        public let subtitle: String
-        public let status: RowStatus
-    }
-
     public enum State: Equatable, Sendable {
         case loading
         case loaded
@@ -51,7 +41,14 @@ public final class DocumentsModel {
     }
 
     public private(set) var state: State = .loading
+    public private(set) var scope: Scope = .inbox
+    /// The rows of the current scope, grouped. `rows` is the same rows in one list.
+    public private(set) var groups: [RowGroup] = []
     public private(set) var rows: [Row] = []
+    /// The persons and labels of the workspace, to name a row's addressees and labels. Empty against a
+    /// server without them (phase 1b answers 404); that does not fail the screen.
+    public private(set) var persons: [Person] = []
+    public private(set) var labels: [DocumentLabel] = []
     /// Members and admins may scan; a viewer only reads.
     public let canScan: Bool
     /// Shown after "Scan een brief" when the camera may not be used; photos remain the way in.
@@ -104,8 +101,14 @@ public final class DocumentsModel {
         if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
         rebuild()
+        let filter = Self.filter(for: scope)
+        async let fetchedPersons = try? documents.persons()
+        async let fetchedLabels = try? documents.labels()
         do {
-            serverDocuments = try await documents.list()
+            let listed = try await documents.list(filter: filter)
+            // Another scope was chosen while the server answered: its own load shows it.
+            guard filter == Self.filter(for: scope) else { return }
+            serverDocuments = listed
             // The queue may have moved on while the server answered.
             queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
             state = .loaded
@@ -121,7 +124,21 @@ public final class DocumentsModel {
                 if state != .loaded { state = .failed(message: Self.message(for: error)) }
             }
         }
+        if let fetched = await fetchedPersons { persons = fetched }
+        if let fetched = await fetchedLabels { labels = fetched }
         rebuild()
+    }
+
+    /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
+    public func select(_ scope: Scope) async {
+        guard scope != self.scope else { return }
+        if Self.filter(for: scope) != Self.filter(for: self.scope) {
+            serverDocuments = []
+            state = .loading
+        }
+        self.scope = scope
+        rebuild()
+        await load()
     }
 
     public func refreshIfNeeded() async {
@@ -196,7 +213,17 @@ public final class DocumentsModel {
 
     private func rebuild() {
         let arrived = Set(serverDocuments.map(\.clientID))
-        let waiting = queued
+        // A scan on the phone has no addressee yet: it is not under a person.
+        let waiting = scope.showsQueue ? waitingRows(arrived: arrived) : []
+        let onServer = serverDocuments
+            .sorted { $0.createdAt > $1.createdAt }
+            .map { document in (document.inboxState, row(for: document)) }
+        groups = makeGroups(waiting: waiting, onServer: onServer)
+        rows = groups.flatMap(\.rows)
+    }
+
+    private func waitingRows(arrived: Set<UUID>) -> [Row] {
+        queued
             .filter { !arrived.contains($0.id) }
             .sorted { $0.createdAt > $1.createdAt }
             .map { item in
@@ -206,17 +233,20 @@ public final class DocumentsModel {
                     status: status(of: item)
                 )
             }
-        let onServer = serverDocuments
-            .sorted { $0.createdAt > $1.createdAt }
-            .map { document in
-                Row(
-                    id: document.id, documentID: document.id,
-                    title: document.sender.isEmpty ? DocumentStrings.newDocument : document.sender,
-                    subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
-                    status: Self.status(of: document)
-                )
-            }
-        rows = waiting + onServer
+    }
+
+    private func row(for document: DocumentSummary) -> Row {
+        let addressees = Set(document.addresseeIDs)
+        let labelIDs = Set(document.labelIDs)
+        return Row(
+            id: document.id, documentID: document.id,
+            title: document.sender.isEmpty ? DocumentStrings.newDocument : document.sender,
+            subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
+            status: Self.status(of: document),
+            addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
+            labels: labels.filter { labelIDs.contains($0.id) },
+            hasSuggestions: document.openSuggestionCount > 0
+        )
     }
 
     private func status(of item: UploadItem) -> RowStatus {

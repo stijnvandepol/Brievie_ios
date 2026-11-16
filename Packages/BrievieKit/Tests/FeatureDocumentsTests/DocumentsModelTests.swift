@@ -38,7 +38,7 @@ import Testing
         server.onList { _ in [older, newer] }
         let model = try model()
 
-        await model.load()
+        await model.select(.all)
 
         #expect(model.state == .loaded)
         #expect(model.rows.map(\.id) == [newer.id, older.id])
@@ -56,7 +56,7 @@ import Testing
         server.onList { _ in [arrived] }
         let model = try model()
 
-        await model.load()
+        await model.select(.all)
 
         #expect(model.rows.map(\.id) == [other.id, arrived.id])
         #expect(model.rows.map(\.status) == [.waitingForUpload, .processing])
@@ -136,7 +136,7 @@ import Testing
         let moving = DocumentFixtures.summary(status: .processing)
         server.onList { _ in [moving] }
         let model = try model()
-        await model.load()
+        await model.select(.all)
         #expect(model.needsRefresh)
 
         server.onList { _ in [DocumentFixtures.summary(id: moving.id, status: .needsReview)] }
@@ -183,7 +183,7 @@ import Testing
         let document = DocumentFixtures.summary(status: .done)
         server.onList { _ in [document] }
         let model = try model()
-        await model.load()
+        await model.select(.all)
         server.onList { _ in throw ServerError.unreachable }
 
         await model.load()
