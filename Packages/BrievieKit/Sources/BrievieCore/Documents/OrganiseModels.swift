@@ -88,7 +88,8 @@ public struct Suggestion: Equatable, Sendable, Identifiable {
     }
 }
 
-/// Which documents a list shows. `nil` means "no filter on this".
+/// Which documents a list shows. `nil` means "no filter on this". Only `.new`, `.review` and `.unassigned` filter
+/// on the inbox state: `.sorted` and `.unknown` are not filters and send no query (they list like `nil`).
 public struct DocumentFilter: Equatable, Sendable {
     public var inboxState: InboxState?
     public var personID: UUID?

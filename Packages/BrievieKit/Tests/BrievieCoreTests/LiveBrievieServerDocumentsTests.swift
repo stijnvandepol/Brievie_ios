@@ -192,8 +192,20 @@ import Testing
 
     @Test func malformedIdentifierIsIncompatible() async throws {
         let url = try StubURLProtocol.serve(.response(status: 200, json: """
-            [{"id":"geen-uuid","client_id":"x","status":"done","page_count":1,
-              "created_at":"2026-11-14T10:00:00Z","sender":"","document_type":"","letter_date":null}]
+            [{"id":"geen-uuid","client_id":"0b7f6b0e-6a5d-4c59-9d0e-0d6a3c3b9a11","status":"done","page_count":1,
+              "created_at":"2026-11-14T10:00:00Z","sender":"","document_type":"","letter_date":null,
+              \(Self.organiseJSON)}]
+            """))
+
+        await #expect(throws: ServerError.incompatible) {
+            try await server.documents(in: scope(url))
+        }
+    }
+
+    @Test func unreadableAddresseeIDIsIncompatible() async throws {
+        let url = try StubURLProtocol.serve(.response(status: 200, json: """
+            [{\(Self.summaryJSON),"status":"done","letter_date":null,"addressee_ids":["geen-uuid"],"label_ids":[],
+              "inbox_state":"","open_suggestion_count":0}]
             """))
 
         await #expect(throws: ServerError.incompatible) {
@@ -211,7 +223,8 @@ extension LiveBrievieServerDocumentsTests {
 
     /// A detail as a 1b server writes it: none of the organise fields.
     private static let detail1bJSON = """
-        {\(summaryJSON),"status":"done","letter_date":null,"failure_code":"","summary":"","summary_by_ai":false,
+        {\(summaryJSON),"status":"needs_review","letter_date":null,"failure_code":"","summary":"",
+         "summary_by_ai":false,
          "pages":[{"index":1,"ocr_text":"een"}],"proposals":[],"tasks":[]}
         """
 
@@ -228,19 +241,28 @@ extension LiveBrievieServerDocumentsTests {
     @Test func decodesDocumentWithoutOrganiseFields() async throws {
         let url = try StubURLProtocol.serve(.response(status: 200, json: Self.detail1bJSON))
 
-        // OPEN: the contract declares the 1c fields of `DocumentOut` required, so the generated type refuses a
-        // 1b body (`ServerError.incompatible`). Kept as a known issue until the contract or the decoding
-        // changes; once it passes, Swift Testing fails this test so the wrapper gets removed.
-        await withKnownIssue("A 1b body lacks fields the generated DocumentOut requires") {
-            let detail = try await server.document(Self.documentID, in: scope(url))
+        let detail = try await server.document(Self.documentID, in: scope(url))
 
-            #expect(detail.summary.inboxState == .sorted)
-            #expect(detail.summary.addresseeIDs.isEmpty)
-            #expect(detail.summary.labelIDs.isEmpty)
-            #expect(detail.summary.openSuggestionCount == 0)
-            #expect(detail.suggestions.isEmpty)
-            #expect(detail.pageTexts == ["een"])
-        }
+        // Without an inbox state the server is on 1b: the state follows from the status.
+        #expect(detail.summary.inboxState == .review)
+        #expect(detail.summary.addresseeIDs.isEmpty)
+        #expect(detail.summary.labelIDs.isEmpty)
+        #expect(detail.summary.openSuggestionCount == 0)
+        #expect(detail.suggestions.isEmpty)
+        #expect(detail.pageTexts == ["een"])
+    }
+
+    @Test func decodesA1bDocumentList() async throws {
+        let statuses = ["processing", "needs_review", "failed", "done", "archived"]
+        let url = try StubURLProtocol.serve(.response(status: 200, json: "[" + statuses.map { status in
+            #"{\#(Self.summaryJSON),"status":"\#(status)","letter_date":null}"#
+        }.joined(separator: ",") + "]"))
+
+        let documents = try await server.documents(in: scope(url))
+
+        #expect(documents.map(\.inboxState) == [.new, .review, .review, .sorted, .unknown])
+        #expect(documents.allSatisfy { $0.addresseeIDs.isEmpty && $0.labelIDs.isEmpty })
+        #expect(documents.allSatisfy { $0.openSuggestionCount == 0 })
     }
 
     @Test func decodesSummaryWithAddresseesLabelsAndInboxState() async throws {

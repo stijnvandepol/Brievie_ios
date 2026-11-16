@@ -41,8 +41,8 @@ import Testing
         #expect(without.letterDate == nil)
         #expect(with.letterDate == "2026-11-03")
         #expect(without.tasks.first?.deadline == nil)
-        #expect(without.suggestions.first?.personId == nil)
-        #expect(without.suggestions.first?.labelId == "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d")
+        #expect(without.suggestions?.first?.personId == nil)
+        #expect(without.suggestions?.first?.labelId == "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d")
     }
 
     @Test func documentFiltersAreOptionalQueryParameters() {

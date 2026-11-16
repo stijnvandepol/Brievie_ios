@@ -154,17 +154,49 @@ private func apiDecimal(_ text: String) -> Decimal {
     Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")) ?? 0
 }
 
+private extension InboxState {
+    /// A 1b server sends no inbox state: then it follows from the status.
+    init(apiValue: String?, status: DocumentStatus) {
+        if let apiValue {
+            self.init(apiValue: apiValue)
+            return
+        }
+        self = switch status {
+        case .processing: .new
+        case .needsReview, .failed: .review
+        case .done: .sorted
+        case .unknown: .unknown
+        }
+    }
+}
+
 private extension DocumentSummary {
     init(summary: Components.Schemas.DocumentSummaryOut) throws(ServerError) {
-        guard let id = UUID(uuidString: summary.id), let clientID = UUID(uuidString: summary.clientId) else {
+        try self.init(
+            apiID: summary.id, clientID: summary.clientId, status: summary.status, pageCount: summary.pageCount,
+            createdAt: summary.createdAt, sender: summary.sender, documentType: summary.documentType,
+            letterDate: summary.letterDate, inboxState: summary.inboxState, addresseeIDs: summary.addresseeIds,
+            labelIDs: summary.labelIds, openSuggestionCount: summary.openSuggestionCount
+        )
+    }
+
+    /// The one mapping of the fields a list entry and a detail share. The organise fields are optional in
+    /// the contract: a 1b server leaves them out, which reads as none.
+    init(
+        apiID: String, clientID: String, status: String, pageCount: Int, createdAt: Date, sender: String,
+        documentType: String, letterDate: String?, inboxState: String?, addresseeIDs: [String]?,
+        labelIDs: [String]?, openSuggestionCount: Int?
+    ) throws(ServerError) {
+        guard let id = UUID(uuidString: apiID), let clientID = UUID(uuidString: clientID) else {
             throw .incompatible
         }
+        let status = DocumentStatus(rawValue: status) ?? .unknown
         self.init(
-            id: id, clientID: clientID, status: DocumentStatus(rawValue: summary.status) ?? .unknown,
-            pageCount: summary.pageCount, createdAt: summary.createdAt, sender: summary.sender,
-            documentType: summary.documentType, letterDate: summary.letterDate.flatMap(CalendarDate.init(iso:)),
-            inboxState: InboxState(apiValue: summary.inboxState), addresseeIDs: try uuids(summary.addresseeIds),
-            labelIDs: try uuids(summary.labelIds), openSuggestionCount: summary.openSuggestionCount
+            id: id, clientID: clientID, status: status, pageCount: pageCount, createdAt: createdAt, sender: sender,
+            documentType: documentType, letterDate: letterDate.flatMap(CalendarDate.init(iso:)),
+            inboxState: InboxState(apiValue: inboxState, status: status),
+            addresseeIDs: try uuids(addresseeIDs ?? []), labelIDs: try uuids(labelIDs ?? []),
+            openSuggestionCount: openSuggestionCount ?? 0
         )
     }
 }
@@ -192,9 +224,12 @@ private extension Suggestion {
 
 extension DocumentDetail {
     init(document: Components.Schemas.DocumentOut) throws(ServerError) {
-        guard let id = UUID(uuidString: document.id), let clientID = UUID(uuidString: document.clientId) else {
-            throw .incompatible
-        }
+        let summary = try DocumentSummary(
+            apiID: document.id, clientID: document.clientId, status: document.status, pageCount: document.pageCount,
+            createdAt: document.createdAt, sender: document.sender, documentType: document.documentType,
+            letterDate: document.letterDate, inboxState: document.inboxState, addresseeIDs: document.addresseeIds,
+            labelIDs: document.labelIds, openSuggestionCount: document.openSuggestionCount
+        )
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {
             guard let taskID = UUID(uuidString: task.id) else { throw .incompatible }
@@ -205,14 +240,7 @@ extension DocumentDetail {
             ))
         }
         self.init(
-            summary: DocumentSummary(
-                id: id, clientID: clientID, status: DocumentStatus(rawValue: document.status) ?? .unknown,
-                pageCount: document.pageCount, createdAt: document.createdAt, sender: document.sender,
-                documentType: document.documentType,
-                letterDate: document.letterDate.flatMap(CalendarDate.init(iso:)),
-                inboxState: InboxState(apiValue: document.inboxState), addresseeIDs: try uuids(document.addresseeIds),
-                labelIDs: try uuids(document.labelIds), openSuggestionCount: document.openSuggestionCount
-            ),
+            summary: summary,
             failureCode: document.failureCode,
             summaryText: document.summary,
             summaryByAI: document.summaryByAi,
@@ -225,7 +253,7 @@ extension DocumentDetail {
                 )
             },
             tasks: tasks,
-            suggestions: document.suggestions.compactMap(Suggestion.init(suggestion:))
+            suggestions: (document.suggestions ?? []).compactMap(Suggestion.init(suggestion:))
         )
     }
 }

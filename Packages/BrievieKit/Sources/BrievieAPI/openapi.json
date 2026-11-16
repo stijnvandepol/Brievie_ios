@@ -246,6 +246,7 @@
             "type": "string"
           },
           "inbox_state": {
+            "default": "",
             "title": "Inbox State",
             "type": "string"
           },
@@ -266,6 +267,7 @@
             ]
           },
           "open_suggestion_count": {
+            "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
           },
@@ -327,17 +329,12 @@
           "sender",
           "document_type",
           "letter_date",
-          "addressee_ids",
-          "label_ids",
-          "inbox_state",
-          "open_suggestion_count",
           "failure_code",
           "summary",
           "summary_by_ai",
           "pages",
           "proposals",
-          "tasks",
-          "suggestions"
+          "tasks"
         ],
         "title": "DocumentOut",
         "type": "object"
@@ -372,6 +369,7 @@
             "type": "string"
           },
           "inbox_state": {
+            "default": "",
             "title": "Inbox State",
             "type": "string"
           },
@@ -392,6 +390,7 @@
             ]
           },
           "open_suggestion_count": {
+            "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
           },
@@ -416,11 +415,7 @@
           "created_at",
           "sender",
           "document_type",
-          "letter_date",
-          "addressee_ids",
-          "label_ids",
-          "inbox_state",
-          "open_suggestion_count"
+          "letter_date"
         ],
         "title": "DocumentSummaryOut",
         "type": "object"
@@ -1461,8 +1456,7 @@
           "deadline",
           "deadline_source",
           "deadline_quote",
-          "status",
-          "completed_at"
+          "status"
         ],
         "title": "TaskOut",
         "type": "object"
