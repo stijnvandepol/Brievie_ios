@@ -1,5 +1,7 @@
 import BrievieCore
+import FeatureDocuments
 import Foundation
+import Synchronization
 
 /// What the app talks to: the Keychain-backed connection store, the live server client and the upload queue.
 struct AppEnvironment {
@@ -8,8 +10,14 @@ struct AppEnvironment {
     let documents: any DocumentServer
     let launchFlag: any LaunchFlag
     let uploads: UploadCoordinator
-    /// "Ontkoppelen": the live server and the upload queue.
+    /// "Ontkoppelen": the live server, the upload queue and the calendar switches.
     let unpairing: Unpairing
+    let calendarSettings: any CalendarSettings
+    /// Deadlines in a calendar per workspace, on this phone.
+    let calendarSync: CalendarSync
+    /// The names of the workspaces the Workspaces screen loaded last: the calendars are named after them, and
+    /// the activation sync covers these.
+    let workspaceNames: WorkspaceNames
 
     /// - Parameter onRevoked: called when an upload finds that the server no longer knows this device.
     @MainActor
@@ -26,14 +34,62 @@ struct AppEnvironment {
         AppDelegate.uploads = uploads
         Task { await uploads.run() }
         let server = LiveBrievieServer()
+        let calendarSettings = UserDefaultsCalendarSettings()
+        let workspaceNames = WorkspaceNames()
+        let calendarSync = CalendarSync(
+            store: EventKitCalendarStore(),
+            settings: calendarSettings,
+            tasks: { workspace in
+                guard let stored = try store.load() else { throw DocumentsError.missingPairing }
+                return try await WorkspaceDocuments(
+                    workspaceID: workspace, connection: stored.connection, store: store, server: server
+                ).openTasks()
+            },
+            workspaceName: { workspaceNames.name(of: $0) },
+            typeTitle: { TaskTypeName.label(for: $0) },
+            today: { CalendarDate(Date(), in: .current) }
+        )
         return AppEnvironment(
             store: store, server: server, documents: server, launchFlag: UserDefaultsLaunchFlag(), uploads: uploads,
-            unpairing: Unpairing(server: server, uploads: uploads)
+            unpairing: Unpairing(server: server, uploads: uploads, calendarSettings: calendarSettings),
+            calendarSettings: calendarSettings, calendarSync: calendarSync, workspaceNames: workspaceNames
         )
+    }
+
+    /// Syncs the calendar of every workspace the app knows (each does nothing while its switch is off).
+    func syncCalendars() {
+        let sync = calendarSync
+        let workspaces = workspaceNames.workspaces
+        Task {
+            for workspace in workspaces {
+                _ = await sync.sync(workspace: workspace)
+            }
+        }
+    }
+
+    /// After a confirm or a ticked task in `workspace`.
+    func syncCalendar(of workspace: UUID) {
+        let sync = calendarSync
+        Task { _ = await sync.sync(workspace: workspace) }
     }
 
     /// Scans waiting for upload. Not in a cache directory: the system may empty those.
     private static var uploadsDirectory: URL {
         URL.applicationSupportDirectory.appending(path: "Uploads", directoryHint: .isDirectory)
+    }
+}
+
+/// The names of the loaded workspaces, readable from any isolation.
+final class WorkspaceNames: Sendable {
+    private let names = Mutex<[UUID: String]>([:])
+
+    var workspaces: [UUID] { names.withLock { Array($0.keys) } }
+
+    func name(of workspace: UUID) -> String {
+        names.withLock { $0[workspace] } ?? ""
+    }
+
+    func replace(with names: [UUID: String]) {
+        self.names.withLock { $0 = names }
     }
 }

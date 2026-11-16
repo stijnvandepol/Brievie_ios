@@ -71,7 +71,7 @@ final class ScriptedUploadQueue: UploadQueue {
     func takeRemovedUnreadableCount() async -> Int { 0 }
 }
 
-private struct NoAuthentication: DeviceAuthenticator {
+struct NoAuthentication: DeviceAuthenticator {
     func availability() -> AuthenticationAvailability { .available }
     func authenticate(reason: String) async -> Bool { true }
 }

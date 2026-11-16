@@ -4,8 +4,9 @@ import Synchronization
 /// Remembers that the app has started at least once since it was installed.
 ///
 /// Keychain items survive uninstalling the app, `UserDefaults` does not: a missing flag therefore means
-/// "fresh install", and the app clears whatever pairing the previous install left behind. The flag is the one
-/// sanctioned use of `UserDefaults`; it holds a boolean, never a secret (see `docs/DECISIONS.md`).
+/// "fresh install", and the app clears whatever pairing the previous install left behind. The flag is one of
+/// the two sanctioned uses of `UserDefaults` (the other: `CalendarSettings`); it holds a boolean, never a secret
+/// (see `docs/DECISIONS.md`).
 public protocol LaunchFlag: Sendable {
     var hasLaunchedBefore: Bool { get }
     func markLaunched()

@@ -51,6 +51,19 @@ enum WorkspaceStrings {
         )
     }
 
+    static let calendarNoAccess = String(
+        localized: "workspaces.calendar.noAccess",
+        defaultValue: "Brievie mag niet bij je agenda. Zet het aan in Instellingen.",
+        bundle: .module
+    )
+
+    /// "Agenda 'Brievie – Thuis' ook verwijderen?"; `%@` is the calendar's name.
+    static let calendarRemoveQuestionFormat = String(
+        localized: "workspaces.calendar.remove.question",
+        defaultValue: "Agenda '%@' ook verwijderen?",
+        bundle: .module
+    )
+
     /// Every string above by catalog key, for the parity test (not the plural one: see its own test).
     static let all: [String: String] = [
         "workspaces.kind.home": kindHome,
@@ -62,6 +75,8 @@ enum WorkspaceStrings {
         "workspaces.error.unreachable": unreachable,
         "workspaces.error.notVerified": notVerified,
         "error.generic": generic,
-        "workspaces.unpair.message": unpairMessage
+        "workspaces.unpair.message": unpairMessage,
+        "workspaces.calendar.noAccess": calendarNoAccess,
+        "workspaces.calendar.remove.question": calendarRemoveQuestionFormat
     ]
 }

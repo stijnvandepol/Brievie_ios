@@ -1,6 +1,30 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "calendar.name": {
+      "comment": "Name of the calendar the app makes per workspace; %@ is the workspace name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie – %@"
+          }
+        }
+      }
+    },
+    "calendar.notes.footer": {
+      "comment": "Last line of the notes of a deadline in the phone calendar.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uit Brievie"
+          }
+        }
+      }
+    },
     "error.generic": {
       "comment": "Generic error; never shows server diagnostics.",
       "extractionState": "manual",

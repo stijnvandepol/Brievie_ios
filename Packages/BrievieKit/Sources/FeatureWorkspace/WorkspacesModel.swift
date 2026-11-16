@@ -47,20 +47,30 @@ public final class WorkspacesModel {
     private let server: any BrievieServer
     private let appModel: AppModel
     private let unpairing: Unpairing
+    private let calendar: WorkspaceCalendar?
+    /// The calendar switch per workspace of the last load; kept across reloads.
+    private var calendarModels: [UUID: CalendarSettingModel] = [:]
     /// The load started by `retry()`; `stop()` cancels it when the screen goes away. Tests await it.
     @ObservationIgnored private(set) var retryTask: Task<Void, Never>?
     /// Counts the queue before the confirmation opens. Tests await it.
     @ObservationIgnored private(set) var unpairCountTask: Task<Void, Never>?
 
+    /// - Parameter calendar: the calendar switches; `nil` shows none.
     public init(
         connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel,
-        unpairing: Unpairing
+        unpairing: Unpairing, calendar: WorkspaceCalendar? = nil
     ) {
         self.connection = connection
         self.store = store
         self.server = server
         self.appModel = appModel
         self.unpairing = unpairing
+        self.calendar = calendar
+    }
+
+    /// The "Zet deadlines in mijn agenda" switch of a loaded workspace; `nil` without calendar support.
+    public func calendarModel(for workspace: UUID) -> CalendarSettingModel? {
+        calendarModels[workspace]
     }
 
     /// The "Ontkoppelen" button: counts the waiting scans, then asks for confirmation.
@@ -107,7 +117,10 @@ public final class WorkspacesModel {
 
         switch await fetch(token: token) {
         case .workspaces(let workspaces):
-            state = .loaded(workspaces.map(Row.init(workspace:)))
+            let rows = workspaces.map(Row.init(workspace:))
+            updateCalendarModels(rows)
+            state = .loaded(rows)
+            calendar?.didLoad(rows)
         case .revoked:
             appModel.sessionRevoked(deviceID: connection.deviceID)
         case .cancelled:
@@ -117,6 +130,22 @@ public final class WorkspacesModel {
             if case .loaded = state { return }
             state = .failed(message: message)
         }
+    }
+
+    private func updateCalendarModels(_ rows: [Row]) {
+        guard let calendar else { return }
+        var models: [UUID: CalendarSettingModel] = [:]
+        for row in rows {
+            if let existing = calendarModels[row.id], existing.workspaceName == row.name {
+                models[row.id] = existing
+            } else {
+                models[row.id] = CalendarSettingModel(
+                    workspaceID: row.id, workspaceName: row.name, sync: calendar.sync, settings: calendar.settings,
+                    openSettings: calendar.openSettings
+                )
+            }
+        }
+        calendarModels = models
     }
 
     private enum Outcome {

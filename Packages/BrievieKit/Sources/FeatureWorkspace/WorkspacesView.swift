@@ -36,6 +36,7 @@ public struct WorkspacesView<Destination: View>: View {
                     confirm: { model.confirmUnpair() }
                 ),
                 retry: { model.retry() },
+                calendarModel: { model.calendarModel(for: $0.id) },
                 destination: destination
             )
             .refreshable { await model.load() }
@@ -62,6 +63,8 @@ struct WorkspacesList<Destination: View>: View {
     let showsNoPasscodeWarning: Bool
     let unpair: UnpairControl
     let retry: () -> Void
+    /// The calendar switch under a workspace; `nil` shows none.
+    let calendarModel: (WorkspacesModel.Row) -> CalendarSettingModel?
     let destination: (WorkspacesModel.Row) -> Destination
 
     var body: some View {
@@ -75,6 +78,10 @@ struct WorkspacesList<Destination: View>: View {
                 content
             } header: {
                 Text("workspaces.section.workspaces", bundle: .module)
+            } footer: {
+                if hasCalendarSwitches {
+                    Text("workspaces.calendar.footer", bundle: .module)
+                }
             }
             serverSection
             // Its own section, last, away from everything else on the screen.
@@ -103,10 +110,18 @@ struct WorkspacesList<Destination: View>: View {
                 } label: {
                     WorkspaceRowView(row: row)
                 }
+                if let calendar = calendarModel(row) {
+                    CalendarSwitchRow(model: calendar)
+                }
             }
         case .failed(let message):
             ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module), action: retry)
         }
+    }
+
+    private var hasCalendarSwitches: Bool {
+        guard case .loaded(let rows) = state else { return false }
+        return rows.contains { calendarModel($0) != nil }
     }
 
     private var serverSection: some View {
@@ -174,6 +189,45 @@ extension WorkspacesList {
     }
 }
 
+/// "Zet deadlines in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
+/// question when it is turned off.
+private struct CalendarSwitchRow: View {
+    @Bindable var model: CalendarSettingModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(isOn: Binding(get: { model.isOn }, set: { model.toggle($0) })) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("workspaces.calendar.toggle", bundle: .module)
+                    Text(model.workspaceName)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if let message = model.message {
+                ErrorBanner(
+                    message,
+                    actionTitle: model.showsOpenSettings
+                        ? String(localized: "workspaces.calendar.openSettings", bundle: .module) : nil,
+                    action: { model.openSettings() }
+                )
+            }
+        }
+        .confirmationDialog(model.removeQuestion, isPresented: $model.isAskingToRemove, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                model.switchOff(removeCalendar: true)
+            } label: {
+                Text("workspaces.calendar.remove", bundle: .module)
+            }
+            Button {
+                model.switchOff(removeCalendar: false)
+            } label: {
+                Text("workspaces.calendar.keep", bundle: .module)
+            }
+        }
+    }
+}
+
 private struct WorkspaceRowView: View {
     let row: WorkspacesModel.Row
 
@@ -221,7 +275,8 @@ private var previewUnpair: UnpairControl {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, destination: { _ in EmptyView() }
+            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, calendarModel: { _ in nil },
+            destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)
@@ -231,7 +286,8 @@ private var previewUnpair: UnpairControl {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, destination: { _ in EmptyView() }
+            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, calendarModel: { _ in nil },
+            destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)

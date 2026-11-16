@@ -25,6 +25,16 @@ enum AppStrings {
         )
     }
 
+    /// The last line of a calendar event's notes.
+    static var calendarNotesFooter: String {
+        String(localized: "calendar.notes.footer", defaultValue: "Uit Brievie", bundle: .module)
+    }
+
+    /// The name of a workspace's calendar; `%@` is the workspace's name.
+    static var calendarNameFormat: String {
+        String(localized: "calendar.name", defaultValue: "Brievie – %@", bundle: .module)
+    }
+
     static var genericError: String {
         String(localized: "error.generic", defaultValue: "Er ging iets mis. Probeer het opnieuw.", bundle: .module)
     }

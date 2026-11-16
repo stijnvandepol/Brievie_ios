@@ -194,7 +194,7 @@ public final class AppModel {
         }
         pendingForget = PendingForget(
             notice: serverTold ? nil : AppStrings.serverStillKnowsDevice,
-            wipeUploads: { try await unpairing.wipeUploads() }
+            wipeUploads: { try await unpairing.wipeLocalState() }
         )
         return await finishForgetting()
     }

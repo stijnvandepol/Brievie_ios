@@ -13,6 +13,90 @@
         }
       }
     },
+    "workspaces.calendar.footer": {
+      "comment": "Explains the calendar switches: what the events contain and where they go.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je taken met een datum komen in een eigen agenda 'Brievie'. De tekst van de taak en de afzender staan erin, ook als je agenda met iCloud synchroniseert."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.keep": {
+      "comment": "Answer: turn the switch off and keep the calendar.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laten staan"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.noAccess": {
+      "comment": "Under the calendar switch when calendar access is refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie mag niet bij je agenda. Zet het aan in Instellingen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.openSettings": {
+      "comment": "Button that opens the app's page in Settings, after calendar access was refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Instellingen"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.remove": {
+      "comment": "Answer: turn the switch off and delete the calendar.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.remove.question": {
+      "comment": "Asked when the calendar switch is turned off; %@ is the calendar's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenda '%@' ook verwijderen?"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.toggle": {
+      "comment": "Switch under a workspace: put its tasks with a deadline in a calendar on this phone.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zet deadlines in mijn agenda"
+          }
+        }
+      }
+    },
     "workspaces.empty": {
       "comment": "Shown when the list is empty.",
       "extractionState": "manual",

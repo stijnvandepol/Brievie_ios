@@ -48,3 +48,10 @@ enum DocumentTypes {
         taskTypes.first { $0.code == code }?.label ?? DocumentStrings.taskTypeOther
     }
 }
+
+/// The Dutch name of a task type, for text outside this target (the title of a deadline in the calendar).
+public enum TaskTypeName {
+    public static func label(for code: String) -> String {
+        DocumentTypes.taskTypeLabel(code)
+    }
+}

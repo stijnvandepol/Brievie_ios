@@ -1,17 +1,25 @@
 import Foundation
 
-/// What "Ontkoppelen" does outside the app's own state: telling the server and emptying the upload queue.
-/// `AppModel.unpair(_:)` runs it; the app builds one from the live server and the upload coordinator.
+/// What "Ontkoppelen" does outside the app's own state: telling the server, emptying the upload queue and
+/// forgetting the calendar switches. `AppModel.unpair(_:)` runs it; the app builds one from the live server, the
+/// upload coordinator and the calendar settings.
 public struct Unpairing: Sendable {
     private let server: any BrievieServer
     private let uploads: any UploadQueue
+    private let calendarSettings: (any CalendarSettings)?
     private let timeout: Duration
 
-    /// - Parameter timeout: how long the server gets, over all its addresses together, before the app
-    ///   unpairs without it.
-    public init(server: any BrievieServer, uploads: any UploadQueue, timeout: Duration = .seconds(5)) {
+    /// - Parameters:
+    ///   - calendarSettings: cleared on unpairing; the calendars themselves stay (pairing again finds them by
+    ///     their title).
+    ///   - timeout: how long the server gets, over all its addresses together, before the app unpairs without it.
+    public init(
+        server: any BrievieServer, uploads: any UploadQueue, calendarSettings: (any CalendarSettings)? = nil,
+        timeout: Duration = .seconds(5)
+    ) {
         self.server = server
         self.uploads = uploads
+        self.calendarSettings = calendarSettings
         self.timeout = timeout
     }
 
@@ -20,8 +28,9 @@ public struct Unpairing: Sendable {
         await uploads.items().count
     }
 
-    /// Stops every upload and deletes every queued scan with its files.
-    func wipeUploads() async throws {
+    /// Turns every calendar switch off, stops every upload and deletes every queued scan with its files.
+    func wipeLocalState() async throws {
+        calendarSettings?.removeAll()
         try await uploads.removeAll()
     }
 
