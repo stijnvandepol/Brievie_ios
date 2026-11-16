@@ -164,7 +164,10 @@ public struct ReviewView: View {
             OrganiseSection(
                 draft: model.draft.organise, persons: model.persons, labels: model.labels,
                 actions: model.canEdit ? .review(
-                    $model.draft.organise, pickPersons: { picker = .persons }, pickLabels: { picker = .labels }
+                    $model.draft.organise, pickPersons: {
+                        model.clearPersonError()
+                        picker = .persons
+                    }, pickLabels: { picker = .labels }
                 ) : nil,
                 onShowQuote: { source = SourceQuote(text: $0) }
             )

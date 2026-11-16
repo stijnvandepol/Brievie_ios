@@ -142,25 +142,6 @@ public final class ReviewModel {
         draft.syncDeadlineSource(of: index)
     }
 
-    /// Adds a person to the workspace and puts the letter on their name. Returns whether it worked.
-    @discardableResult
-    public func createPerson(named name: String) async -> Bool {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard canEdit, !name.isEmpty else { return false }
-        personError = nil
-        do {
-            let person = try await documents.createPerson(named: name)
-            persons.append(person)
-            draft.organise.addresseeIDs.insert(person.id)
-            return true
-        } catch .nameTaken {
-            personError = DocumentStrings.nameTaken
-        } catch {
-            handle(error) { personError = DocumentsModel.message(for: $0) }
-        }
-        return false
-    }
-
     /// The user changed something since the draft was pre-filled (or started empty).
     public var draftHasUserEdits: Bool { draft != pristineDraft }
 
@@ -229,44 +210,6 @@ public final class ReviewModel {
         }
     }
 
-    /// Confirm found no such person or label, or no such document. A document that is still there means a
-    /// chosen person or label was deleted meanwhile: keep the draft without it and let the user look again.
-    private func handleMissingChoice() async {
-        let detail: DocumentDetail
-        do {
-            detail = try await documents.detail(documentID)
-        } catch {
-            handle(error) { state = .failed(message: DocumentsModel.message(for: $0)) }
-            return
-        }
-        apply(await Self.organiseLists(from: documents))
-        show(detail)
-        guard state == .review else { return }
-        draft.organise.setAddressees(draft.organise.addresseeIDs.intersection(persons.map(\.id)))
-        draft.organise.setLabels(draft.organise.labelIDs.intersection(labels.map(\.id)))
-        saveError = DocumentStrings.organiseGone
-    }
-
-    /// Both lists, or `nil` when either could not be loaded (a 1b server has neither).
-    private nonisolated static func organiseLists(
-        from documents: WorkspaceDocuments
-    ) async -> (persons: [Person], labels: [DocumentLabel])? {
-        async let persons = try? documents.persons()
-        async let labels = try? documents.labels()
-        guard let persons = await persons, let labels = await labels else { return nil }
-        return (persons, labels)
-    }
-
-    private func apply(_ lists: (persons: [Person], labels: [DocumentLabel])?) {
-        persons = lists?.persons ?? []
-        labels = lists?.labels ?? []
-        organiseAvailable = lists != nil
-    }
-
-    private static func sorted(_ ids: Set<UUID>) -> [UUID] {
-        ids.sorted { $0.uuidString < $1.uuidString }
-    }
-
     private func handle(_ error: DocumentsError, otherwise: (DocumentsError) -> Void) {
         switch error {
         case .revoked: onRevoked()
@@ -304,5 +247,82 @@ public final class ReviewModel {
         case .unknown:
             state = .done
         }
+    }
+}
+
+// MARK: - Organise
+
+extension ReviewModel {
+    /// Adds a person to the workspace and puts the letter on their name. Returns whether it worked.
+    @discardableResult
+    public func createPerson(named name: String) async -> Bool {
+        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard canEdit, !name.isEmpty else { return false }
+        personError = nil
+        do {
+            let person = try await documents.createPerson(named: name)
+            persons.append(person)
+            draft.organise.addresseeIDs.insert(person.id)
+            return true
+        } catch .nameTaken {
+            personError = DocumentStrings.nameTaken
+            // Probably made in the web meanwhile: show them in the list.
+            if let fresh = try? await documents.persons() { persons = fresh }
+        } catch {
+            handle(error) { personError = DocumentsModel.message(for: $0) }
+        }
+        return false
+    }
+
+    /// The person picker opens: an error of an earlier attempt no longer applies.
+    public func clearPersonError() {
+        personError = nil
+    }
+
+    /// Confirm found no such person or label, or no such document. A document that is still there means a
+    /// chosen person or label was deleted meanwhile: keep the draft without it and let the user look again.
+    /// Only the document's own `.notFound` leaves the review; any other failure keeps the draft as it is.
+    private func handleMissingChoice() async {
+        let detail: DocumentDetail
+        do {
+            detail = try await documents.detail(documentID)
+        } catch .notFound {
+            state = .failed(message: DocumentsModel.message(for: .notFound))
+            return
+        } catch {
+            handle(error) { saveError = DocumentsModel.message(for: $0) }
+            return
+        }
+        show(detail)
+        guard state == .review else { return }
+        guard let lists = await Self.organiseLists(from: documents) else {
+            // Nothing new to check against: keep the lists and the choice, and say it did not work.
+            saveError = DocumentStrings.generic
+            return
+        }
+        apply(lists)
+        draft.organise.setAddressees(draft.organise.addresseeIDs.intersection(persons.map(\.id)))
+        draft.organise.setLabels(draft.organise.labelIDs.intersection(labels.map(\.id)))
+        saveError = DocumentStrings.organiseGone
+    }
+
+    /// Both lists, or `nil` when either could not be loaded (a 1b server has neither).
+    private nonisolated static func organiseLists(
+        from documents: WorkspaceDocuments
+    ) async -> (persons: [Person], labels: [DocumentLabel])? {
+        async let persons = try? documents.persons()
+        async let labels = try? documents.labels()
+        guard let persons = await persons, let labels = await labels else { return nil }
+        return (persons, labels)
+    }
+
+    private func apply(_ lists: (persons: [Person], labels: [DocumentLabel])?) {
+        persons = lists?.persons ?? []
+        labels = lists?.labels ?? []
+        organiseAvailable = lists != nil
+    }
+
+    private static func sorted(_ ids: Set<UUID>) -> [UUID] {
+        ids.sorted { $0.uuidString < $1.uuidString }
     }
 }

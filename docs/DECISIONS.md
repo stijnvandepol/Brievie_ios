@@ -88,6 +88,13 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **A review pre-filled by AI says so at the top** ("Ingevuld door AI. Controleer of het klopt voordat je bevestigt."), next to the label on the summary.
 - **The paired app stays in the view tree while locked**, under an opaque lock screen, so a half-filled review survives a trip to another app. Sheets above it close when the scene leaves the foreground (the letter-text sheet when inactive, the scanner and photo picker in the background), and polling stops while the app is not active.
 
+## Organising in the review (phase 1c)
+
+- Persons and labels are loaded once per review screen, next to the document. When either list cannot be loaded, the screen behaves as against a 1b server: "Op naam van" and "Labels" are hidden and confirm sends `sets_organisation: false`, which leaves labels and addressees alone.
+- Which proposal starts ticked comes from the server (`preselected`), so web and app agree; what an automatic rule already put on the letter starts chosen too.
+- After confirming with the lists, every proposal the user did not choose is dismissed for good on that letter: nothing automatic proposes it there again.
+- A person or label deleted while the review is open makes confirm answer "not found": the app reloads the lists, drops what is gone and keeps the rest of the draft. Only "not found" for the document itself leaves the review; any other failure while reloading keeps the draft and shows an error.
+
 ## Unpair
 
 - **"Ontkoppelen" on the Workspaces screen: best-effort server revoke, queue wiped, notice when the server could not be told.** `revokeDevice` (`DELETE /api/v1/devices/{id}` with the device token) gets 5 seconds over all the pairing's addresses; offline, no answer, a pin failure or any refusal never blocks unpairing. 401 and 404 `device_not_found` count as told (the server no longer knows the device). Then every upload is cancelled and the whole queue directory emptied (unreadable items and interrupted writes too), the stored connection and token are cleared (the `hasLaunchedBefore` flag stays), and pairing shows; only when the server was not told it says once "Deze telefoon staat nog als apparaat op de server. Trek hem daar in onder Apparaten." The confirmation names the number of waiting scans (catalog plural).
