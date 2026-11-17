@@ -113,6 +113,7 @@ public struct WorkspaceDocuments: Sendable {
         let token = try storedToken()
         let trust = ServerTrust(caCertificateDER: connection.caCertificateDER)
         var sawUntrusted = false
+        var sawForeign401 = false
         for url in connection.urls {
             let scope = DocumentScope(url: url, trust: trust, token: token, workspaceID: workspaceID)
             do {
@@ -121,6 +122,9 @@ public struct WorkspaceDocuments: Sendable {
                 continue
             } catch ServerError.untrusted {
                 sawUntrusted = true
+            } catch ServerError.other("http_401") {
+                // Not the host's verdict (no `not_authenticated`): try the next address, never a revocation.
+                sawForeign401 = true
             } catch ServerError.unauthorized {
                 throw .revoked
             } catch is CancellationError {
@@ -132,7 +136,8 @@ public struct WorkspaceDocuments: Sendable {
             }
         }
         if Task.isCancelled { throw .cancelled }
-        throw sawUntrusted ? .notVerified : .unreachable
+        if sawUntrusted { throw .notVerified }
+        throw sawForeign401 ? .failed : .unreachable
     }
 
     private func storedToken() throws(DocumentsError) -> String {

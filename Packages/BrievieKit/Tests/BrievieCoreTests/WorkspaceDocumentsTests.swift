@@ -54,6 +54,26 @@ import Testing
         #expect(server.calls == [.list(Self.local, .all)])
     }
 
+    @Test func aForeign401TriesTheNextAddressAndIsNoRevocation() async throws {
+        let summary = DocumentFixtures.summary()
+        server.onList { url in
+            if url == Self.local { throw ServerError.other("http_401") }
+            return [summary]
+        }
+
+        let result = try await documents().list()
+
+        #expect(result == [summary])
+        #expect(server.calls == [.list(Self.local, .all), .list(Self.remote, .all)])
+    }
+
+    @Test func aForeign401OnEveryAddressIsAFailureNotARevocation() async throws {
+        server.onList { _ in throw ServerError.other("http_401") }
+
+        await #expect(throws: DocumentsError.failed) { try await documents().list() }
+        #expect(server.calls.count == 2)
+    }
+
     @Test func missingPairingIsReported() async throws {
         await #expect(throws: DocumentsError.missingPairing) { try await documents(paired: false).list() }
         #expect(server.calls.isEmpty)

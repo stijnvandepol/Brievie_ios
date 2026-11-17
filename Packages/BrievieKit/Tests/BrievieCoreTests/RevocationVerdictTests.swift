@@ -48,6 +48,7 @@ import Testing
         let decision = UploadPolicy.decide(.status(401, code: nil), item: item, urlCount: 1)
 
         #expect(decision != .revoked)
+        #expect(decision == .retry(urlIndex: 0, after: .seconds(30)))
         #expect(UploadPolicy.decide(.status(401, code: "not_authenticated"), item: item, urlCount: 1) == .revoked)
     }
 }
