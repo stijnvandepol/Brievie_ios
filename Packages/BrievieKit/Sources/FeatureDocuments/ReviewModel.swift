@@ -77,7 +77,13 @@ public final class ReviewModel {
         self.refreshInterval = refreshInterval
     }
 
-    public var pageCount: Int { detail?.summary.pageCount ?? 0 }
+    /// The most pages the review shows of one letter. The host refuses more than 30 per letter by default
+    /// (`BRIEVIE_MAX_PAGES`); this leaves room for a server set a little higher, and keeps a broken or hostile
+    /// server's page count from making the screen build millions of pages.
+    public static let maxPages = 50
+
+    /// The server's page count, between 0 and `maxPages`.
+    public var pageCount: Int { min(max(detail?.summary.pageCount ?? 0, 0), Self.maxPages) }
     public var pageTexts: [String] { detail?.pageTexts ?? [] }
     /// Processing failed on the server; the review can still be filled in by hand.
     public var processingFailed: Bool { detail?.summary.status == .failed }
@@ -155,7 +161,9 @@ public final class ReviewModel {
     }
 
     public func loadPage(_ index: Int) async {
-        guard pages[index] == nil, !loadingPages.contains(index) else { return }
+        // Only the pages the screen shows (1 through `pageCount`).
+        guard (1...Self.maxPages).contains(index), index <= pageCount, pages[index] == nil,
+              !loadingPages.contains(index) else { return }
         loadingPages.insert(index)
         defer { loadingPages.remove(index) }
         do {

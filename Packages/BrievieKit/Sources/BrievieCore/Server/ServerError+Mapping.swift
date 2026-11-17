@@ -1,7 +1,12 @@
+import BrievieAPI
 import Foundation
 import OpenAPIRuntime
 
 extension ServerError {
+    /// The answer was longer than the app reads (a JSON body above `LiveBrievieServer.maxJSONResponseBytes`, or a
+    /// CA certificate above its own cap).
+    public static let responseTooLarge = ServerError.other("response_too_large")
+
     /// Error codes that may pass through into `.other`. Everything else a server sends (it may not even be a
     /// Brievie server yet) becomes the fixed form `http_<status>`, so no server-chosen text reaches the app.
     static let passThroughCodes: Set<String> = [
@@ -33,6 +38,8 @@ extension ServerError {
         switch Self.unwrapped(error) {
         case let error as ServerError:
             self = error
+        case is ResponseTooLargeError:
+            self = .responseTooLarge
         case let error as URLError:
             self = Self(urlError: error.code)
         case is DecodingError:

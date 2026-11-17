@@ -27,7 +27,7 @@ import Testing
         let url = try StubURLProtocol.serve(.response(status: 200, json: json))
         let session = URLSession(configuration: StubURLProtocol.configuration())
         defer { session.finishTasksAndInvalidate() }
-        let client = APIClient.make(baseURL: url, session: session, token: "tok")
+        let client = APIClient.make(baseURL: url, session: session, token: "tok", maxJSONBytes: 1_024 * 1_024)
         let output = try await client.getDocument(
             path: .init(workspaceId: Self.workspaceID, documentId: Self.documentID)
         )

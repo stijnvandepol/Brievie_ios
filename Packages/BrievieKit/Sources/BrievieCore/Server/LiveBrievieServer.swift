@@ -6,16 +6,27 @@ import Foundation
 /// Every call runs on its own short-lived session whose delegate is a `PinnedSessionDelegate` for the given
 /// trust; the session is invalidated when the call returns. Generated types never leave this file.
 public struct LiveBrievieServer: BrievieServer {
+    /// The largest JSON answer the app reads. The largest real one is a letter of 30 pages of 20000 characters
+    /// each, a few megabytes even with every character escaped.
+    public static let maxJSONResponseBytes = 16 * 1024 * 1024
+
     private let makeConfiguration: @Sendable () -> URLSessionConfiguration
+    private let maxJSONBytes: Int
 
     public init() {
         self.init { .ephemeral }
     }
 
-    /// - Parameter configuration: the base session configuration (tests route it to a stub); it is always
-    ///   hardened with `SessionConfiguration.hardened`.
-    init(configuration: @escaping @Sendable () -> URLSessionConfiguration) {
+    /// - Parameters:
+    ///   - configuration: the base session configuration (tests route it to a stub); it is always hardened with
+    ///     `SessionConfiguration.hardened`.
+    ///   - maxJSONBytes: a longer JSON answer fails with `ServerError.responseTooLarge`.
+    init(
+        configuration: @escaping @Sendable () -> URLSessionConfiguration,
+        maxJSONBytes: Int = LiveBrievieServer.maxJSONResponseBytes
+    ) {
         makeConfiguration = configuration
+        self.maxJSONBytes = maxJSONBytes
     }
 
     public func health(at url: URL, trust: ServerTrust) async throws -> String {
@@ -105,7 +116,9 @@ public struct LiveBrievieServer: BrievieServer {
         )
         defer { session.finishTasksAndInvalidate() }
         do {
-            return try await operation(APIClient.make(baseURL: url, session: session, token: token))
+            return try await operation(
+                APIClient.make(baseURL: url, session: session, token: token, maxJSONBytes: maxJSONBytes)
+            )
         } catch {
             throw ServerError.throwingCancellation(error)
         }
