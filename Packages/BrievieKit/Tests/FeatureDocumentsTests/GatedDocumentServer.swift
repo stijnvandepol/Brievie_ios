@@ -46,6 +46,17 @@ final class GatedDocumentServer: DocumentServer {
         state.withLock { !($0.waiters[gate] ?? []).isEmpty }
     }
 
+    /// How many lists wait at `gate`.
+    func waitingCount(gate: Gate) -> Int {
+        state.withLock { $0.waiters[gate]?.count ?? 0 }
+    }
+
+    /// Lets only the list that came last through `gate`; the gate stays closed for the others.
+    func releaseNewest(gate: Gate) {
+        let waiter = state.withLock { $0.waiters[gate]?.popLast() }
+        waiter?.resume()
+    }
+
     func open(gate: Gate) {
         let waiters = state.withLock { state in
             state.gated.remove(gate)

@@ -68,6 +68,8 @@ public final class DocumentsModel {
     /// In the inbox: per state, the number its header names (more than shown when only the newest are listed).
     private var inboxTotals: [InboxState: Int] = [:]
     private var queued: [UploadItem] = []
+    /// The number of the latest load: only that one writes the server's answer (a newer load always wins).
+    @ObservationIgnored private var latestLoad = 0
     private var progress: [UUID: Double] = [:]
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var progressTask: Task<Void, Never>?
@@ -116,18 +118,22 @@ public final class DocumentsModel {
         await load()
     }
 
-    /// The automatic refresh while something moves: one list, not the persons and labels. In the inbox only
-    /// the letters on their way ("Onderweg"); when one of them left it, the whole inbox once, so it shows up
-    /// in its new group.
+    /// The automatic refresh while something moves: one list, not the persons and labels. In a loaded inbox
+    /// only the letters on their way ("Onderweg"); the whole inbox once when a letter left that list or a scan
+    /// left the upload queue without showing up in it (read by the server within one tick), so it shows up in
+    /// its new group. An inbox that is not loaded (still loading, or failed) is loaded whole.
     public func refreshIfNeeded() async {
         guard needsRefresh else { return }
-        await load(organisation: false, movingOnly: true)
+        await load(organisation: false, movingOnly: state == .loaded)
     }
 
     /// Every write that belongs to one scope is checked against the scope after each wait: a slow answer
-    /// for a scope the user has left never touches the current one.
+    /// for a scope the user has left never touches the current one, and only the latest load writes.
     private func load(organisation: Bool, movingOnly: Bool = false) async {
         let source = Self.source(for: scope)
+        latestLoad += 1
+        let load = latestLoad
+        let wasQueued = Set(queued.map(\.id))
         let removed = await uploads.takeRemovedUnreadableCount()
         if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
@@ -137,19 +143,22 @@ public final class DocumentsModel {
         do {
             switch source {
             case .inbox:
-                let wholeInbox = movingOnly ? try await loadInbox([.new], withCounts: false) : true
-                if wholeInbox { _ = try await loadInbox(Self.inboxStates, withCounts: true) }
+                let wholeInbox = movingOnly
+                    ? try await loadInbox([.new], withCounts: false, load: load, wasQueued: wasQueued) : true
+                if wholeInbox {
+                    _ = try await loadInbox(Self.inboxStates, withCounts: true, load: load, wasQueued: wasQueued)
+                }
             case let .list(filter):
                 let listed = try await documents.list(filter: filter)
                 // The queue may have moved on while the server answered.
                 queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-                if isCurrent(source) {
+                if owns(load, source) {
                     serverDocuments = listed
                     state = .loaded
                 }
             }
         } catch {
-            if await handleFailure(error, source: source) { return }
+            if await handleFailure(error, source: source, load: load) { return }
         }
         // Persons and labels belong to the workspace, not to a scope.
         let freshPersons = await fetchedPersons
@@ -163,13 +172,21 @@ public final class DocumentsModel {
         rebuild()
     }
 
-    /// Replaces the letters of `states` with the server's lists. `true` when a letter that was "new" is no
-    /// longer in the fresh "new" list (it moved to another state).
-    private func loadInbox(_ states: [InboxState], withCounts: Bool) async throws(DocumentsError) -> Bool {
+    /// Whether `load` is the latest load and `source` still belongs to the current scope.
+    private func owns(_ load: Int, _ source: Source) -> Bool {
+        load == latestLoad && isCurrent(source)
+    }
+
+    /// Replaces the letters of `states` with the server's lists. `true` when the inbox must be loaded whole: a
+    /// letter that was "new" is no longer in the fresh "new" list, or a scan of `wasQueued` left the queue and
+    /// is nowhere in the inbox (the server read it before this phone saw it as "new").
+    private func loadInbox(
+        _ states: [InboxState], withCounts: Bool, load: Int, wasQueued: Set<UUID>
+    ) async throws(DocumentsError) -> Bool {
         let answer = try await Self.fetchInbox(states, withCounts: withCounts, from: documents)
         // The queue may have moved on while the server answered.
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-        guard isCurrent(.inbox) else { return false }
+        guard owns(load, .inbox) else { return false }
         let wasNew = Set(serverDocuments.filter { $0.inboxState == .new }.map(\.id))
         var kept = serverDocuments.filter { !states.contains($0.inboxState) }
         for state in states {
@@ -182,12 +199,14 @@ public final class DocumentsModel {
         }
         serverDocuments = kept
         state = .loaded
+        guard states != Self.inboxStates else { return false }
         let isNew = Set(kept.filter { $0.inboxState == .new }.map(\.id))
-        return states.contains(.new) && !wasNew.isSubset(of: isNew)
+        let leftQueue = wasQueued.subtracting(queued.map(\.id))
+        return !wasNew.isSubset(of: isNew) || !leftQueue.isSubset(of: kept.map(\.clientID))
     }
 
     /// `true` when the load stops here (it went back to the inbox).
-    private func handleFailure(_ error: DocumentsError, source: Source) async -> Bool {
+    private func handleFailure(_ error: DocumentsError, source: Source, load: Int) async -> Bool {
         switch error {
         case .revoked:
             onRevoked()
@@ -195,12 +214,12 @@ public final class DocumentsModel {
             onMissingPairing()
         case .cancelled:
             break
-        case .notFound where isCurrent(source) && scope.isPerson:
+        case .notFound where owns(load, source) && scope.isPerson:
             // The person is gone: back to the inbox rather than "this document no longer exists".
             await select(.inbox)
             return true
         default:
-            if isCurrent(source), state != .loaded { state = .failed(message: Self.message(for: error)) }
+            if owns(load, source), state != .loaded { state = .failed(message: Self.message(for: error)) }
         }
         return false
     }
@@ -230,16 +249,6 @@ public final class DocumentsModel {
             progress = update
             rebuild()
         }
-    }
-
-    public func retryUpload(_ id: UUID) async {
-        await uploads.retry(id)
-        await load(organisation: false)
-    }
-
-    public func deleteUpload(_ id: UUID) async {
-        await uploads.delete(id)
-        await load(organisation: false)
     }
 
     private func rebuild() {
@@ -304,8 +313,18 @@ public final class DocumentsModel {
     }
 }
 
-// The camera: kept out of the class body, which holds the loading.
+// The camera and the queue buttons: kept out of the class body, which holds the loading.
 extension DocumentsModel {
+    public func retryUpload(_ id: UUID) async {
+        await uploads.retry(id)
+        await load(organisation: false)
+    }
+
+    public func deleteUpload(_ id: UUID) async {
+        await uploads.delete(id)
+        await load(organisation: false)
+    }
+
     /// Before the scanner opens: asks for the camera the first time; `false` (with a notice) when it may not
     /// be used.
     public func prepareScanner() async -> Bool {
