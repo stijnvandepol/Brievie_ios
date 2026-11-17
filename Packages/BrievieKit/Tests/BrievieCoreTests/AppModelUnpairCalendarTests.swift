@@ -100,4 +100,41 @@ import Testing
         #expect(settings.calendarIDs().isEmpty)
         #expect(await calendars.calendars.count == 2)
     }
+
+    @Test func aSyncThatHoldsTheCalendarNeverHoldsUnpairingPastTheTimeout() async throws {
+        let settings = InMemoryCalendarSettings()
+        let home = UUID()
+        settings.enable(workspace: home, calendarID: "held")
+        // The open tasks never come while the test runs: the sync holds the workspace until `release`.
+        let (held, release) = AsyncStream<Void>.makeStream()
+        let sync = CalendarSync(
+            store: calendars, settings: settings,
+            tasks: { _ in
+                for await _ in held {}
+                return []
+            },
+            workspaceName: { _ in "Thuis" }, typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 17) }
+        )
+        let running = Task { await sync.sync(workspace: home) }
+        let unpairing = Unpairing(
+            server: server, uploads: uploads, calendarSettings: settings, calendarSync: sync,
+            timeout: .milliseconds(200)
+        )
+        let model = await readyModel()
+        let clock = ContinuousClock()
+        let start = clock.now
+
+        let unpaired = await model.unpair(unpairing.removingCalendars())
+
+        #expect(clock.now - start < .seconds(3))
+        #expect(unpaired)
+        #expect(settings.calendarIDs().isEmpty)
+        try expectNothingStored()
+
+        // The removal that waited finishes later and writes nothing back.
+        release.finish()
+        _ = await running.value
+        for _ in 0..<50 { await Task.yield() }
+        #expect(settings.calendarIDs().isEmpty)
+    }
 }

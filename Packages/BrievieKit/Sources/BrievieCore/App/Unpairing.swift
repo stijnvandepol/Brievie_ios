@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// What "Ontkoppelen" does outside the app's own state: telling the server, emptying the upload queue and
 /// forgetting the calendar switches. `AppModel.unpair(_:)` runs it; the app builds one from the live server, the
@@ -56,20 +57,26 @@ public struct Unpairing: Sendable {
     }
 
     /// Best effort and within `timeout`: a calendar that cannot be removed (or a sync that holds it too long)
-    /// never stops the user from unpairing; it stays.
+    /// never stops the user from unpairing. The removal runs in its own task and is only raced against the
+    /// timeout, never awaited past it: it may finish later, and then finds the switches cleared and removes or
+    /// writes nothing.
     private func removeCalendars() async {
         guard let calendarSync, let calendarSettings else { return }
         let workspaces = Array(calendarSettings.calendarIDs().keys)
+        guard !workspaces.isEmpty else { return }
         let timeout = timeout
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask {
+        let finished = FirstOfTwo()
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            Task.detached {
                 for workspace in workspaces {
                     await calendarSync.disable(workspace: workspace, removeCalendar: true)
                 }
+                if finished.claim() { continuation.resume() }
             }
-            group.addTask { try? await Task.sleep(for: timeout) }
-            await group.next()
-            group.cancelAll()
+            Task.detached {
+                try? await Task.sleep(for: timeout)
+                if finished.claim() { continuation.resume() }
+            }
         }
     }
 
@@ -110,5 +117,18 @@ public struct Unpairing: Sendable {
             }
         }
         return false
+    }
+}
+
+/// Lets exactly one of two racing tasks resume a continuation.
+private final class FirstOfTwo: Sendable {
+    private let claimed = Mutex(false)
+
+    /// `true` for the first caller only.
+    func claim() -> Bool {
+        claimed.withLock { claimed in
+            defer { claimed = true }
+            return !claimed
+        }
     }
 }
