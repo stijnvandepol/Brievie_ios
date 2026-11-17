@@ -101,7 +101,8 @@ import Testing
         #expect(await calendars.calendars.count == 2)
     }
 
-    @Test func aSyncThatHoldsTheCalendarNeverHoldsUnpairingPastTheTimeout() async throws {
+    @Test(.timeLimit(.minutes(1)))
+    func aSyncThatHoldsTheCalendarNeverHoldsUnpairingPastTheTimeout() async throws {
         let settings = InMemoryCalendarSettings()
         let home = UUID()
         settings.enable(workspace: home, calendarID: "held")
@@ -136,5 +137,41 @@ import Testing
         _ = await running.value
         for _ in 0..<50 { await Task.yield() }
         #expect(settings.calendarIDs().isEmpty)
+    }
+
+    @Test(.timeLimit(.minutes(1)))
+    func aRemovalThatWaitedNeverRemovesTheCalendarOfANewPairing() async throws {
+        let settings = InMemoryCalendarSettings()
+        let home = UUID()
+        let oldCalendar = await calendars.userAddsCalendar(title: "Brievie – Thuis")
+        settings.enable(workspace: home, calendarID: oldCalendar)
+        let (held, release) = AsyncStream<Void>.makeStream()
+        let sync = CalendarSync(
+            store: calendars, settings: settings,
+            tasks: { _ in
+                for await _ in held {}
+                return []
+            },
+            workspaceName: { _ in "Thuis" }, typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 17) }
+        )
+        let running = Task { await sync.sync(workspace: home) }
+        let unpairing = Unpairing(
+            server: server, uploads: uploads, calendarSettings: settings, calendarSync: sync,
+            timeout: .milliseconds(200)
+        )
+        let model = await readyModel()
+        #expect(await model.unpair(unpairing.removingCalendars()))
+
+        // Paired again, and the same workspace's switch is on with a new calendar before the old removal ran.
+        let newCalendar = await calendars.userAddsCalendar(title: "Brievie – Thuis")
+        settings.enable(workspace: home, calendarID: newCalendar)
+        release.finish()
+        _ = await running.value
+        for _ in 0..<50 { await Task.yield() }
+        // Let the waiting removal run to its end: it goes through the same workspace's queue.
+        _ = await sync.sync(workspace: home)
+
+        #expect(await calendars.calendars[newCalendar] != nil)
+        #expect(settings.calendarID(for: home) == newCalendar)
     }
 }

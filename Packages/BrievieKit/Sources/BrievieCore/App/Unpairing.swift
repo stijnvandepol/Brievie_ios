@@ -65,11 +65,13 @@ public struct Unpairing: Sendable {
         let workspaces = Array(calendarSettings.calendarIDs().keys)
         guard !workspaces.isEmpty else { return }
         let timeout = timeout
+        // A removal that runs after the wipe (and perhaps a new pairing) must not touch what came since.
+        let generation = calendarSettings.clearGeneration()
         let finished = FirstOfTwo()
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             Task.detached {
                 for workspace in workspaces {
-                    await calendarSync.disable(workspace: workspace, removeCalendar: true)
+                    await calendarSync.disable(workspace: workspace, removeCalendar: true, ifGeneration: generation)
                 }
                 if finished.claim() { continuation.resume() }
             }

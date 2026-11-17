@@ -84,9 +84,16 @@ public actor CalendarSync {
     /// Turns the switch off; with `removeCalendar`, also deletes the workspace's calendar (nothing else), or only
     /// its own events when the calendar also holds events of the user. `nil` when nothing was removed (not asked,
     /// no calendar, or it failed).
+    /// - Parameter generation: the settings' clear generation the caller saw; when the settings were cleared
+    ///   since (an unpair, perhaps followed by pairing again), nothing is touched: the calendar now stored may be
+    ///   a new one.
     @discardableResult
-    public func disable(workspace: UUID, removeCalendar: Bool) async -> CalendarRemoval? {
-        await exclusively(workspace) { await $0.performDisable(workspace, removeCalendar: removeCalendar) }
+    public func disable(workspace: UUID, removeCalendar: Bool, ifGeneration generation: Int? = nil) async
+        -> CalendarRemoval? {
+        await exclusively(workspace) { sync in
+            if let generation, sync.settings.clearGeneration() != generation { return nil }
+            return await sync.performDisable(workspace, removeCalendar: removeCalendar)
+        }
     }
 
     private func exclusively<Result: Sendable>(
