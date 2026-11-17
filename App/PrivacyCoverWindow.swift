@@ -47,7 +47,12 @@ final class PrivacyCoverWindow {
         switch change {
         case .show:
             guard let scene else { return }
-            (window ?? makeWindow(in: scene)).isHidden = false
+            // The keyboard's own window (with its suggestions, which can hold a letter's words) is above any
+            // window the app makes: close it, so it is not in the snapshot either.
+            for window in scene.windows where window !== self.window { window.endEditing(true) }
+            // A new scene (the old one was discarded) gets a new window; a window stays with its own scene.
+            let cover = window?.windowScene === scene ? window : nil
+            (cover ?? makeWindow(in: scene)).isHidden = false
         case .hide:
             window?.isHidden = true
         case nil:
@@ -57,7 +62,8 @@ final class PrivacyCoverWindow {
 
     private func makeWindow(in scene: UIWindowScene) -> UIWindow {
         let window = UIWindow(windowScene: scene)
-        // Above alerts and the keyboard; never made key, so it takes no input from the screens below.
+        // Above the app's windows and alerts (not above the system keyboard: editing ends before it shows);
+        // never made key, so it takes no input from the screens below.
         window.windowLevel = .alert + 1
         window.rootViewController = UIHostingController(rootView: PrivacyCoverView())
         window.accessibilityViewIsModal = true
