@@ -377,6 +377,7 @@ extension DocumentStrings {
         "documents.inbox.empty": inboxEmpty,
         "documents.person.empty": personEmpty,
         "documents.group.count": groupCountFormat,
+        "documents.group.partial": groupPartialFormat,
         "documents.addressees": addresseesFormat,
         "documents.labels": labelsFormat,
         "documents.suggestion": suggestion

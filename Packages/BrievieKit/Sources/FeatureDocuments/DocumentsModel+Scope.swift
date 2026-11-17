@@ -97,9 +97,9 @@ extension DocumentsModel {
         }
     }
 
-    /// Whether `filter` still belongs to the current scope: an answer for a scope the user left is dropped.
-    func isCurrent(_ filter: DocumentFilter) -> Bool {
-        Self.filter(for: scope) == filter
+    /// Whether `source` still belongs to the current scope: an answer for a scope the user left is dropped.
+    func isCurrent(_ source: Source) -> Bool {
+        Self.source(for: scope) == source
     }
 
     /// False for a person scope whose person is not among `persons` or is archived.
@@ -118,14 +118,9 @@ extension DocumentsModel {
         return try? await documents.labels()
     }
 
-    /// The inbox and all post share one server list; a person has their own.
-    static func filter(for scope: Scope) -> DocumentFilter {
-        if case let .person(id) = scope { return DocumentFilter(personID: id) }
-        return .all
-    }
-
-    /// The inbox in its three groups (empty ones left out); any other scope as one group.
-    func makeGroups(waiting: [Row], onServer: [(InboxState, Row)]) -> [RowGroup] {
+    /// The inbox in its three groups (empty ones left out); any other scope as one group. `totals` is the
+    /// number per state a header names; a group showing fewer says it shows only the newest.
+    func makeGroups(waiting: [Row], onServer: [(InboxState, Row)], totals: [InboxState: Int]) -> [RowGroup] {
         guard scope == .inbox else {
             let all = waiting + onServer.map(\.1)
             return [RowGroup(kind: .post, title: DocumentStrings.section, header: DocumentStrings.section, rows: all)]
@@ -133,16 +128,19 @@ extension DocumentsModel {
         func rows(in state: InboxState) -> [Row] {
             onServer.filter { $0.0 == state }.map(\.1)
         }
-        func group(_ kind: GroupKind, _ title: String, _ rows: [Row]) -> RowGroup {
-            RowGroup(
-                kind: kind, title: title, header: String(format: DocumentStrings.groupCountFormat, title, rows.count),
-                rows: rows
-            )
+        func group(_ kind: GroupKind, _ title: String, _ state: InboxState, waiting: [Row] = []) -> RowGroup {
+            let onServer = rows(in: state)
+            let all = waiting + onServer
+            let total = waiting.count + max(totals[state] ?? onServer.count, onServer.count)
+            let header = total > all.count
+                ? String(format: DocumentStrings.groupPartialFormat, title, total, all.count)
+                : String(format: DocumentStrings.groupCountFormat, title, all.count)
+            return RowGroup(kind: kind, title: title, header: header, rows: all)
         }
         return [
-            group(.review, DocumentStrings.inboxReview, rows(in: .review)),
-            group(.unassigned, DocumentStrings.inboxUnassigned, rows(in: .unassigned)),
-            group(.underway, DocumentStrings.inboxUnderway, waiting + rows(in: .new))
+            group(.review, DocumentStrings.inboxReview, .review),
+            group(.unassigned, DocumentStrings.inboxUnassigned, .unassigned),
+            group(.underway, DocumentStrings.inboxUnderway, .new, waiting: waiting)
         ].filter { !$0.rows.isEmpty }
     }
 }

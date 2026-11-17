@@ -64,6 +64,26 @@ import Testing
         #expect(query == expected)
     }
 
+    @Test func inboxCountsAreReadFromTheCountsPath() async throws {
+        let url = try StubURLProtocol.serve(.response(status: 200, json: #"{"new":2,"review":212,"unassigned":0}"#))
+
+        let counts = try await server.inboxCounts(in: scope(url))
+
+        #expect(counts == InboxCounts(new: 2, review: 212, unassigned: 0))
+        let request = try #require(StubURLProtocol.requests(to: url).first)
+        #expect(request.httpMethod == "GET")
+        #expect(request.url?.path() == "\(Self.workspacePath)/inbox/counts")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer tok")
+    }
+
+    /// A 1b server has no counts: its catch-all for an unknown API path answers 404 `not_found`.
+    @Test func aServerWithoutInboxCountsFails() async throws {
+        let body = #"{"code":"not_found","message":"We kunnen dit niet vinden."}"#
+        let url = try StubURLProtocol.serve(.response(status: 404, json: body))
+
+        await #expect(throws: ServerError.self) { try await server.inboxCounts(in: scope(url)) }
+    }
+
     @Test func setAddresseesSendsExactIDsAndReturnsDetail() async throws {
         let url = try StubURLProtocol.serve(.response(status: 200, json: Self.detailJSON))
         let ids = try [uuid(Self.personID), uuid(Self.otherPersonID)]

@@ -139,6 +139,33 @@ import Testing
         #expect(server.tokens == Array(repeating: "tok", count: 8))
     }
 
+    @Test func inboxCountsGoThroughTheSameRules() async throws {
+        server.onInboxCounts { url in
+            if url == Self.local { throw ServerError.unreachable }
+            return InboxCounts(new: 1, review: 2, unassigned: 3)
+        }
+
+        let counts = try await documents().inboxCounts()
+
+        #expect(counts == InboxCounts(new: 1, review: 2, unassigned: 3))
+        #expect(server.calls == [.inboxCounts(Self.local), .inboxCounts(Self.remote)])
+        #expect(server.tokens == ["tok", "tok"])
+    }
+
+    @Test func theFakeCountsWhatItsListHoldsByDefault() async throws {
+        server.onList { _, filter in
+            filter == .all ? [
+                DocumentFixtures.summary(status: .needsReview, inboxState: .review),
+                DocumentFixtures.summary(status: .done, inboxState: .unassigned),
+                DocumentFixtures.summary(status: .done, inboxState: .sorted)
+            ] : []
+        }
+
+        let counts = try await documents().inboxCounts()
+
+        #expect(counts == InboxCounts(new: 0, review: 1, unassigned: 1))
+    }
+
     @Test func organiseFailuresAreSortedToo() async throws {
         server.onPersons { url in
             if url == Self.local { throw ServerError.unreachable }

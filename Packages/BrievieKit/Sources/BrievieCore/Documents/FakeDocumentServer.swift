@@ -6,6 +6,7 @@ import Synchronization
 public final class FakeDocumentServer: DocumentServer {
     public enum Call: Equatable, Sendable {
         case list(URL, DocumentFilter)
+        case inboxCounts(URL)
         case detail(URL, UUID)
         case page(URL, UUID, Int)
         case confirm(URL, UUID, ConfirmedReview)
@@ -26,6 +27,8 @@ public final class FakeDocumentServer: DocumentServer {
         var calls: [Call] = []
         var tokens: [String] = []
         var list: @Sendable (URL, DocumentFilter) throws -> [DocumentSummary] = { _, _ in [] }
+        /// `nil` counts what the unfiltered list holds, as a server would.
+        var inboxCounts: (@Sendable (URL) throws -> InboxCounts)?
         var detail: @Sendable (URL, UUID) throws -> DocumentDetail
         var page: @Sendable (URL, UUID, Int) throws -> Data = { _, _, _ in Data([0xFF, 0xD8, 0xFF]) }
         var confirm: (@Sendable (URL, UUID, ConfirmedReview) throws -> DocumentDetail)?
@@ -62,6 +65,10 @@ public final class FakeDocumentServer: DocumentServer {
 
     public func onList(_ answer: @escaping @Sendable (URL, DocumentFilter) throws -> [DocumentSummary]) {
         state.withLock { $0.list = answer }
+    }
+
+    public func onInboxCounts(_ answer: @escaping @Sendable (URL) throws -> InboxCounts) {
+        state.withLock { $0.inboxCounts = answer }
     }
 
     public func onDetail(_ answer: @escaping @Sendable (URL, UUID) throws -> DocumentDetail) {
@@ -111,6 +118,16 @@ public final class FakeDocumentServer: DocumentServer {
 
     public func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {
         try record(.list(scope.url, filter), scope) { $0.list }(scope.url, filter)
+    }
+
+    public func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts {
+        let (counts, list) = record(.inboxCounts(scope.url), scope) { ($0.inboxCounts, $0.list) }
+        if let counts { return try counts(scope.url) }
+        let states = try list(scope.url, .all).map(\.inboxState)
+        return InboxCounts(
+            new: states.count { $0 == .new }, review: states.count { $0 == .review },
+            unassigned: states.count { $0 == .unassigned }
+        )
     }
 
     public func document(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {

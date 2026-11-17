@@ -181,6 +181,18 @@
         }
       }
     },
+    "documents.group.partial": {
+      "comment": "Group header when the list shows only the newest letters: title, total count, number shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$d, de nieuwste %3$d)"
+          }
+        }
+      }
+    },
     "documents.import": {
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",

@@ -65,6 +65,8 @@ public final class DocumentsModel {
     private let refreshInterval: Duration
 
     private var serverDocuments: [DocumentSummary] = []
+    /// In the inbox: per state, the number its header names (more than shown when only the newest are listed).
+    private var inboxTotals: [InboxState: Int] = [:]
     private var queued: [UploadItem] = []
     private var progress: [UUID: Double] = [:]
     @ObservationIgnored private var pollTask: Task<Void, Never>?
@@ -104,8 +106,9 @@ public final class DocumentsModel {
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
         guard scope != self.scope else { return }
-        if Self.filter(for: scope) != Self.filter(for: self.scope) {
+        if Self.source(for: scope) != Self.source(for: self.scope) {
             serverDocuments = []
+            inboxTotals = [:]
             state = .loading
         }
         self.scope = scope
@@ -113,16 +116,18 @@ public final class DocumentsModel {
         await load()
     }
 
-    /// The automatic refresh while something moves: the list only, not the persons and labels.
+    /// The automatic refresh while something moves: one list, not the persons and labels. In the inbox only
+    /// the letters on their way ("Onderweg"); when one of them left it, the whole inbox once, so it shows up
+    /// in its new group.
     public func refreshIfNeeded() async {
         guard needsRefresh else { return }
-        await load(organisation: false)
+        await load(organisation: false, movingOnly: true)
     }
 
     /// Every write that belongs to one scope is checked against the scope after each wait: a slow answer
     /// for a scope the user has left never touches the current one.
-    private func load(organisation: Bool) async {
-        let filter = Self.filter(for: scope)
+    private func load(organisation: Bool, movingOnly: Bool = false) async {
+        let source = Self.source(for: scope)
         let removed = await uploads.takeRemovedUnreadableCount()
         if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
@@ -130,31 +135,59 @@ public final class DocumentsModel {
         async let fetchedPersons = Self.persons(of: documents, if: organisation)
         async let fetchedLabels = Self.labels(of: documents, if: organisation)
         do {
-            let listed = try await documents.list(filter: filter)
-            // The queue may have moved on while the server answered.
-            let waiting = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-            queued = waiting
-            if isCurrent(filter) {
-                serverDocuments = listed
-                state = .loaded
+            switch source {
+            case .inbox:
+                let wholeInbox = movingOnly ? try await loadInbox([.new], withCounts: false) : true
+                if wholeInbox { _ = try await loadInbox(Self.inboxStates, withCounts: true) }
+            case let .list(filter):
+                let listed = try await documents.list(filter: filter)
+                // The queue may have moved on while the server answered.
+                queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+                if isCurrent(source) {
+                    serverDocuments = listed
+                    state = .loaded
+                }
             }
         } catch {
-            if await handleFailure(error, filter: filter) { return }
+            if await handleFailure(error, source: source) { return }
         }
         // Persons and labels belong to the workspace, not to a scope.
         let freshPersons = await fetchedPersons
         if let freshPersons { persons = freshPersons }
         if let fetched = await fetchedLabels { labels = fetched }
         // The chosen person was archived or removed meanwhile: back to the inbox.
-        if let freshPersons, isCurrent(filter), !isActivePersonScope(in: freshPersons) {
+        if let freshPersons, isCurrent(source), !isActivePersonScope(in: freshPersons) {
             await select(.inbox)
             return
         }
         rebuild()
     }
 
+    /// Replaces the letters of `states` with the server's lists. `true` when a letter that was "new" is no
+    /// longer in the fresh "new" list (it moved to another state).
+    private func loadInbox(_ states: [InboxState], withCounts: Bool) async throws(DocumentsError) -> Bool {
+        let answer = try await Self.fetchInbox(states, withCounts: withCounts, from: documents)
+        // The queue may have moved on while the server answered.
+        queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+        guard isCurrent(.inbox) else { return false }
+        let wasNew = Set(serverDocuments.filter { $0.inboxState == .new }.map(\.id))
+        var kept = serverDocuments.filter { !states.contains($0.inboxState) }
+        for state in states {
+            let listed = (answer.lists[state] ?? []).filter { document in !kept.contains { $0.id == document.id } }
+            kept += listed
+            inboxTotals[state] = Self.total(
+                fetched: answer.fetched[state] ?? 0, shown: listed.count,
+                counted: withCounts ? answer.counts?.count(of: state) : inboxTotals[state]
+            )
+        }
+        serverDocuments = kept
+        state = .loaded
+        let isNew = Set(kept.filter { $0.inboxState == .new }.map(\.id))
+        return states.contains(.new) && !wasNew.isSubset(of: isNew)
+    }
+
     /// `true` when the load stops here (it went back to the inbox).
-    private func handleFailure(_ error: DocumentsError, filter: DocumentFilter) async -> Bool {
+    private func handleFailure(_ error: DocumentsError, source: Source) async -> Bool {
         switch error {
         case .revoked:
             onRevoked()
@@ -162,12 +195,12 @@ public final class DocumentsModel {
             onMissingPairing()
         case .cancelled:
             break
-        case .notFound where isCurrent(filter) && scope.isPerson:
+        case .notFound where isCurrent(source) && scope.isPerson:
             // The person is gone: back to the inbox rather than "this document no longer exists".
             await select(.inbox)
             return true
         default:
-            if isCurrent(filter), state != .loaded { state = .failed(message: Self.message(for: error)) }
+            if isCurrent(source), state != .loaded { state = .failed(message: Self.message(for: error)) }
         }
         return false
     }
@@ -199,34 +232,6 @@ public final class DocumentsModel {
         }
     }
 
-    /// Before the scanner opens: asks for the camera the first time; `false` (with a notice) when it may not
-    /// be used.
-    public func prepareScanner() async -> Bool {
-        var status = camera.status()
-        if status == .notDetermined {
-            status = await camera.requestAccess() ? .allowed : .denied
-        }
-        switch status {
-        case .allowed:
-            cameraNotice = nil
-            return true
-        case .restricted:
-            cameraNotice = .restricted
-        case .denied, .notDetermined:
-            cameraNotice = .denied
-        }
-        return false
-    }
-
-    /// When the app is active again: access granted in Settings hides the notice. Never asks.
-    public func refreshCameraNotice() {
-        if cameraNotice != nil, camera.status() == .allowed { cameraNotice = nil }
-    }
-
-    public func openSettings() {
-        settingsOpener()
-    }
-
     public func retryUpload(_ id: UUID) async {
         await uploads.retry(id)
         await load(organisation: false)
@@ -244,7 +249,7 @@ public final class DocumentsModel {
         let onServer = serverDocuments
             .sorted { $0.createdAt > $1.createdAt }
             .map { document in (document.inboxState, row(for: document)) }
-        groups = makeGroups(waiting: waiting, onServer: onServer)
+        groups = makeGroups(waiting: waiting, onServer: onServer, totals: inboxTotals)
         rows = groups.flatMap(\.rows)
     }
 
@@ -296,5 +301,36 @@ public final class DocumentsModel {
         // A status this app does not know yet is at least a document that can be opened.
         case .done, .unknown: .done
         }
+    }
+}
+
+// The camera: kept out of the class body, which holds the loading.
+extension DocumentsModel {
+    /// Before the scanner opens: asks for the camera the first time; `false` (with a notice) when it may not
+    /// be used.
+    public func prepareScanner() async -> Bool {
+        var status = camera.status()
+        if status == .notDetermined {
+            status = await camera.requestAccess() ? .allowed : .denied
+        }
+        switch status {
+        case .allowed:
+            cameraNotice = nil
+            return true
+        case .restricted:
+            cameraNotice = .restricted
+        case .denied, .notDetermined:
+            cameraNotice = .denied
+        }
+        return false
+    }
+
+    /// When the app is active again: access granted in Settings hides the notice. Never asks.
+    public func refreshCameraNotice() {
+        if cameraNotice != nil, camera.status() == .allowed { cameraNotice = nil }
+    }
+
+    public func openSettings() {
+        settingsOpener()
     }
 }

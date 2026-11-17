@@ -74,6 +74,12 @@ extension DocumentStrings {
         defaultValue: "%1$@ (%2$d)",
         bundle: .module
     )
+    /// A group with more letters than the list holds: title, the count, the number shown.
+    static let groupPartialFormat = String(
+        localized: "documents.group.partial",
+        defaultValue: "%1$@ (%2$d, de nieuwste %3$d)",
+        bundle: .module
+    )
     static let addresseesFormat = String(
         localized: "documents.addressees",
         defaultValue: "Op naam van %@",

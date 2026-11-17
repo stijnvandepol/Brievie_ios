@@ -62,7 +62,13 @@ import Testing
             DocumentStrings.inboxReview, DocumentStrings.inboxUnassigned, DocumentStrings.inboxUnderway
         ])
         #expect(model.groups.map { $0.rows.map(\.id) } == [[review.id], [unassigned.id], [item.id, new.id]])
-        #expect(listCalls == [.all])
+        #expect(model.groups.map(\.header) == [
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 1),
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnassigned, 1),
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnderway, 2)
+        ])
+        // A 1b server ignores the filter and answers everything: each list keeps only its own state.
+        #expect(Set(listCalls.compactMap(\.inboxState?.rawValue)) == ["review", "unassigned", "new"])
     }
 
     @Test func sortedDocumentsAreNotInTheInbox() async throws {
@@ -187,7 +193,8 @@ import Testing
     }
 
     @Test func aRefreshTickAsksForTheListOnly() async throws {
-        server.onList { _ in [Self.document(.new, status: .processing)] }
+        let moving = Self.document(.new, status: .processing)
+        server.onList { _ in [moving] }
         let model = try model()
         await model.load()
         let before = server.calls.count

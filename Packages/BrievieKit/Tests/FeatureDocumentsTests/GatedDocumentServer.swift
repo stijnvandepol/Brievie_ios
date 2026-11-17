@@ -2,12 +2,18 @@ import BrievieCore
 import Foundation
 import Synchronization
 
-/// A `FakeDocumentServer` whose list for a chosen person waits until the test opens its gate, to play out a
-/// slow answer for a scope the user has already left. Task ticks can be held the same way.
+/// A `FakeDocumentServer` whose list for a chosen person or inbox state waits until the test opens its gate, to
+/// play out a slow answer for a scope the user has already left. Task ticks can be held the same way.
 final class GatedDocumentServer: DocumentServer {
+    /// A list that can be held: the one of a person, or one inbox state's.
+    enum Gate: Hashable {
+        case person(UUID)
+        case inbox(InboxState)
+    }
+
     private struct State {
-        var gated: Set<UUID> = []
-        var waiters: [UUID: [CheckedContinuation<Void, Never>]] = [:]
+        var gated: Set<Gate> = []
+        var waiters: [Gate: [CheckedContinuation<Void, Never>]] = [:]
         var holdsTasks = false
         var taskWaiters: [CheckedContinuation<Void, Never>] = []
     }
@@ -21,17 +27,29 @@ final class GatedDocumentServer: DocumentServer {
 
     /// The list for `personID` waits from now on until `open(_:)`.
     func close(_ personID: UUID) {
-        state.withLock { _ = $0.gated.insert(personID) }
+        close(gate: .person(personID))
     }
 
     func isWaiting(_ personID: UUID) -> Bool {
-        state.withLock { !($0.waiters[personID] ?? []).isEmpty }
+        isWaiting(gate: .person(personID))
     }
 
     func open(_ personID: UUID) {
+        open(gate: .person(personID))
+    }
+
+    func close(gate: Gate) {
+        state.withLock { _ = $0.gated.insert(gate) }
+    }
+
+    func isWaiting(gate: Gate) -> Bool {
+        state.withLock { !($0.waiters[gate] ?? []).isEmpty }
+    }
+
+    func open(gate: Gate) {
         let waiters = state.withLock { state in
-            state.gated.remove(personID)
-            return state.waiters.removeValue(forKey: personID) ?? []
+            state.gated.remove(gate)
+            return state.waiters.removeValue(forKey: gate) ?? []
         }
         for waiter in waiters { waiter.resume() }
     }
@@ -66,17 +84,22 @@ final class GatedDocumentServer: DocumentServer {
     }
 
     func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {
-        if let personID = filter.personID {
+        let gate: Gate? = filter.personID.map(Gate.person) ?? filter.inboxState.map(Gate.inbox)
+        if let gate {
             await withCheckedContinuation { continuation in
                 let waits = state.withLock { state in
-                    guard state.gated.contains(personID) else { return false }
-                    state.waiters[personID, default: []].append(continuation)
+                    guard state.gated.contains(gate) else { return false }
+                    state.waiters[gate, default: []].append(continuation)
                     return true
                 }
                 if !waits { continuation.resume() }
             }
         }
         return try await inner.documents(in: scope, filter: filter)
+    }
+
+    func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts {
+        try await inner.inboxCounts(in: scope)
     }
 
     func document(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {

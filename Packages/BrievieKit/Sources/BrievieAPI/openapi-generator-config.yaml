@@ -12,6 +12,7 @@ filter:
     - revokeDevice
     - listWorkspaces
     - listDocuments
+    - getInboxCounts
     - getDocument
     - getDocumentPage
     - confirmDocument

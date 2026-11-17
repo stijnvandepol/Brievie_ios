@@ -200,6 +200,8 @@ public struct DocumentScope: Sendable {
 public protocol DocumentServer: Sendable {
     /// The newest documents of the workspace that match `filter`.
     func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary]
+    /// The number of letters per inbox state over the whole workspace (a 1b server does not have this).
+    func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts
     func document(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail
     /// The JPEG of one page (1-based index).
     func pageImage(document id: UUID, index: Int, in scope: DocumentScope) async throws -> Data

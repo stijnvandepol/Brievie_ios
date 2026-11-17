@@ -47,6 +47,10 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.documents(in: $0, filter: filter) }
     }
 
+    public func inboxCounts() async throws(DocumentsError) -> InboxCounts {
+        try await perform { try await server.inboxCounts(in: $0) }
+    }
+
     public func detail(_ id: UUID) async throws(DocumentsError) -> DocumentDetail {
         try await perform { try await server.document(id, in: $0) }
     }

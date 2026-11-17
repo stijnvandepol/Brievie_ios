@@ -27,6 +27,22 @@ extension LiveBrievieServer: DocumentServer {
         }
     }
 
+    public func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts {
+        try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
+            switch try await client.getInboxCounts(path: .init(workspaceId: scope.workspaceID.apiString)) {
+            case let .ok(response):
+                let counts = try response.body.json
+                return InboxCounts(new: counts.new, review: counts.review, unassigned: counts.unassigned)
+            case .unauthorized:
+                throw ServerError.unauthorized
+            case let .notFound(response):
+                throw ServerError(status: 404, code: try? response.body.json.code)
+            case let .undocumented(status, _):
+                throw ServerError(status: status, code: nil)
+            }
+        }
+    }
+
     public func document(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
         try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
             let output = try await client.getDocument(

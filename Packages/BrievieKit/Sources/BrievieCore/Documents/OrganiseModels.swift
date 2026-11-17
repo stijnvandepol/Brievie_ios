@@ -102,6 +102,29 @@ public struct DocumentFilter: Equatable, Sendable {
     }
 }
 
+/// How many letters of the whole workspace are in each inbox state; the lists show at most the newest 200.
+public struct InboxCounts: Equatable, Sendable {
+    public let new: Int
+    public let review: Int
+    public let unassigned: Int
+
+    public init(new: Int, review: Int, unassigned: Int) {
+        self.new = new
+        self.review = review
+        self.unassigned = unassigned
+    }
+
+    /// The count of one of the three inbox states; `nil` for a state that is not in the inbox.
+    public func count(of state: InboxState) -> Int? {
+        switch state {
+        case .new: new
+        case .review: review
+        case .unassigned: unassigned
+        case .sorted, .unknown: nil
+        }
+    }
+}
+
 /// A task of the workspace, with the letter it came from.
 public struct WorkspaceTask: Identifiable, Equatable, Sendable {
     public let id: UUID

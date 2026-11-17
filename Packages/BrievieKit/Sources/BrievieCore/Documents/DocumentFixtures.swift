@@ -56,11 +56,12 @@ public enum DocumentFixtures {
 
     public static func summary(
         id: UUID = UUID(), clientID: UUID = UUID(), status: DocumentStatus = .needsReview,
-        sender: String = "", createdAt: Date = Date(timeIntervalSince1970: 1_794_650_400)
+        sender: String = "", createdAt: Date = Date(timeIntervalSince1970: 1_794_650_400),
+        inboxState: InboxState = .sorted
     ) -> DocumentSummary {
         DocumentSummary(
             id: id, clientID: clientID, status: status, pageCount: 1, createdAt: createdAt, sender: sender,
-            documentType: "", letterDate: nil
+            documentType: "", letterDate: nil, inboxState: inboxState
         )
     }
 
