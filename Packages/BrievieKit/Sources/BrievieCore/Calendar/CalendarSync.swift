@@ -72,8 +72,11 @@ public actor CalendarSync {
         }
     }
 
-    /// Turns the switch off; with `removeCalendar`, also deletes the workspace's calendar (nothing else).
-    public func disable(workspace: UUID, removeCalendar: Bool) async {
+    /// Turns the switch off; with `removeCalendar`, also deletes the workspace's calendar (nothing else), or only
+    /// its own events when the calendar also holds events of the user. `nil` when nothing was removed (not asked,
+    /// no calendar, or it failed).
+    @discardableResult
+    public func disable(workspace: UUID, removeCalendar: Bool) async -> CalendarRemoval? {
         await exclusively(workspace) { await $0.performDisable(workspace, removeCalendar: removeCalendar) }
     }
 
@@ -162,14 +165,15 @@ public actor CalendarSync {
         Set(settings.calendarIDs().filter { $0.key != workspace }.values)
     }
 
-    private func performDisable(_ workspace: UUID, removeCalendar: Bool) async {
+    private func performDisable(_ workspace: UUID, removeCalendar: Bool) async -> CalendarRemoval? {
         let calendarID = settings.calendarID(for: workspace)
         settings.disable(workspace: workspace)
-        guard removeCalendar, let calendarID else { return }
+        guard removeCalendar, let calendarID else { return nil }
         do {
-            try await store.removeCalendar(id: calendarID)
+            return try await store.removeCalendar(id: calendarID)
         } catch {
             Self.logger.error("Could not remove the calendar: \(String(describing: error), privacy: .private)")
+            return nil
         }
     }
 

@@ -37,6 +37,18 @@
         }
       }
     },
+    "workspaces.calendar.keptForUserEvents": {
+      "comment": "Under a calendar switch that was turned off with 'Verwijderen' while the calendar also held the user's own events.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In deze agenda staan ook afspraken van jou. De agenda blijft staan; de afspraken van Brievie zijn weg."
+          }
+        }
+      }
+    },
     "workspaces.calendar.noAccess": {
       "comment": "Under the calendar switch when calendar access is refused.",
       "extractionState": "manual",

@@ -110,9 +110,27 @@ public actor EventKitCalendarStore: CalendarStore {
         }
     }
 
-    public func removeCalendar(id: String) async throws {
-        guard let calendar = eventStore.calendar(withIdentifier: id) else { return }
-        try eventStore.removeCalendar(calendar, commit: true)
+    public func removeCalendar(id: String) async throws -> CalendarRemoval {
+        guard let calendar = eventStore.calendar(withIdentifier: id) else { return .removed }
+        var events: [String: EKEvent] = [:]
+        for slice in CalendarRemoval.querySlices {
+            // An event across two slices comes back twice; one entry per event.
+            for event in self.events(in: calendar, window: slice) { events[event.calendarItemIdentifier] = event }
+        }
+        guard events.values.contains(where: { TaskLink.taskID(in: $0.url) == nil }) else {
+            try eventStore.removeCalendar(calendar, commit: true)
+            return .removed
+        }
+        do {
+            for event in events.values where TaskLink.taskID(in: event.url) != nil {
+                try eventStore.remove(event, span: .thisEvent, commit: false)
+            }
+            try eventStore.commit()
+        } catch {
+            eventStore.reset()
+            throw error
+        }
+        return .keptForUserEvents
     }
 
     private func resetOnceAfterGrant() {

@@ -25,7 +25,34 @@ public protocol CalendarStore: Sendable {
     func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot]
     /// Writes `changes` into the calendar `calendarID`, all or nothing as far as the store allows.
     func apply(_ changes: [CalendarChange], calendarID: String) async throws
-    func removeCalendar(id: String) async throws
+    /// Removes the calendar `id`, but only when it holds no event without a task link on any day of
+    /// `CalendarRemoval.checkedDays` (an adopted calendar the user made can hold their own events far outside the
+    /// sync window). When it does, only the events with a task link go and the calendar stays.
+    func removeCalendar(id: String) async throws -> CalendarRemoval
+}
+
+/// What "Verwijderen" did with a workspace's calendar.
+public enum CalendarRemoval: Equatable, Sendable {
+    /// The calendar is gone (or was gone already).
+    case removed
+    /// The calendar also holds events of the user: only Brievie's events went, the calendar stays.
+    case keptForUserEvents
+
+    /// The days checked for events of the user before a calendar is removed.
+    public static let checkedDays =
+        CalendarDate(year: 2000, month: 1, day: 1)...CalendarDate(year: 2100, month: 12, day: 31)
+
+    /// `checkedDays` in slices of three years: EventKit searches at most four years at a time.
+    public static let querySlices: [ClosedRange<CalendarDate>] = {
+        var slices: [ClosedRange<CalendarDate>] = []
+        var start = checkedDays.lowerBound
+        while start <= checkedDays.upperBound {
+            let end = min(start.adding(years: 3).adding(days: -1), checkedDays.upperBound)
+            slices.append(start...end)
+            start = end.adding(days: 1)
+        }
+        return slices
+    }()
 }
 
 public struct CalendarStoreError: Error, Equatable {
@@ -165,9 +192,17 @@ public actor FakeCalendarStore: CalendarStore {
         }
     }
 
-    public func removeCalendar(id: String) async throws {
+    public func removeCalendar(id: String) async throws -> CalendarRemoval {
         try check()
-        userDeletesCalendar(id: id)
+        let usersOwn = stored.contains {
+            $0.calendarID == id && $0.snapshot.taskID == nil && CalendarRemoval.checkedDays.contains($0.snapshot.day)
+        }
+        guard usersOwn else {
+            userDeletesCalendar(id: id)
+            return .removed
+        }
+        stored.removeAll { $0.calendarID == id && $0.snapshot.taskID != nil }
+        return .keptForUserEvents
     }
 
     private func snapshot(_ task: CalendarTask, eventID: String) -> CalendarEventSnapshot {

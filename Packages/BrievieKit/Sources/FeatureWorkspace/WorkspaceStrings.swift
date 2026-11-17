@@ -71,6 +71,15 @@ enum WorkspaceStrings {
         bundle: .module
     )
 
+    /// Under a switched-off calendar switch, when "Verwijderen" found events of the user in the calendar.
+    static let calendarKeptForUserEvents = String(
+        localized: "workspaces.calendar.keptForUserEvents",
+        defaultValue: """
+            In deze agenda staan ook afspraken van jou. De agenda blijft staan; de afspraken van Brievie zijn weg.
+            """,
+        bundle: .module
+    )
+
     /// Under a calendar switch; `%@` is the calendar's name ("Brievie – Thuis").
     static let calendarFooterFormat = String(
         localized: "workspaces.calendar.footer",
@@ -104,6 +113,7 @@ enum WorkspaceStrings {
         "workspaces.calendar.noAccess": calendarNoAccess,
         "workspaces.calendar.tasksNotSupported": calendarTasksNotSupported,
         "workspaces.calendar.footer": calendarFooterFormat,
+        "workspaces.calendar.keptForUserEvents": calendarKeptForUserEvents,
         "workspaces.calendar.remove.question": calendarRemoveQuestionFormat
     ]
 }

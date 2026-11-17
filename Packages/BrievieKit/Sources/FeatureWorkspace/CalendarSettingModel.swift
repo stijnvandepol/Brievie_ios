@@ -111,9 +111,15 @@ public final class CalendarSettingModel {
         let workspace = workspaceID
         let previous = pendingTask
         generation += 1
+        let action = generation
         pendingTask = Task {
             await previous?.value
-            await sync.disable(workspace: workspace, removeCalendar: removeCalendar)
+            let removal = await sync.disable(workspace: workspace, removeCalendar: removeCalendar)
+            // The calendar also held the user's own events: it stayed, and the switch says why.
+            if action == generation, removal == .keptForUserEvents {
+                message = WorkspaceStrings.calendarKeptForUserEvents
+                showsOpenSettings = false
+            }
         }
     }
 
