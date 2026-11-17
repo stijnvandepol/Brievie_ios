@@ -11,7 +11,7 @@ public final class ConfirmedDocumentModel {
     /// The server's last answer for this letter.
     public private(set) var detail: DocumentDetail
     public private(set) var persons: [Person]
-    public let labels: [DocumentLabel]
+    public private(set) var labels: [DocumentLabel]
     /// Members and admins change the letter; a viewer only reads.
     public let canEdit: Bool
     /// What the screen shows: the server's last answer plus the changes still on their way.
@@ -63,6 +63,12 @@ public final class ConfirmedDocumentModel {
         organise = OrganiseDraft(confirmed: detail)
         tasks = detail.tasks
         serverDone = Self.doneByID(detail.tasks)
+    }
+
+    /// The workspace's persons and labels as the server has them now (loaded again with the letter).
+    public func showLists(persons: [Person], labels: [DocumentLabel]) {
+        self.persons = persons
+        self.labels = labels
     }
 
     /// The letter as the server has it now (loaded again). Changes still on their way stay shown.

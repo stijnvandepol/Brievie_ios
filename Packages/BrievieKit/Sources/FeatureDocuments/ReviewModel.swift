@@ -82,14 +82,25 @@ public final class ReviewModel {
     /// Processing failed on the server; the review can still be filled in by hand.
     public var processingFailed: Bool { detail?.summary.status == .failed }
 
+    /// The screen's title: "Brief" for a confirmed letter, "Controleren" otherwise.
+    public var title: String {
+        state == .done ? DocumentStrings.letterTitle : DocumentStrings.reviewTitle
+    }
+
+    /// Loads the letter; the persons and labels the first time, and again for a confirmed letter (a label made
+    /// in the web meanwhile shows in the picker). Lists that cannot be loaded again keep the ones on screen.
     public func load() async {
         let asksLists = !askedOrganiseLists
-        async let lists = asksLists ? Self.organiseLists(from: documents) : nil
+        let refreshesLists = !asksLists && organiseAvailable && state == .done
+        async let lists = asksLists || refreshesLists ? Self.organiseLists(from: documents) : nil
         do {
             let detail = try await documents.detail(documentID)
             if asksLists {
                 askedOrganiseLists = true
                 apply(await lists)
+            } else if refreshesLists, detail.summary.status == .done, let fresh = await lists {
+                apply(fresh)
+                confirmed?.showLists(persons: fresh.persons, labels: fresh.labels)
             }
             show(detail)
         } catch {

@@ -39,7 +39,7 @@ public struct ReviewView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(DocumentStrings.reviewTitle)
+        .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await model.load()

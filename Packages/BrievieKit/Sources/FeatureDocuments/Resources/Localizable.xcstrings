@@ -85,6 +85,18 @@
         }
       }
     },
+    "document.title": {
+      "comment": "Title of the screen of a confirmed letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief"
+          }
+        }
+      }
+    },
     "documents.add": {
       "comment": "Toolbar menu: add a letter by scanning or from photos.",
       "extractionState": "manual",
