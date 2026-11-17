@@ -141,3 +141,37 @@ import Testing
         #expect(model.message == WorkspaceStrings.calendarNoCalendarAccount)
     }
 }
+
+/// A sync elsewhere (after a confirm or a ticked task) found the calendar's account gone and turned the setting
+/// off; the switch on the reused Workspaces screen must follow on the next refresh.
+@MainActor
+@Suite struct CalendarSwitchFollowsOtherSyncsTests {
+    private static let exchange = CalendarSource(id: "exchange", title: "Werk", kind: .other)
+
+    @Test func aSwitchTurnedOffByAnotherSyncGoesOffWithTheMessage() async {
+        let settings = InMemoryCalendarSettings()
+        let workspace = UUID()
+        let store = FakeCalendarStore(sources: [Self.exchange], defaultSourceID: Self.exchange.id)
+        let sync = CalendarSync(
+            store: store, settings: settings, tasks: { _ in [] }, workspaceName: { _ in "Thuis" },
+            typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 16) }
+        )
+        let model = CalendarSettingModel(
+            workspaceID: workspace, workspaceName: "Thuis", sync: sync, settings: settings, openSettings: {}
+        )
+        model.toggle(true)
+        await model.pendingTask?.value
+        model.answerConsent(true)
+        await model.pendingTask?.value
+        #expect(model.isOn)
+        await store.userRemovesSource(id: Self.exchange.id)
+
+        // The sync after a confirm: its result goes nowhere near this switch.
+        #expect(await sync.sync(workspace: workspace) == .sourceGone)
+        model.refresh()
+        await model.refreshTask?.value
+
+        #expect(!model.isOn)
+        #expect(model.message == WorkspaceStrings.calendarSourceGone)
+    }
+}

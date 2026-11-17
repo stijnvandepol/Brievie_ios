@@ -199,8 +199,9 @@ public final class CalendarSettingModel {
     }
 
     /// After the Workspaces list loaded, while the switch is on: says so when calendar access was taken away in
-    /// Settings (and drops that line once it is back; the switch stays on either way), then syncs. A sync that
-    /// found the calendar's account gone turned the switch off: it says so.
+    /// Settings (and drops that line once it is back; the switch stays on either way), then syncs. A sync (this
+    /// one or an earlier one elsewhere) that found the calendar's account gone turned the setting off: the switch
+    /// follows and says so.
     public func refresh() {
         guard isOn else { return }
         let sync = sync
@@ -223,7 +224,9 @@ public final class CalendarSettingModel {
             let destination = await sync.destination(workspace: workspace)
             // A flip of the switch meanwhile decides what it shows.
             guard action == generation else { return }
-            if result == .sourceGone {
+            // Also when another sync (after a confirm or a ticked task) found the account gone and turned the
+            // setting off: this sync then only answers `.off`.
+            if result == .sourceGone || !settings.isEnabled(for: workspace) {
                 isOn = false
                 message = WorkspaceStrings.calendarSourceGone
                 showsOpenSettings = false
