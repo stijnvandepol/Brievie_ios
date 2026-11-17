@@ -230,6 +230,19 @@ private struct CalendarSwitchRow: View {
                 Text("workspaces.calendar.keep", bundle: .module)
             }
         }
+        // Only another account is left: the user decides, by that account's name.
+        .alert(model.consentQuestion, isPresented: $model.isAskingConsent) {
+            Button {
+                model.answerConsent(true)
+            } label: {
+                Text("workspaces.calendar.consent.yes", bundle: .module)
+            }
+            Button(role: .cancel) {
+                model.answerConsent(false)
+            } label: {
+                Text("workspaces.calendar.consent.no", bundle: .module)
+            }
+        }
     }
 }
 

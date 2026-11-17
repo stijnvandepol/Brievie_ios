@@ -15,8 +15,7 @@ struct AppEnvironment {
     let calendarSettings: any CalendarSettings
     /// Deadlines in a calendar per workspace, on this phone.
     let calendarSync: CalendarSync
-    /// The names of the workspaces the Workspaces screen loaded last: the calendars are named after them, and
-    /// the activation sync covers these.
+    /// The names of the workspaces the Workspaces screen loaded last: the calendars are named after them.
     let workspaceNames: WorkspaceNames
 
     /// - Parameters:
@@ -62,17 +61,6 @@ struct AppEnvironment {
         )
     }
 
-    /// Syncs the calendar of every workspace the app knows (each does nothing while its switch is off).
-    func syncCalendars() {
-        let sync = calendarSync
-        let workspaces = workspaceNames.workspaces
-        Task {
-            for workspace in workspaces {
-                _ = await sync.sync(workspace: workspace)
-            }
-        }
-    }
-
     /// After a confirm or a ticked task in `workspace`.
     func syncCalendar(of workspace: UUID) {
         let sync = calendarSync
@@ -88,8 +76,6 @@ struct AppEnvironment {
 /// The names of the loaded workspaces, readable from any isolation.
 final class WorkspaceNames: Sendable {
     private let names = Mutex<[UUID: String]>([:])
-
-    var workspaces: [UUID] { names.withLock { Array($0.keys) } }
 
     func name(of workspace: UUID) -> String {
         names.withLock { $0[workspace] } ?? ""

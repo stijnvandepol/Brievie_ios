@@ -66,19 +66,29 @@ public actor CalendarSync {
     /// Turns the switch on: asks for access when needed, makes (or finds) the calendar, remembers it and syncs.
     /// The open tasks are read first, before the access prompt: a server without a task list gets no prompt and
     /// no calendar. Any other failure to read them still makes the calendar; the next sync fills it.
-    public func enable(workspace: UUID) async -> CalendarSyncResult {
+    /// - Parameter consentedSourceID: the account the user said yes to after `.needsConsent`; only that one.
+    public func enable(workspace: UUID, consentedSourceID: String? = nil) async -> CalendarSyncResult {
         await exclusively(workspace) { sync in
             // An unpair while this runs clears the settings: then nothing may be stored afterwards.
             let generation = sync.settings.clearGeneration()
             let open = await sync.openTasks(workspace)
             if case .failure(let error) = open, error as? DocumentsError == .notSupported { return .tasksNotSupported }
             guard await sync.requestAccessIfNeeded() else { return .noAccess }
-            switch await sync.makeCalendar(workspace, generation: generation) {
+            switch await sync.makeCalendar(workspace, generation: generation, consentedSourceID: consentedSourceID) {
             case .made: return await sync.performSync(workspace, open: open)
             case .notWanted: return .off
+            case .needsConsent(let source): return .needsConsent(source)
+            case .noAccount: return .noCalendarAccount
             case .failed: return .failed
             }
         }
+    }
+
+    /// The account the workspace's calendar is in, for the footer under its switch; `nil` while it is off or the
+    /// account is not known (any more).
+    public func destination(workspace: UUID) async -> CalendarSource? {
+        guard settings.isEnabled(for: workspace), let id = settings.sourceID(for: workspace) else { return nil }
+        return await store.sources().source(id: id)
     }
 
     /// Turns the switch off; with `removeCalendar`, also deletes the workspace's calendar (nothing else), or only
@@ -137,22 +147,38 @@ public actor CalendarSync {
         case made
         /// The settings were cleared (unpaired) since `generation`: nothing was stored.
         case notWanted
+        /// Only another account is left, and the user has not said yes to it.
+        case needsConsent(CalendarSource)
+        case noAccount
         case failed
     }
 
-    private func makeCalendar(_ workspace: UUID, generation: Int) async -> MadeCalendar {
+    private func makeCalendar(_ workspace: UUID, generation: Int, consentedSourceID: String?) async -> MadeCalendar {
         let name = workspaceName(workspace)
         guard !name.isEmpty else { return .failed }
         return await choosingCalendar { sync in
             guard sync.settings.clearGeneration() == generation else { return .notWanted }
+            let sourceID: String
+            switch await CalendarSourceChoice(sync.store.sources()) {
+            case .silent(let source):
+                sourceID = source.id
+            case .needsConsent(let source):
+                guard consentedSourceID == source.id else { return .needsConsent(source) }
+                sourceID = source.id
+            case .none:
+                return .noAccount
+            }
             do {
-                let id = try await sync.store.ensureCalendar(
+                let calendar = try await sync.store.ensureCalendar(
                     named: Self.calendarName(workspaceName: name),
                     existingID: sync.settings.calendarID(for: workspace),
                     excluding: sync.calendarsOfOtherWorkspaces(workspace),
-                    window: CalendarSyncPlanner.window(today: sync.today())
+                    window: CalendarSyncPlanner.window(today: sync.today()),
+                    sourceID: sourceID
                 )
-                guard sync.settings.enable(workspace: workspace, calendarID: id, ifGeneration: generation) else {
+                guard sync.settings.enable(
+                    workspace: workspace, calendarID: calendar.id, sourceID: calendar.sourceID, ifGeneration: generation
+                ) else {
                     return .notWanted
                 }
                 return .made
@@ -193,33 +219,51 @@ public actor CalendarSync {
             return Self.counted(changes)
         } catch DocumentsError.notSupported {
             return .tasksNotSupported
+        } catch let error as CalendarStoreError where error.reason == .sourceGone {
+            return .sourceGone
         } catch {
             Self.logger.error("Calendar sync failed: \(String(describing: error), privacy: .private)")
             return .failed
         }
     }
 
-    /// The calendar this sync writes in: the stored one, or one found or made again. `nil` when the setting was
-    /// cleared meanwhile (unpairing or the switch): it is never written back.
+    /// The calendar this sync writes in: the stored one, or one found or made again in the account it was in
+    /// (never another). `nil` when the setting was cleared meanwhile (unpairing or the switch): it is never written
+    /// back. When that account is gone, the switch goes off and this fails with `.sourceGone`.
     private func chooseCalendar(
         _ workspace: UUID, named name: String, storedID: String, window: ClosedRange<CalendarDate>
     ) async -> Result<String?, any Error> {
         let generation = settings.clearGeneration()
         guard settings.calendarID(for: workspace) == storedID else { return .success(nil) }
         do {
-            let calendarID = try await store.ensureCalendar(
+            let calendar = try await store.ensureCalendar(
                 named: Self.calendarName(workspaceName: name), existingID: storedID,
-                excluding: calendarsOfOtherWorkspaces(workspace), window: window
+                excluding: calendarsOfOtherWorkspaces(workspace), window: window,
+                sourceID: await agreedSource(workspace)
             )
             guard settings.calendarID(for: workspace) == storedID else { return .success(nil) }
-            if calendarID != storedID,
-               !settings.enable(workspace: workspace, calendarID: calendarID, ifGeneration: generation) {
+            if calendar.id != storedID || calendar.sourceID != settings.sourceID(for: workspace),
+               !settings.enable(
+                   workspace: workspace, calendarID: calendar.id, sourceID: calendar.sourceID, ifGeneration: generation
+               ) {
                 return .success(nil)
             }
-            return .success(calendarID)
+            return .success(calendar.id)
+        } catch let error as CalendarStoreError where error.reason == .sourceGone {
+            if settings.calendarID(for: workspace) == storedID { settings.disable(workspace: workspace) }
+            return .failure(error)
         } catch {
             return .failure(error)
         }
+    }
+
+    /// The account the workspace's calendar may be made again in: the one stored with it. A setting from before
+    /// the account was stored never had the user's yes for another account, so it may only use iCloud or the
+    /// phone.
+    private func agreedSource(_ workspace: UUID) async -> String? {
+        if let stored = settings.sourceID(for: workspace) { return stored }
+        if case .silent(let source) = await CalendarSourceChoice(store.sources()) { return source.id }
+        return nil
     }
 
     private func calendarsOfOtherWorkspaces(_ workspace: UUID) -> Set<String> {

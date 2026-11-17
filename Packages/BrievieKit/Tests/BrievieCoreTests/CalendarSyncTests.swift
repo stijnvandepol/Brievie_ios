@@ -201,7 +201,9 @@ import Testing
     }
 
     @Test func aCalendarWithTheSameTitleInAnotherSourceIsNotAdopted() async throws {
-        let elsewhere = await store.userAddsCalendar(title: "Brievie – Thuis", inDefaultSource: false)
+        let local = CalendarSource(id: "local", title: "Op mijn iPhone", kind: .local)
+        await store.setSources([FakeCalendarStore.iCloud, local], defaultSourceID: FakeCalendarStore.iCloud.id)
+        let elsewhere = await store.userAddsCalendar(title: "Brievie – Thuis", sourceID: local.id)
 
         _ = await makeSync().enable(workspace: home)
 

@@ -80,8 +80,8 @@ import Testing
         await model.pendingTask?.value
         await store.setAccess(.denied, grantsOnRequest: false)
 
-        model.refreshAccess()
-        await model.accessTask?.value
+        model.refresh()
+        await model.refreshTask?.value
 
         #expect(model.isOn, "The switch stays on: syncing resumes when access is back")
         #expect(model.message == "Geef Brievie toegang tot je agenda in Instellingen.")
@@ -94,12 +94,12 @@ import Testing
         model.toggle(true)
         await model.pendingTask?.value
         await store.setAccess(.denied, grantsOnRequest: false)
-        model.refreshAccess()
-        await model.accessTask?.value
+        model.refresh()
+        await model.refreshTask?.value
 
         await store.setAccess(.granted, grantsOnRequest: true)
-        model.refreshAccess()
-        await model.accessTask?.value
+        model.refresh()
+        await model.refreshTask?.value
 
         #expect(model.isOn)
         #expect(model.message == nil)
@@ -110,9 +110,9 @@ import Testing
         await store.setAccess(.denied, grantsOnRequest: false)
         let model = makeModel()
 
-        model.refreshAccess()
+        model.refresh()
 
-        #expect(model.accessTask == nil)
+        #expect(model.refreshTask == nil)
         #expect(model.message == nil)
     }
 
@@ -239,8 +239,8 @@ import Testing
 
     @Test func theFooterNamesTheWorkspacesCalendar() {
         #expect(makeModel().footer == """
-            Je taken met een deadline komen in een eigen agenda 'Brievie – Thuis'. De tekst van de taak en de \
-            afzender staan erin. Die agenda kan via iCloud op je andere apparaten komen.
+            Je taken met een deadline komen in een eigen agenda 'Brievie – Thuis' in iCloud of op deze iPhone. \
+            Een andere account gebruikt Brievie alleen als jij dat goedvindt.
             """)
     }
 
@@ -333,7 +333,7 @@ import Testing
 
         await model.load()
         let calendar = try #require(model.calendarModel(for: thuis.id))
-        await calendar.accessTask?.value
+        await calendar.refreshTask?.value
 
         #expect(calendar.isOn)
         #expect(calendar.showsOpenSettings)

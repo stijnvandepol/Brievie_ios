@@ -116,11 +116,11 @@ private struct WorkspacesScreen: View {
                 sync: environment.calendarSync,
                 settings: environment.calendarSettings,
                 openSettings: openSystemSettings,
+                // The switches sync themselves after this (`CalendarSettingModel.refresh()`).
                 didLoad: { rows in
                     environment.workspaceNames.replace(
                         with: Dictionary(rows.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
                     )
-                    environment.syncCalendars()
                 }
             )
         ))

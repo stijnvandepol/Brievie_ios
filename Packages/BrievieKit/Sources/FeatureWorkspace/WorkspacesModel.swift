@@ -129,9 +129,10 @@ public final class WorkspacesModel {
         case .workspaces(let workspaces):
             let rows = workspaces.map(Row.init(workspace:))
             updateCalendarModels(rows)
-            for model in calendarModels.values { model.refreshAccess() }
             state = .loaded(rows)
+            // The app learns the names first: a sync names the calendar after its workspace.
             calendar?.didLoad(rows)
+            for model in calendarModels.values { model.refresh() }
         case .revoked:
             appModel.sessionRevoked(deviceID: connection.deviceID)
         case .cancelled:

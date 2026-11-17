@@ -7,7 +7,8 @@ public struct WorkspaceCalendar {
     let sync: CalendarSync
     let settings: any CalendarSettings
     let openSettings: @MainActor () -> Void
-    /// Called with the rows after every successful load: the app learns the workspaces' names and syncs.
+    /// Called with the rows after every successful load, before the switches sync: the app learns the
+    /// workspaces' names.
     let didLoad: @MainActor ([WorkspacesModel.Row]) -> Void
 
     public init(
@@ -30,9 +31,18 @@ public final class CalendarSettingModel {
     public let workspaceID: UUID
     public let workspaceName: String
     public private(set) var isOn: Bool
-    /// What the switch puts where, under it: "Je taken met een deadline komen in een eigen agenda 'Brievie – …'".
+    /// The account the calendar is in, once it is known (`nil` while off).
+    public private(set) var destination: CalendarSource?
+
+    /// What the switch puts where, under it: the calendar's name and the account it is in.
     public var footer: String {
-        String(format: WorkspaceStrings.calendarFooterFormat, CalendarSync.calendarName(workspaceName: workspaceName))
+        let name = CalendarSync.calendarName(workspaceName: workspaceName)
+        guard let destination else { return String(format: WorkspaceStrings.calendarFooterFormat, name) }
+        return switch destination.kind {
+        case .iCloud: String(format: WorkspaceStrings.calendarFooterICloudFormat, name)
+        case .local: String(format: WorkspaceStrings.calendarFooterLocalFormat, name)
+        case .other: String(format: WorkspaceStrings.calendarFooterOtherFormat, name, destination.title)
+        }
     }
 
     /// The switch's VoiceOver hint: every switch has the same label, the footer names this workspace's calendar.
@@ -44,6 +54,16 @@ public final class CalendarSettingModel {
     public private(set) var showsOpenSettings = false
     /// The "ook verwijderen?" question is on screen. Answering it turns the switch off; dismissing it keeps it on.
     public var isAskingToRemove = false
+    /// The only account left for the calendar is someone else's: "mag dat?" is on screen. The switch is off until
+    /// the user says yes; dismissing it is a no.
+    public var isAskingConsent = false
+    /// The account the question is about.
+    @ObservationIgnored private var consentSource: CalendarSource?
+
+    /// "Brievie zet je taken in de agenda van <account>. Wie die account beheert, kan ze lezen."
+    public var consentQuestion: String {
+        String(format: WorkspaceStrings.calendarConsentFormat, consentSource?.title ?? "")
+    }
 
     /// "Agenda 'Brievie – <naam>' ook verwijderen?"
     public var removeQuestion: String {
@@ -61,8 +81,8 @@ public final class CalendarSettingModel {
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
     /// Counts the switch's actions: only the result of the latest one may change what the switch shows.
     @ObservationIgnored private var generation = 0
-    /// The access check started by `refreshAccess()`. Tests await it.
-    @ObservationIgnored private(set) var accessTask: Task<Void, Never>?
+    /// The access check and sync started by `refresh()`. Tests await it.
+    @ObservationIgnored private(set) var refreshTask: Task<Void, Never>?
 
     public init(
         workspaceID: UUID,
@@ -84,22 +104,38 @@ public final class CalendarSettingModel {
     public func toggle(_ wantsOn: Bool) {
         if wantsOn {
             guard !isOn else { return }
-            isOn = true
-            message = nil
-            showsOpenSettings = false
-            let sync = sync
-            let workspace = workspaceID
-            let previous = pendingTask
-            generation += 1
-            let action = generation
-            pendingTask = Task {
-                await previous?.value
-                let result = await sync.enable(workspace: workspace)
-                // A later flip decides what the switch shows; this result is old news.
-                if action == generation { show(result) }
-            }
+            switchOn(consentedSourceID: nil)
         } else if isOn {
             isAskingToRemove = true
+        }
+    }
+
+    /// The answer to "mag dat?": yes makes the calendar in that account (and only there), no leaves the switch off.
+    public func answerConsent(_ agrees: Bool) {
+        isAskingConsent = false
+        guard let source = consentSource else { return }
+        consentSource = nil
+        guard agrees, !isOn else { return }
+        switchOn(consentedSourceID: source.id)
+    }
+
+    private func switchOn(consentedSourceID: String?) {
+        isOn = true
+        message = nil
+        showsOpenSettings = false
+        let sync = sync
+        let workspace = workspaceID
+        let previous = pendingTask
+        generation += 1
+        let action = generation
+        pendingTask = Task {
+            await previous?.value
+            let result = await sync.enable(workspace: workspace, consentedSourceID: consentedSourceID)
+            let destination = await sync.destination(workspace: workspace)
+            // A later flip decides what the switch shows; this result is old news.
+            guard action == generation else { return }
+            self.destination = destination
+            show(result)
         }
     }
 
@@ -118,8 +154,10 @@ public final class CalendarSettingModel {
         pendingTask = Task {
             await previous?.value
             let removal = await sync.disable(workspace: workspace, removeCalendar: removeCalendar)
+            guard action == generation else { return }
+            destination = nil
             // The calendar also held the user's own events: it stayed, and the switch says why.
-            if action == generation, removal == .keptForUserEvents {
+            if removal == .keptForUserEvents {
                 message = WorkspaceStrings.calendarKeptForUserEvents
                 showsOpenSettings = false
             }
@@ -130,16 +168,21 @@ public final class CalendarSettingModel {
     /// above the lock screen. Not answering keeps the switch on.
     public func sceneLeftForeground() {
         isAskingToRemove = false
+        // Not answering "mag dat?" is a no.
+        if isAskingConsent { answerConsent(false) }
     }
 
-    /// While the switch is on: says so when calendar access was taken away in Settings, and drops that line once
-    /// it is back. The switch stays on either way; syncing resumes by itself when access returns.
-    public func refreshAccess() {
+    /// After the Workspaces list loaded, while the switch is on: says so when calendar access was taken away in
+    /// Settings (and drops that line once it is back; the switch stays on either way), then syncs. A sync that
+    /// found the calendar's account gone turned the switch off: it says so.
+    public func refresh() {
         guard isOn else { return }
         let sync = sync
-        accessTask = Task {
+        let workspace = workspaceID
+        let action = generation
+        refreshTask = Task {
             let access = await sync.access()
-            guard isOn else { return }
+            guard isOn, action == generation else { return }
             if access == .granted {
                 if showsOpenSettings {
                     message = nil
@@ -148,7 +191,18 @@ public final class CalendarSettingModel {
             } else {
                 message = WorkspaceStrings.calendarNoAccess
                 showsOpenSettings = true
+                return
             }
+            let result = await sync.sync(workspace: workspace)
+            let destination = await sync.destination(workspace: workspace)
+            // A flip of the switch meanwhile decides what it shows.
+            guard action == generation else { return }
+            if result == .sourceGone {
+                isOn = false
+                message = WorkspaceStrings.calendarSourceGone
+                showsOpenSettings = false
+            }
+            self.destination = destination
         }
     }
 
@@ -166,6 +220,18 @@ public final class CalendarSettingModel {
         case .tasksNotSupported:
             isOn = false
             message = WorkspaceStrings.calendarTasksNotSupported
+            showsOpenSettings = false
+        case .needsConsent(let source):
+            isOn = false
+            consentSource = source
+            isAskingConsent = true
+        case .noCalendarAccount:
+            isOn = false
+            message = WorkspaceStrings.calendarNoCalendarAccount
+            showsOpenSettings = false
+        case .sourceGone:
+            isOn = false
+            message = WorkspaceStrings.calendarSourceGone
             showsOpenSettings = false
         case .failed:
             // The switch stays on when the calendar exists and only this first fill failed: the next sync retries.

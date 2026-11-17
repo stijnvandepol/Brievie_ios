@@ -64,6 +64,14 @@ public enum CalendarSyncResult: Equatable, Sendable {
     case done(created: Int, updated: Int, deleted: Int)
     /// The server has no task list (a 1b server): no calendar was made.
     case tasksNotSupported
+    /// The only account a calendar could go in is run by someone else: nothing was made until the user says yes
+    /// to this account (`CalendarSync.enable(workspace:consentedSourceID:)`).
+    case needsConsent(CalendarSource)
+    /// The phone has no account that takes a new calendar: nothing was made.
+    case noCalendarAccount
+    /// The calendar is gone and so is the account it was in (or the user never agreed to the only one left):
+    /// the switch was turned off, nothing was made elsewhere.
+    case sourceGone
     case failed
 }
 

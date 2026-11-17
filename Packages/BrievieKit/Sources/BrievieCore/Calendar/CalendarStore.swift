@@ -8,19 +8,101 @@ public enum CalendarAccess: Equatable, Sendable {
     case notDetermined
 }
 
+/// An account on the phone that can hold a new calendar.
+public struct CalendarSource: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        /// The user's own iCloud account.
+        case iCloud
+        /// "Op mijn iPhone": stays on this phone.
+        case local
+        /// Exchange, Google or any other CalDAV account: someone else runs its server, perhaps an employer.
+        case other
+    }
+
+    public let id: String
+    /// As the phone names it ("iCloud", "Gmail", "Werk").
+    public let title: String
+    public let kind: Kind
+
+    public init(id: String, title: String, kind: Kind) {
+        self.id = id
+        self.title = title
+        self.kind = kind
+    }
+}
+
+/// The accounts that can hold a new calendar, and the account of the phone's default calendar.
+public struct CalendarSourceList: Equatable, Sendable {
+    public let sources: [CalendarSource]
+    public let defaultSourceID: String?
+
+    public init(sources: [CalendarSource], defaultSourceID: String?) {
+        self.sources = sources
+        self.defaultSourceID = defaultSourceID
+    }
+
+    public func source(id: String) -> CalendarSource? {
+        sources.first { $0.id == id }
+    }
+}
+
+/// Where a new Brievie calendar may go. iCloud and the phone itself are the user's own: chosen without asking
+/// (the default calendar's account when it is one of them, else iCloud, else the phone). Any other account is
+/// run by someone else, who can read what is in it: only after the user said yes to that account by name.
+public enum CalendarSourceChoice: Equatable, Sendable {
+    case silent(CalendarSource)
+    /// The default calendar's account, or else the first other account.
+    case needsConsent(CalendarSource)
+    /// The phone has no account that takes a new calendar.
+    case none
+
+    public init(sources: [CalendarSource], defaultSourceID: String?) {
+        let fallback = sources.first { $0.id == defaultSourceID }
+        if let fallback, fallback.kind != .other {
+            self = .silent(fallback)
+        } else if let own = sources.first(where: { $0.kind == .iCloud })
+            ?? sources.first(where: { $0.kind == .local }) {
+            self = .silent(own)
+        } else if let other = fallback ?? sources.first {
+            self = .needsConsent(other)
+        } else {
+            self = .none
+        }
+    }
+
+    public init(_ list: CalendarSourceList) {
+        self.init(sources: list.sources, defaultSourceID: list.defaultSourceID)
+    }
+}
+
+/// A calendar and the account it is in.
+public struct CalendarRef: Equatable, Sendable {
+    public let id: String
+    public let sourceID: String
+
+    public init(id: String, sourceID: String) {
+        self.id = id
+        self.sourceID = sourceID
+    }
+}
+
 /// The phone's calendars, as far as the sync uses them. `EventKitCalendarStore` is the live one.
 public protocol CalendarStore: Sendable {
     func access() async -> CalendarAccess
     /// Asks the user (once; afterwards the system answers with the earlier choice).
     func requestAccess() async -> CalendarAccess
+    /// The accounts that can hold a new calendar (never a subscribed or birthday calendar's).
+    func sources() async -> CalendarSourceList
     /// The calendar `existingID` when it still exists, is writable and is not in `excluding` (retitled `named`
-    /// when the workspace was renamed). Else a calendar titled `named` is adopted, but only when it is in the
-    /// default calendar source, is not in `excluding` (the calendars of other workspaces) and has no event without
-    /// a task link in `window` (it is empty, or only Brievie's). Else a new calendar with that title is made in
-    /// the default source. Returns its identifier.
+    /// when the workspace was renamed), in whatever account it is. Else a calendar titled `named` is adopted, but
+    /// only when it is in the account `sourceID`, is not in `excluding` (the calendars of other workspaces) and
+    /// has no event without a task link in `window` (it is empty, or only Brievie's). Else a new calendar with
+    /// that title is made in the account `sourceID`, and nowhere else.
+    /// - Throws: `CalendarStoreError(.sourceGone)` when `sourceID` is `nil` or that account is not on the phone.
     func ensureCalendar(
-        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
-    ) async throws -> String
+        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>,
+        sourceID: String?
+    ) async throws -> CalendarRef
     /// The events of the calendar `calendarID` on the days of `window`.
     func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot]
     /// Writes `changes` into the calendar `calendarID`, all or nothing as far as the store allows.
@@ -58,9 +140,8 @@ public enum CalendarRemoval: Equatable, Sendable {
 public struct CalendarStoreError: Error, Equatable {
     public enum Reason: Equatable, Sendable {
         case failed
-        /// The phone has no calendar source that takes a new calendar (no default calendar, no local or CalDAV
-        /// source).
-        case noSourceForNewCalendar
+        /// The account the calendar must be made in is not on the phone (any more).
+        case sourceGone
     }
 
     public let reason: Reason
@@ -80,8 +161,9 @@ public actor FakeCalendarStore: CalendarStore {
     public private(set) var calendars: [String: String] = [:]
     /// Calendar ids in the order they were made: the adoption by title picks the oldest.
     private var calendarOrder: [String] = []
-    /// Calendars outside the default calendar source.
-    private var otherSource: Set<String> = []
+    /// The account of each calendar.
+    private var calendarSources: [String: String] = [:]
+    private var sourceList: CalendarSourceList
     private var stored: [StoredEvent] = []
     private var accessState: CalendarAccess
     private var grantsOnRequest: Bool
@@ -95,9 +177,34 @@ public actor FakeCalendarStore: CalendarStore {
     /// The most `apply` calls that ran at the same time.
     public private(set) var maxConcurrentApplies = 0
 
-    public init(access: CalendarAccess = .granted, grantsOnRequest: Bool = true) {
+    /// The iCloud account the fake has unless a test gives it others.
+    public static let iCloud = CalendarSource(id: "icloud", title: "iCloud", kind: .iCloud)
+
+    public init(
+        access: CalendarAccess = .granted, grantsOnRequest: Bool = true,
+        sources: [CalendarSource] = [FakeCalendarStore.iCloud], defaultSourceID: String? = FakeCalendarStore.iCloud.id
+    ) {
         accessState = access
         self.grantsOnRequest = grantsOnRequest
+        sourceList = CalendarSourceList(sources: sources, defaultSourceID: defaultSourceID)
+    }
+
+    /// The user added or removed accounts, or chose another default calendar.
+    public func setSources(_ sources: [CalendarSource], defaultSourceID: String?) {
+        sourceList = CalendarSourceList(sources: sources, defaultSourceID: defaultSourceID)
+    }
+
+    /// The user removed an account from the phone: its calendars and their events go with it.
+    public func userRemovesSource(id: String) {
+        for calendar in calendarSources.filter({ $0.value == id }).keys { userDeletesCalendar(id: calendar) }
+        sourceList = CalendarSourceList(
+            sources: sourceList.sources.filter { $0.id != id },
+            defaultSourceID: sourceList.defaultSourceID == id ? nil : sourceList.defaultSourceID
+        )
+    }
+
+    public func sourceID(ofCalendar id: String) -> String? {
+        calendarSources[id]
     }
 
     public func setAccess(_ access: CalendarAccess, grantsOnRequest: Bool) {
@@ -118,15 +225,14 @@ public actor FakeCalendarStore: CalendarStore {
     /// The user deleted a calendar in the Calendar app.
     public func userDeletesCalendar(id: String) {
         calendars[id] = nil
+        calendarSources[id] = nil
         calendarOrder.removeAll { $0 == id }
         stored.removeAll { $0.calendarID == id }
     }
 
-    /// The user made a calendar of their own, in the default calendar source or in another one.
-    public func userAddsCalendar(title: String, inDefaultSource: Bool = true) -> String {
-        let id = addCalendar(title: title)
-        if !inDefaultSource { otherSource.insert(id) }
-        return id
+    /// The user made a calendar of their own, in the account `sourceID` (`nil`: the default calendar's).
+    public func userAddsCalendar(title: String, sourceID: String? = nil) -> String {
+        addCalendar(title: title, sourceID: sourceID ?? sourceList.defaultSourceID ?? "")
     }
 
     /// The user added an event (without a Brievie link) to a calendar.
@@ -148,19 +254,25 @@ public actor FakeCalendarStore: CalendarStore {
         return accessState
     }
 
+    public func sources() async -> CalendarSourceList {
+        sourceList
+    }
+
     public func ensureCalendar(
-        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
-    ) async throws -> String {
+        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>,
+        sourceID: String?
+    ) async throws -> CalendarRef {
         try check()
         if let existingID, calendars[existingID] != nil, !excluding.contains(existingID) {
             calendars[existingID] = named
-            return existingID
+            return CalendarRef(id: existingID, sourceID: calendarSources[existingID] ?? "")
         }
+        guard let sourceID, sourceList.source(id: sourceID) != nil else { throw CalendarStoreError(.sourceGone) }
         let adoptable = calendarOrder.first { id in
-            calendars[id] == named && !excluding.contains(id) && !otherSource.contains(id)
+            calendars[id] == named && !excluding.contains(id) && calendarSources[id] == sourceID
                 && !hasEventOfTheUser(calendarID: id, window: window)
         }
-        return adoptable ?? addCalendar(title: named)
+        return CalendarRef(id: adoptable ?? addCalendar(title: named, sourceID: sourceID), sourceID: sourceID)
     }
 
     public func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot] {
@@ -215,9 +327,10 @@ public actor FakeCalendarStore: CalendarStore {
         }
     }
 
-    private func addCalendar(title: String) -> String {
+    private func addCalendar(title: String, sourceID: String) -> String {
         let id = makeID("calendar")
         calendars[id] = title
+        calendarSources[id] = sourceID
         calendarOrder.append(id)
         return id
     }

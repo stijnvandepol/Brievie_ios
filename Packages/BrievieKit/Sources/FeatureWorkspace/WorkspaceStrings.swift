@@ -80,13 +80,66 @@ enum WorkspaceStrings {
         bundle: .module
     )
 
-    /// Under a calendar switch; `%@` is the calendar's name ("Brievie – Thuis").
+    /// Under a calendar switch that is off (where the calendar goes is not decided yet); `%@` is the calendar's
+    /// name ("Brievie – Thuis").
     static let calendarFooterFormat = String(
         localized: "workspaces.calendar.footer",
         defaultValue: """
-            Je taken met een deadline komen in een eigen agenda '%@'. De tekst van de taak en de afzender staan \
-            erin. Die agenda kan via iCloud op je andere apparaten komen.
+            Je taken met een deadline komen in een eigen agenda '%@' in iCloud of op deze iPhone. \
+            Een andere account gebruikt Brievie alleen als jij dat goedvindt.
             """,
+        bundle: .module
+    )
+
+    /// Under a calendar switch whose calendar is in iCloud; `%@` is the calendar's name.
+    static let calendarFooterICloudFormat = String(
+        localized: "workspaces.calendar.footer.iCloud",
+        defaultValue: """
+            Je taken met een deadline staan in een eigen agenda '%@' in iCloud. \
+            Die agenda staat ook op je andere apparaten met iCloud.
+            """,
+        bundle: .module
+    )
+
+    /// Under a calendar switch whose calendar is on this phone only; `%@` is the calendar's name.
+    static let calendarFooterLocalFormat = String(
+        localized: "workspaces.calendar.footer.local",
+        defaultValue: "Je taken met een deadline staan in een eigen agenda '%@' op deze iPhone.",
+        bundle: .module
+    )
+
+    /// Under a calendar switch whose calendar is in an account the user agreed to; `%1$@` is the calendar's name,
+    /// `%2$@` the account's.
+    static let calendarFooterOtherFormat = String(
+        localized: "workspaces.calendar.footer.other",
+        defaultValue: """
+            Je taken met een deadline staan in een eigen agenda '%1$@' in de account %2$@. \
+            Wie die account beheert, kan ze lezen.
+            """,
+        bundle: .module
+    )
+
+    /// Asked before the calendar goes in an account that is not iCloud or this phone; `%@` is that account.
+    static let calendarConsentFormat = String(
+        localized: "workspaces.calendar.consent.question",
+        defaultValue: "Brievie zet je taken in de agenda van %@. Wie die account beheert, kan ze lezen.",
+        bundle: .module
+    )
+
+    /// The calendar's account is no longer on the phone: the switch went off.
+    static let calendarSourceGone = String(
+        localized: "workspaces.calendar.sourceGone",
+        defaultValue: """
+            De account van deze agenda staat niet meer op je telefoon. Daarom staat dit nu uit. \
+            Zet het weer aan om een nieuwe agenda te maken.
+            """,
+        bundle: .module
+    )
+
+    /// The phone has no account a calendar can be made in.
+    static let calendarNoCalendarAccount = String(
+        localized: "workspaces.calendar.noCalendarAccount",
+        defaultValue: "Er is op deze telefoon geen account waarin Brievie een agenda kan maken.",
         bundle: .module
     )
 
@@ -113,6 +166,12 @@ enum WorkspaceStrings {
         "workspaces.calendar.noAccess": calendarNoAccess,
         "workspaces.calendar.tasksNotSupported": calendarTasksNotSupported,
         "workspaces.calendar.footer": calendarFooterFormat,
+        "workspaces.calendar.footer.iCloud": calendarFooterICloudFormat,
+        "workspaces.calendar.footer.local": calendarFooterLocalFormat,
+        "workspaces.calendar.footer.other": calendarFooterOtherFormat,
+        "workspaces.calendar.consent.question": calendarConsentFormat,
+        "workspaces.calendar.sourceGone": calendarSourceGone,
+        "workspaces.calendar.noCalendarAccount": calendarNoCalendarAccount,
         "workspaces.calendar.keptForUserEvents": calendarKeptForUserEvents,
         "workspaces.calendar.remove.question": calendarRemoveQuestionFormat
     ]

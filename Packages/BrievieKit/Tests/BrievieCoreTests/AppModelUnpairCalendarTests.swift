@@ -198,8 +198,14 @@ private final class WatchedCalendarSettings: CalendarSettings {
     func calendarID(for workspace: UUID) -> String? { inner.calendarID(for: workspace) }
     func calendarIDs() -> [UUID: String] { inner.calendarIDs() }
     func isEnabled(for workspace: UUID) -> Bool { inner.isEnabled(for: workspace) }
-    func enable(workspace: UUID, calendarID: String) { inner.enable(workspace: workspace, calendarID: calendarID) }
+    func sourceID(for workspace: UUID) -> String? { inner.sourceID(for: workspace) }
     func removeAll() { inner.removeAll() }
+    func showsDetails(for workspace: UUID) -> Bool { inner.showsDetails(for: workspace) }
+    func setShowsDetails(_ shows: Bool, for workspace: UUID) { inner.setShowsDetails(shows, for: workspace) }
+
+    func enable(workspace: UUID, calendarID: String, sourceID: String?) {
+        inner.enable(workspace: workspace, calendarID: calendarID, sourceID: sourceID)
+    }
 
     func disable(workspace: UUID) {
         counts.update { if $0.watching { $0.disables += 1 } }
@@ -211,7 +217,7 @@ private final class WatchedCalendarSettings: CalendarSettings {
         return inner.clearGeneration()
     }
 
-    func enable(workspace: UUID, calendarID: String, ifGeneration generation: Int) -> Bool {
-        inner.enable(workspace: workspace, calendarID: calendarID, ifGeneration: generation)
+    func enable(workspace: UUID, calendarID: String, sourceID: String?, ifGeneration generation: Int) -> Bool {
+        inner.enable(workspace: workspace, calendarID: calendarID, sourceID: sourceID, ifGeneration: generation)
     }
 }

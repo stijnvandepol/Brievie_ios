@@ -35,9 +35,17 @@ public actor EventKitCalendarStore: CalendarStore {
         }
     }
 
+    public func sources() async -> CalendarSourceList {
+        CalendarSourceList(
+            sources: eventStore.sources.compactMap(Self.calendarSource),
+            defaultSourceID: eventStore.defaultCalendarForNewEvents?.source.sourceIdentifier
+        )
+    }
+
     public func ensureCalendar(
-        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>
-    ) async throws -> String {
+        named: String, existingID: String?, excluding: Set<String>, window: ClosedRange<CalendarDate>,
+        sourceID: String?
+    ) async throws -> CalendarRef {
         if let existingID, !excluding.contains(existingID),
            let calendar = eventStore.calendar(withIdentifier: existingID), calendar.allowsContentModifications {
             if calendar.title != named {
@@ -50,25 +58,26 @@ public actor EventKitCalendarStore: CalendarStore {
                     Self.logger.error("Could not retitle the calendar: \(String(describing: type(of: error)))")
                 }
             }
-            return existingID
+            return CalendarRef(id: existingID, sourceID: calendar.source.sourceIdentifier)
         }
-        if let match = adoptableCalendar(named: named, excluding: excluding, window: window) {
-            return match.calendarIdentifier
+        // Only in the account the sync chose (iCloud, the phone, or one the user said yes to): never another.
+        guard let sourceID,
+              let source = eventStore.sources.first(where: { $0.sourceIdentifier == sourceID }),
+              Self.calendarSource(source) != nil
+        else { throw CalendarStoreError(.sourceGone) }
+        if let match = adoptableCalendar(named: named, in: source, excluding: excluding, window: window) {
+            return CalendarRef(id: match.calendarIdentifier, sourceID: sourceID)
         }
         let calendar = EKCalendar(for: .event, eventStore: eventStore)
         calendar.title = named
-        // The default calendar's source, then iCloud, then the local source (see `candidateSources()`).
-        var lastError: (any Error)?
-        for source in candidateSources() {
-            calendar.source = source
-            do {
-                try eventStore.saveCalendar(calendar, commit: true)
-                return calendar.calendarIdentifier
-            } catch {
-                lastError = error
-            }
+        calendar.source = source
+        do {
+            try eventStore.saveCalendar(calendar, commit: true)
+        } catch {
+            eventStore.reset()
+            throw error
         }
-        throw lastError ?? CalendarStoreError(.noSourceForNewCalendar)
+        return CalendarRef(id: calendar.calendarIdentifier, sourceID: sourceID)
     }
 
     public func events(calendarID: String, window: ClosedRange<CalendarDate>) async throws -> [CalendarEventSnapshot] {
@@ -147,13 +156,12 @@ public actor EventKitCalendarStore: CalendarStore {
         return event
     }
 
-    /// A calendar titled `named` in the default source, held by no other workspace, with no event of the user's
-    /// own (without a task link) in `window`.
+    /// A calendar titled `named` in `source`, held by no other workspace, with no event of the user's own
+    /// (without a task link) in `window`.
     private func adoptableCalendar(
-        named: String, excluding: Set<String>, window: ClosedRange<CalendarDate>
+        named: String, in source: EKSource, excluding: Set<String>, window: ClosedRange<CalendarDate>
     ) -> EKCalendar? {
-        guard let source = eventStore.defaultCalendarForNewEvents?.source else { return nil }
-        return eventStore.calendars(for: .event).first { calendar in
+        eventStore.calendars(for: .event).first { calendar in
             calendar.title == named && calendar.allowsContentModifications
                 && calendar.source.sourceIdentifier == source.sourceIdentifier
                 && !excluding.contains(calendar.calendarIdentifier)
@@ -181,18 +189,18 @@ public actor EventKitCalendarStore: CalendarStore {
         event.alarms = Self.alarmOffsets.map { EKAlarm(relativeOffset: $0) }
     }
 
-    /// Where a new calendar may go, in order: the default calendar's source (the user's own choice, whatever kind
-    /// it is), the iCloud source, the local source. Never another CalDAV, Exchange or subscribed account: the
-    /// task's text and sender must not land on a third party's server the user did not pick as default.
-    private func candidateSources() -> [EKSource] {
-        let iCloud = eventStore.sources.first { $0.sourceType == .calDAV && $0.title == "iCloud" }
-        let local = eventStore.sources.first { $0.sourceType == .local }
-        var sources: [EKSource] = []
-        for source in [eventStore.defaultCalendarForNewEvents?.source, iCloud, local].compactMap({ $0 })
-        where !sources.contains(where: { $0.sourceIdentifier == source.sourceIdentifier }) {
-            sources.append(source)
+    /// An account that can hold a new calendar, sorted into iCloud, the phone and everything else; `nil` for a
+    /// subscribed, birthday or other read-only kind. iCloud is the CalDAV account the phone calls "iCloud".
+    private static func calendarSource(_ source: EKSource) -> CalendarSource? {
+        let kind: CalendarSource.Kind
+        switch source.sourceType {
+        case .local: kind = .local
+        case .calDAV: kind = source.title == "iCloud" ? .iCloud : .other
+        case .exchange: kind = .other
+        case .mobileMe, .subscribed, .birthdays: return nil
+        @unknown default: return nil
         }
-        return sources
+        return CalendarSource(id: source.sourceIdentifier, title: source.title, kind: kind)
     }
 
     /// 00:00 of `day` on this phone: the start of an all-day event.
