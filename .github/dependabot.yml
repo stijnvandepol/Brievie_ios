@@ -1,0 +1,12 @@
+# Weekly, grouped, so updates arrive as one pull request instead of many.
+# Swift packages are not listed: `make check-project` requires the copy of Package.resolved
+# inside Brievie.xcodeproj to match, which an automatic update does not regenerate.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
