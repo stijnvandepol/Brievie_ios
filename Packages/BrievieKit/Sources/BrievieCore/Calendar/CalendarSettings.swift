@@ -24,8 +24,9 @@ public protocol CalendarSettings: Sendable {
 /// `CalendarSettings` over `UserDefaults`: one key `calendar.<workspace-uuid>` per workspace that is on.
 public struct UserDefaultsCalendarSettings: CalendarSettings {
     private static let prefix = "calendar."
-    /// The clears in this process; also the lock that makes "check the generation, then store" one step.
-    private static let generation = Mutex(0)
+    /// The clears in this process per defaults suite (`""` is the standard defaults); also the lock that makes
+    /// "check the generation, then store" one step. Per suite, so separate suites (tests) never disturb each other.
+    private static let generations = Mutex<[String: Int]>([:])
     private let suiteName: String?
 
     /// - Parameter suiteName: `nil` for the app's standard defaults; tests pass their own suite.
@@ -66,8 +67,8 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
 
     public func removeAll() {
         let defaults = defaults
-        Self.generation.withLock { generation in
-            generation += 1
+        Self.generations.withLock { generations in
+            generations[suiteKey, default: 0] += 1
             for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(Self.prefix) {
                 defaults.removeObject(forKey: key)
             }
@@ -75,17 +76,19 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
     }
 
     public func clearGeneration() -> Int {
-        Self.generation.withLock { $0 }
+        Self.generations.withLock { $0[suiteKey] ?? 0 }
     }
 
     public func enable(workspace: UUID, calendarID: String, ifGeneration generation: Int) -> Bool {
         let defaults = defaults
-        return Self.generation.withLock { current in
-            guard current == generation else { return false }
+        return Self.generations.withLock { generations in
+            guard generations[suiteKey] ?? 0 == generation else { return false }
             defaults.set(calendarID, forKey: Self.key(workspace))
             return true
         }
     }
+
+    private var suiteKey: String { suiteName ?? "" }
 
     private static func key(_ workspace: UUID) -> String {
         prefix + workspace.uuidString

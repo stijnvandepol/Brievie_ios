@@ -90,4 +90,15 @@ import Testing
         #expect(!settings.enable(workspace: workspace, calendarID: "a", ifGeneration: generation))
         #expect(!settings.isEnabled(for: workspace))
     }
+
+    @Test func eachDefaultsSuiteCountsItsOwnClears() {
+        let one = UserDefaultsCalendarSettings(suiteName: "calendar-choice-\(UUID().uuidString)")
+        let other = UserDefaultsCalendarSettings(suiteName: "calendar-choice-\(UUID().uuidString)")
+        let generation = one.clearGeneration()
+
+        other.removeAll()
+
+        #expect(one.clearGeneration() == generation)
+        #expect(one.enable(workspace: UUID(), calendarID: "a", ifGeneration: generation))
+    }
 }
