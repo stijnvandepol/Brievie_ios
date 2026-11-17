@@ -1,0 +1,106 @@
+import Foundation
+
+/// An open task with a deadline, as the event it should be in the workspace's calendar.
+public struct CalendarTask: Equatable, Sendable {
+    public let id: UUID
+    public let title: String
+    public let notes: String
+    public let day: CalendarDate
+
+    public init(id: UUID, title: String, notes: String, day: CalendarDate) {
+        self.id = id
+        self.title = title
+        self.notes = notes
+        self.day = day
+    }
+
+    /// The event of an open task on its deadline; `nil` for a task that is done or has no deadline (no event).
+    /// Its title shows on the lock screen and in widgets (the alarms) and other apps with calendar access read
+    /// it, so by default it says only "<taaksoort> (Brievie)" with "Uit Brievie" as notes: no description (the
+    /// AI's wording, often with an amount and an institution), no sender.
+    /// - Parameters:
+    ///   - typeTitle: the Dutch name of a task type code.
+    ///   - showsDetails: "Toon de omschrijving in de agenda": "<taaksoort>: <omschrijving>", with the sender in
+    ///     the notes.
+    public static func from(
+        _ task: WorkspaceTask, typeTitle: (String) -> String, showsDetails: Bool = false
+    ) -> CalendarTask? {
+        guard !task.isDone, let deadline = task.deadline else { return nil }
+        let footer = AppStrings.calendarNotesFooter
+        guard showsDetails else {
+            return CalendarTask(
+                id: task.id, title: String(format: AppStrings.calendarNeutralTitleFormat, typeTitle(task.type)),
+                notes: footer, day: deadline
+            )
+        }
+        let sender = task.sender.trimmingCharacters(in: .whitespacesAndNewlines)
+        return CalendarTask(
+            id: task.id,
+            title: "\(typeTitle(task.type)): \(task.description)",
+            notes: sender.isEmpty ? footer : "\(sender)\n\(footer)",
+            day: deadline
+        )
+    }
+}
+
+/// An all-day event in a Brievie calendar, as the sync reads it.
+public struct CalendarEventSnapshot: Equatable, Sendable {
+    public let eventID: String
+    /// From the event's URL `brievie://task/<uuid>`; `nil` for an event the user added by hand.
+    public let taskID: UUID?
+    public let title: String
+    public let notes: String
+    public let day: CalendarDate
+
+    public init(eventID: String, taskID: UUID?, title: String, notes: String, day: CalendarDate) {
+        self.eventID = eventID
+        self.taskID = taskID
+        self.title = title
+        self.notes = notes
+        self.day = day
+    }
+}
+
+/// One write to a Brievie calendar.
+public enum CalendarChange: Equatable, Sendable {
+    case create(CalendarTask)
+    case update(eventID: String, CalendarTask)
+    case delete(eventID: String)
+}
+
+/// The outcome of a sync, for the switch on the Workspaces screen.
+public enum CalendarSyncResult: Equatable, Sendable {
+    /// The switch is off for this workspace: nothing was read or written.
+    case off
+    /// Brievie may not use the calendar: nothing was written.
+    case noAccess
+    case done(created: Int, updated: Int, deleted: Int)
+    /// The server has no task list (a 1b server): no calendar was made.
+    case tasksNotSupported
+    /// The only account a calendar could go in is run by someone else: nothing was made until the user says yes
+    /// to this account (`CalendarSync.enable(workspace:consentedSourceID:)`).
+    case needsConsent(CalendarSource)
+    /// The phone has no account that takes a new calendar: nothing was made.
+    case noCalendarAccount
+    /// The calendar is gone and so is the account it was in (or the user never agreed to the only one left):
+    /// the switch was turned off, nothing was made elsewhere.
+    case sourceGone
+    case failed
+}
+
+/// The link in an event that ties it to its task: `brievie://task/<uuid>`.
+public enum TaskLink {
+    public static let scheme = "brievie"
+
+    public static func url(for taskID: UUID) -> URL? {
+        URL(string: "\(scheme)://task/\(taskID.uuidString.lowercased())")
+    }
+
+    /// The task of a Brievie task link; `nil` for any other URL.
+    public static func taskID(in url: URL?) -> UUID? {
+        guard let url, url.scheme?.lowercased() == scheme, url.host() == "task" else { return nil }
+        let parts = url.pathComponents.filter { $0 != "/" }
+        guard parts.count == 1 else { return nil }
+        return UUID(uuidString: parts[0])
+    }
+}

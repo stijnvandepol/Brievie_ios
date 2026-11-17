@@ -45,6 +45,49 @@ extension DocumentStrings {
         bundle: .module
     )
 
+    // The post list: scopes, inbox groups, names, labels
+    static let scopeInbox = String(localized: "documents.scope.inbox", defaultValue: "Inbox", bundle: .module)
+    static let scopeAll = String(localized: "documents.scope.all", defaultValue: "Alle post", bundle: .module)
+    static let inboxReview = String(
+        localized: "documents.inbox.review",
+        defaultValue: "Te controleren",
+        bundle: .module
+    )
+    static let inboxUnassigned = String(
+        localized: "documents.inbox.unassigned",
+        defaultValue: "Op niemands naam",
+        bundle: .module
+    )
+    static let inboxUnderway = String(localized: "documents.inbox.underway", defaultValue: "Onderweg", bundle: .module)
+    static let inboxEmpty = String(
+        localized: "documents.inbox.empty",
+        defaultValue: "Je inbox is leeg. Alles staat op naam.",
+        bundle: .module
+    )
+    static let personEmpty = String(
+        localized: "documents.person.empty",
+        defaultValue: "Er staat nog geen post op deze naam.",
+        bundle: .module
+    )
+    static let groupCountFormat = String(
+        localized: "documents.group.count",
+        defaultValue: "%1$@ (%2$d)",
+        bundle: .module
+    )
+    /// A group with more letters than the list holds: title, the count, the number shown.
+    static let groupPartialFormat = String(
+        localized: "documents.group.partial",
+        defaultValue: "%1$@ (%2$d, de nieuwste %3$d)",
+        bundle: .module
+    )
+    static let addresseesFormat = String(
+        localized: "documents.addressees",
+        defaultValue: "Op naam van %@",
+        bundle: .module
+    )
+    static let labelsFormat = String(localized: "documents.labels", defaultValue: "Labels: %@", bundle: .module)
+    static let suggestion = String(localized: "documents.suggestion", defaultValue: "Voorstel", bundle: .module)
+
     /// `count` (at least 1) scans were removed from the queue because their record could not be read. The
     /// catalog has the singular and plural; the default here is the plural (`swift test` reads no catalogs).
     static func unreadableRemoved(_ count: Int) -> String {

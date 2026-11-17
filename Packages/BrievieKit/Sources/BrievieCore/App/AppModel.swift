@@ -23,6 +23,10 @@ public final class AppModel {
     private let authenticator: any DeviceAuthenticator
     private let launchFlag: any LaunchFlag
     private let isProtectedDataAvailable: @MainActor () -> Bool
+    /// Cleared with the pairing (revoked or unpaired), so the switches do not come back on after pairing again.
+    private let calendarSettings: (any CalendarSettings)?
+    /// Removes the calendars after a revocation by the server.
+    private let calendarSync: CalendarSync?
     /// The first-launch check has completed (or a pairing made it moot) in this process. Until then nothing
     /// unlocks: a stored connection may be a leftover of a previous install.
     private var launchCheckDone = false
@@ -38,6 +42,8 @@ public final class AppModel {
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
     /// The task started by `requestUnpair(_:)`; owned by the model, so the screen going away cannot cancel it.
     @ObservationIgnored private(set) var unpairTask: Task<Void, Never>?
+    /// The removal of the calendars after a revocation; tests await it.
+    @ObservationIgnored private(set) var calendarRemovalTask: Task<Void, Never>?
 
     /// A pairing that must be forgotten but is not yet: emptying the queue or clearing the store failed.
     /// Until it succeeds the app stays locked (never "unpaired" with a token left in the Keychain) and every
@@ -46,22 +52,31 @@ public final class AppModel {
         let notice: String?
         /// Unpairing only; `nil` once the queue is empty.
         var wipeUploads: (@Sendable () async throws -> Void)?
+        /// A revocation: the calendars go too, without asking (unpairing asks, and removes them itself).
+        var removesCalendars = false
     }
 
     @ObservationIgnored private var pendingForget: PendingForget?
 
     /// - Parameter isProtectedDataAvailable: `false` before the first unlock after a reboot (prewarm or
     ///   background launch), when the Keychain and `UserDefaults` may not be readable yet.
+    /// - Parameter calendarSettings: the calendar switches, cleared whenever the pairing is forgotten.
+    /// - Parameter calendarSync: removes the calendars those switches named when the server revoked the device;
+    ///   on "Ontkoppelen" the user chooses (`Unpairing`).
     public init(
         store: ConnectionStore,
         authenticator: any DeviceAuthenticator,
         launchFlag: any LaunchFlag,
-        isProtectedDataAvailable: @escaping @MainActor () -> Bool
+        isProtectedDataAvailable: @escaping @MainActor () -> Bool,
+        calendarSettings: (any CalendarSettings)? = nil,
+        calendarSync: CalendarSync? = nil
     ) {
         self.store = store
         self.authenticator = authenticator
         self.launchFlag = launchFlag
         self.isProtectedDataAvailable = isProtectedDataAvailable
+        self.calendarSettings = calendarSettings
+        self.calendarSync = calendarSync
     }
 
     /// Unpaired when nothing is stored, locked otherwise. A store that cannot be read does not unpair the
@@ -117,6 +132,8 @@ public final class AppModel {
     private func activate() async {
         // The scene may have gone to the background again before this ran.
         guard !isInBackground else { return }
+        // `UserDefaults` may not be readable before the first unlock after a reboot.
+        if isProtectedDataAvailable() { removePendingCalendars() }
         clearLeftoversOfAPreviousInstall()
         guard await finishForgetting() else { return }
         // A pending check keeps the prompt for the activation that completes it.
@@ -154,7 +171,11 @@ public final class AppModel {
             return
         }
         // An unpair whose queue could not be emptied yet keeps that step.
-        pendingForget = PendingForget(notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads)
+        // A pending "Ontkoppelen" keeps its own choice about the calendars (it removes them itself when chosen).
+        pendingForget = PendingForget(
+            notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads,
+            removesCalendars: pendingForget?.removesCalendars ?? true
+        )
         if pendingForget?.wipeUploads == nil {
             clearForgottenPairing()
         } else {
@@ -194,7 +215,7 @@ public final class AppModel {
         }
         pendingForget = PendingForget(
             notice: serverTold ? nil : AppStrings.serverStillKnowsDevice,
-            wipeUploads: { try await unpairing.wipeUploads() }
+            wipeUploads: { try await unpairing.wipeLocalState() }
         )
         return await finishForgetting()
     }
@@ -253,9 +274,27 @@ public final class AppModel {
             state = .locked
             return false
         }
+        if pending.removesCalendars, let calendarSettings {
+            // Stored before the switches are cleared, apart from them: a removal that cannot run now (no calendar
+            // access, the app ended) is tried again on every activation.
+            let calendars = calendarSettings.calendarIDs().map { ($0.value, $0.key) }
+            calendarSettings.markForRemoval(Dictionary(calendars, uniquingKeysWith: { first, _ in first }))
+        }
+        calendarSettings?.removeAll()
         pendingForget = nil
         state = .unpaired(notice: pending.notice)
+        removePendingCalendars()
         return true
+    }
+
+    /// Removes the calendars still marked after a revocation, after any removal already running.
+    private func removePendingCalendars() {
+        guard let calendarSync, let calendarSettings, !calendarSettings.pendingRemovals().isEmpty else { return }
+        let previous = calendarRemovalTask
+        calendarRemovalTask = Task {
+            await previous?.value
+            await calendarSync.removePendingRemovals()
+        }
     }
 
     private func finishUnlock() {

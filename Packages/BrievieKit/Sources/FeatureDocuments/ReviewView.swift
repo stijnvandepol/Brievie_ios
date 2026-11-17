@@ -7,7 +7,6 @@ import SwiftUI
 /// letter can show where it stands; nothing becomes a task before "Bevestigen".
 public struct ReviewView: View {
     @Bindable private var model: ReviewModel
-    @State private var source: SourceQuote?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(model: ReviewModel) {
@@ -31,29 +30,46 @@ public struct ReviewView: View {
                 reviewSections
             case .done:
                 pagesSection
-                doneSections
+                if let detail = model.detail {
+                    DoneSections(
+                        detail: detail, confirmed: model.confirmed, onPick: { model.pick($0) },
+                        onShowQuote: { model.showQuote($0) }
+                    )
+                }
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(DocumentStrings.reviewTitle)
+        .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await model.load()
             model.startPolling()
         }
         .onDisappear { model.stopPolling() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
-                model.startPolling()
-            } else {
-                // A sheet sits above the lock screen and the app-switcher cover: the letter text must not
-                // stay on screen when the app leaves the foreground. No polling while nobody looks either.
-                source = nil
-                model.stopPolling()
+        // Closes every sheet when the app leaves the foreground (they would sit above the lock screen).
+        .onChange(of: scenePhase) { _, phase in model.sceneDidChange(isActive: phase == .active) }
+        .sheet(item: $model.shownQuote) { quote in
+            SourceView(quote: quote.text, pageTexts: model.pageTexts, missingPagesNote: model.missingPagesNote) {
+                model.shownQuote = nil
             }
         }
-        .sheet(item: $source) { quote in
-            SourceView(quote: quote.text, pageTexts: model.pageTexts) { source = nil }
+        .sheet(item: $model.picker) { picker in
+            if let confirmed = model.confirmed {
+                ConfirmedPicker(model: confirmed, picker: picker) { model.picker = nil }
+            } else {
+                switch picker {
+                case .persons:
+                    PersonPickerView(
+                        persons: model.persons, selection: $model.draft.organise.addresseeIDs,
+                        error: model.personError, onCreate: { await model.createPerson(named: $0) },
+                        close: { model.picker = nil }
+                    )
+                case .labels:
+                    LabelPickerView(labels: model.labels, selection: $model.draft.organise.labelIDs) {
+                        model.picker = nil
+                    }
+                }
+            }
         }
         .confirmationDialog(
             DocumentStrings.discardEditsTitle,
@@ -85,6 +101,9 @@ public struct ReviewView: View {
     @ViewBuilder private var pagesSection: some View {
         if model.pageCount > 0 {
             Section {
+                if let note = model.missingPagesNote {
+                    ErrorBanner(note, style: .warning)
+                }
                 TabView {
                     ForEach(1...model.pageCount, id: \.self) { index in
                         PageImageView(
@@ -135,6 +154,15 @@ public struct ReviewView: View {
             notes(for: .documentType, title: DocumentStrings.documentType)
             OptionalDateRow(title: DocumentStrings.letterDate, date: $model.draft.letterDate)
             notes(for: .letterDate, title: DocumentStrings.letterDate)
+        }
+        if model.organiseAvailable {
+            OrganiseSection(
+                draft: model.draft.organise, persons: model.persons, labels: model.labels,
+                actions: model.canEdit ? .review(
+                    $model.draft.organise, pickPersons: { model.pick(.persons) }, pickLabels: { model.pick(.labels) }
+                ) : nil,
+                onShowQuote: { model.showQuote($0) }
+            )
         }
         Section {
             TextField(DocumentStrings.summary, text: $model.draft.summary, axis: .vertical)
@@ -207,45 +235,7 @@ public struct ReviewView: View {
     }
 
     private func notes(for field: ReviewField, title: String) -> some View {
-        FieldNotes(draft: model.draft, field: field, title: title) { source = SourceQuote(text: $0) }
-    }
-
-    // MARK: - Done
-
-    @ViewBuilder private var doneSections: some View {
-        if let detail = model.detail {
-            Section {
-                LabeledContent(DocumentStrings.sender, value: detail.summary.sender)
-                LabeledContent(
-                    DocumentStrings.documentType, value: DocumentTypes.documentTypeLabel(detail.summary.documentType)
-                )
-                if let date = detail.summary.letterDate {
-                    LabeledContent(DocumentStrings.letterDate, value: date.display)
-                }
-            }
-            if !detail.summaryText.isEmpty {
-                Section {
-                    Text(detail.summaryText)
-                } header: {
-                    Text(DocumentStrings.summary)
-                } footer: {
-                    if detail.summaryByAI {
-                        Label(DocumentStrings.summaryByAI, systemImage: "sparkles")
-                    }
-                }
-            }
-            Section {
-                if detail.tasks.isEmpty {
-                    Text(DocumentStrings.noTasks)
-                        .foregroundStyle(.secondary)
-                }
-                ForEach(detail.tasks) { task in
-                    ConfirmedTaskRow(task: task) { source = SourceQuote(text: task.deadlineQuote) }
-                }
-            } header: {
-                Text(DocumentStrings.tasks)
-            }
-        }
+        FieldNotes(draft: model.draft, field: field, title: title) { model.showQuote($0) }
     }
 }
 
@@ -291,44 +281,6 @@ private struct FieldNotes: View {
     }
 }
 
-/// The quote whose place in the letter is being shown.
-private struct SourceQuote: Identifiable {
-    let text: String
-    var id: String { text }
-}
-
-private struct ConfirmedTaskRow: View {
-    let task: ConfirmedTask
-    let showSource: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(task.description)
-                .font(.headline)
-            Text(String(
-                format: DocumentStrings.taskLineFormat,
-                DocumentTypes.taskTypeLabel(task.type), task.deadline?.display ?? DocumentStrings.noDeadline
-            ))
-            .font(.subheadline)
-            if task.deadlineQuote.isEmpty {
-                if task.deadline != nil {
-                    Text(DocumentStrings.manualSource)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Text(String(format: DocumentStrings.sourceFormat, task.deadlineQuote))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Button(DocumentStrings.whereIsThis, action: showSource)
-                    .font(.footnote)
-                    .buttonStyle(.borderless)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 /// A date that may be absent: a button to add one, or a picker with a way to remove it.
 private struct OptionalDateRow: View {
     let title: String
@@ -351,39 +303,6 @@ private struct OptionalDateRow: View {
                 Button(DocumentStrings.addDate) { date = CalendarDate(Date(), in: .current) }
             }
         }
-    }
-}
-
-private struct PageImageView: View {
-    let data: Data?
-    let label: String
-
-    var body: some View {
-        Group {
-            if let data, let image = UIImage(data: data) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .accessibilityLabel(label)
-            } else if data != nil {
-                // Loaded, but not an image this phone can show.
-                Label(DocumentStrings.pageUnreadable, systemImage: "photo")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("\(label). \(DocumentStrings.pageUnreadable)")
-            } else {
-                VStack(spacing: 8) {
-                    ProgressView()
-                    Text(DocumentStrings.pageLoading)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(label)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.bottom, 32)
     }
 }
 #endif

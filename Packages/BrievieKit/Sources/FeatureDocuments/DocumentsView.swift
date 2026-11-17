@@ -1,4 +1,5 @@
 #if os(iOS)
+import BrievieCore
 import BrievieScan
 import BrievieUI
 import PhotosUI
@@ -8,6 +9,7 @@ import SwiftUI
 public struct DocumentsView<Destination: View>: View {
     private let model: DocumentsModel
     private let scanModel: ScanFlowModel
+    /// The workspace's name: the header of the scope menu.
     private let title: String
     /// What a document on the server opens (the review screen).
     private let destination: (UUID) -> Destination
@@ -33,7 +35,8 @@ public struct DocumentsView<Destination: View>: View {
     public var body: some View {
         DocumentsList(
             state: model.state,
-            rows: model.rows,
+            groups: model.groups,
+            emptyText: model.emptyText,
             notices: DocumentsList.Notices(
                 camera: model.cameraNotice, removed: model.removedNotice,
                 openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true }
@@ -43,8 +46,9 @@ public struct DocumentsView<Destination: View>: View {
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
             destination: destination
         )
-        .navigationTitle(title)
+        .navigationTitle(model.scopeTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarTitleMenu { scopeMenu }
         .toolbar {
             if model.canScan {
                 ToolbarItem(placement: .primaryAction) { scanButton }
@@ -95,6 +99,22 @@ public struct DocumentsView<Destination: View>: View {
             }
             .interactiveDismissDisabled()
             .presentationDetents([.medium])
+        }
+    }
+
+    /// Inbox, all post, or the post of one person; the current one is ticked.
+    private var scopeMenu: some View {
+        Section(title) {
+            Picker(
+                selection: Binding(get: { model.scope }, set: { scope in Task { await model.select(scope) } })
+            ) {
+                ForEach(model.scopeTitles, id: \.0) { scope, name in
+                    Text(name).tag(scope)
+                }
+            } label: {
+                Text(model.scopeTitle)
+            }
+            .pickerStyle(.inline)
         }
     }
 
@@ -153,7 +173,9 @@ struct DocumentsList<Destination: View>: View {
     }
 
     let state: DocumentsModel.State
-    let rows: [DocumentsModel.Row]
+    let groups: [DocumentsModel.RowGroup]
+    /// What the list says without rows: depends on the scope.
+    let emptyText: String
     var notices = Notices()
     let retryLoad: () -> Void
     let retryUpload: (UUID) -> Void
@@ -168,15 +190,19 @@ struct DocumentsList<Destination: View>: View {
                     ErrorBanner(message, actionTitle: DocumentStrings.retry, action: retryLoad)
                 }
             }
-            Section {
-                if rows.isEmpty {
+            if groups.allSatisfy(\.rows.isEmpty) {
+                Section {
                     placeholder
                 }
-                ForEach(rows) { row in
-                    rowView(row)
+            }
+            ForEach(groups.filter { !$0.rows.isEmpty }) { group in
+                Section {
+                    ForEach(group.rows) { row in
+                        rowView(row)
+                    }
+                } header: {
+                    Text(group.header)
                 }
-            } header: {
-                Text(DocumentStrings.section)
             }
         }
         .listStyle(.insetGrouped)
@@ -217,7 +243,7 @@ struct DocumentsList<Destination: View>: View {
             }
             .accessibilityElement(children: .combine)
         case .loaded:
-            Text(DocumentStrings.empty)
+            Text(emptyText)
                 .foregroundStyle(.secondary)
         case .failed:
             EmptyView()
@@ -292,58 +318,6 @@ struct DocumentsList<Destination: View>: View {
     }
 }
 
-private struct DocumentRowView: View {
-    let row: DocumentsModel.Row
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(row.title)
-                .font(.headline)
-            Text(row.subtitle)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            status
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-
-    @ViewBuilder private var status: some View {
-        switch row.status {
-        case let .uploading(progress):
-            ProgressView(value: progress) {
-                Text(row.status.label)
-                    .font(.subheadline)
-            }
-        case let .uploadFailed(message, _):
-            statusLabel(color: .red)
-            Text(message)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        case .failed:
-            statusLabel(color: .red)
-        case .needsReview:
-            statusLabel(color: .orange)
-        case .done:
-            statusLabel(color: .green)
-        case .waitingForUpload, .processing:
-            statusLabel(color: .secondary)
-        }
-    }
-
-    private func statusLabel(color: Color) -> some View {
-        Label {
-            Text(row.status.label)
-                .foregroundStyle(.primary)
-        } icon: {
-            Image(systemName: row.status.iconName)
-                .foregroundStyle(color)
-        }
-        .font(.subheadline)
-    }
-}
-
 #if DEBUG
 private var previewRows: [DocumentsModel.Row] {
     [
@@ -355,14 +329,28 @@ private var previewRows: [DocumentsModel.Row] {
             id: UUID(), documentID: UUID(), title: "Belastingdienst", subtitle: "13 nov 2026 · 1 pagina",
             status: .needsReview
         ),
-        .init(id: UUID(), documentID: UUID(), title: "CAK", subtitle: "10 nov 2026 · 3 pagina's", status: .done)
+        .init(
+            id: UUID(), documentID: UUID(), title: "CAK", subtitle: "10 nov 2026 · 3 pagina's", status: .done,
+            addressees: ["Papa", "Mama"],
+            labels: [
+                DocumentLabel(id: UUID(), name: "Zorg", colorKey: "green"),
+                DocumentLabel(id: UUID(), name: "Belasting en toeslagen", colorKey: "blue"),
+                DocumentLabel(id: UUID(), name: "Verzekering", colorKey: "purple")
+            ],
+            hasSuggestions: true
+        )
     ]
+}
+
+private var previewGroups: [DocumentsModel.RowGroup] {
+    [DocumentsModel.RowGroup(kind: .post, title: "Post", header: "Post", rows: previewRows)]
 }
 
 #Preview("Light") {
     NavigationStack {
         DocumentsList(
-            state: .loaded, rows: previewRows, retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in },
+            state: .loaded, groups: previewGroups, emptyText: "", retryLoad: {}, retryUpload: { _ in },
+            deleteUpload: { _ in },
             destination: { _ in EmptyView() }
         )
         .navigationTitle("Thuis")
@@ -373,7 +361,8 @@ private var previewRows: [DocumentsModel.Row] {
 #Preview("Dark") {
     NavigationStack {
         DocumentsList(
-            state: .loaded, rows: previewRows, retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in },
+            state: .loaded, groups: previewGroups, emptyText: "", retryLoad: {}, retryUpload: { _ in },
+            deleteUpload: { _ in },
             destination: { _ in EmptyView() }
         )
         .navigationTitle("Thuis")

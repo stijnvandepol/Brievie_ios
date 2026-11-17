@@ -56,10 +56,10 @@ enum CACertificateDownload {
     private static func fetch(_ request: URLRequest, on session: URLSession) async throws -> (Int, Data) {
         let (bytes, response) = try await session.bytes(for: request)
         guard let response = response as? HTTPURLResponse else { throw ServerError.incompatible }
-        guard response.expectedContentLength <= maximumBytes else { throw ServerError.other("response_too_large") }
+        guard response.expectedContentLength <= maximumBytes else { throw ServerError.responseTooLarge }
         var body = Data()
         for try await byte in bytes {
-            guard body.count < maximumBytes else { throw ServerError.other("response_too_large") }
+            guard body.count < maximumBytes else { throw ServerError.responseTooLarge }
             body.append(byte)
         }
         return (response.statusCode, body)

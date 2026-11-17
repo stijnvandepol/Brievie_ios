@@ -5,7 +5,8 @@ import FeaturePairing
 import FeatureWorkspace
 import SwiftUI
 
-/// Switches on `AppModel.state`; hides everything but the app name while the app is not in the foreground.
+/// Switches on `AppModel.state`. While the app is not active, `PrivacyCoverWindow` (a window above this one and
+/// everything it presents) hides it.
 struct RootView: View {
     let appModel: AppModel
     let environment: AppEnvironment
@@ -17,11 +18,6 @@ struct RootView: View {
     var body: some View {
         content
             .tint(BrievieColor.brand)
-            .overlay {
-                if hidesContent {
-                    PrivacyCover()
-                }
-            }
             .onChange(of: scenePhase, initial: true) { _, phase in
                 switch phase {
                 case .background:
@@ -38,6 +34,9 @@ struct RootView: View {
                     Task { await environment.uploads.resume() }
                 }
             }
+            // A deadline in the calendar links to `brievie://task/<id>`. The link only brings the app to the
+            // foreground: the lock and the screens follow from the activation, nothing is read from the link.
+            .onOpenURL { _ in }
             // The first-launch check waits for protected data; run it as soon as the device is unlocked.
             .onReceive(NotificationCenter.default.publisher(
                 for: UIApplication.protectedDataDidBecomeAvailableNotification
@@ -78,13 +77,6 @@ struct RootView: View {
         if case .ready = appModel.state { return true }
         return false
     }
-
-    /// The app switcher takes its snapshot when the scene leaves the foreground: nothing from a paired app
-    /// may be on screen by then. Pairing shows no personal data.
-    private var hidesContent: Bool {
-        if case .unpaired = appModel.state { return false }
-        return scenePhase != .active
-    }
 }
 
 private struct PairingScreen: View {
@@ -96,11 +88,7 @@ private struct PairingScreen: View {
             service: PairingService(server: environment.server, store: environment.store),
             camera: LiveCameraAccess(),
             deviceName: { UIDevice.current.name },
-            openSettings: {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            },
+            openSettings: openSystemSettings,
             onPaired: { appModel.didPair($0) }
         ))
         self.notice = notice
@@ -123,7 +111,18 @@ private struct WorkspacesScreen: View {
             store: environment.store,
             server: environment.server,
             appModel: appModel,
-            unpairing: environment.unpairing
+            unpairing: environment.unpairing,
+            calendar: WorkspaceCalendar(
+                sync: environment.calendarSync,
+                settings: environment.calendarSettings,
+                openSettings: openSystemSettings,
+                // The switches sync themselves after this (`CalendarSettingModel.refresh()`).
+                didLoad: { rows in
+                    environment.workspaceNames.replace(
+                        with: Dictionary(rows.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
+                    )
+                }
+            )
         ))
         self.appModel = appModel
         self.environment = environment
@@ -135,6 +134,12 @@ private struct WorkspacesScreen: View {
             DocumentsScreen(
                 appModel: appModel, environment: environment, connection: connection, workspace: workspace
             )
+        }
+        // This screen stays in the view tree while locked: every unlock after the first loads the list again, and
+        // that load syncs the calendars and checks calendar access (the first unlock loads when the screen
+        // appears). So each unlock syncs every workspace once.
+        .onChange(of: appModel.state) { old, new in
+            if old == .locked, case .ready = new { model.retry() }
         }
     }
 }
@@ -148,6 +153,7 @@ private struct DocumentsScreen: View {
     private let canEdit: Bool
     private let appModel: AppModel
     private let deviceID: UUID
+    private let onTasksChanged: @MainActor () -> Void
 
     init(
         appModel: AppModel, environment: AppEnvironment, connection: ServerConnection,
@@ -164,11 +170,7 @@ private struct DocumentsScreen: View {
             uploads: environment.uploads,
             canScan: canEdit,
             camera: LiveScanCameraAccess(),
-            openSettings: {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            },
+            openSettings: openSystemSettings,
             onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
         ))
@@ -178,13 +180,15 @@ private struct DocumentsScreen: View {
         self.canEdit = canEdit
         self.appModel = appModel
         deviceID = connection.deviceID
+        let workspaceID = workspace.id
+        onTasksChanged = { environment.syncCalendar(of: workspaceID) }
     }
 
     var body: some View {
         DocumentsView(model: model, scanModel: scanModel, title: title) { documentID in
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
-                deviceID: deviceID
+                deviceID: deviceID, onTasksChanged: onTasksChanged
             )
         }
     }
@@ -193,17 +197,31 @@ private struct DocumentsScreen: View {
 private struct ReviewScreen: View {
     @State private var model: ReviewModel
 
-    init(documentID: UUID, documents: WorkspaceDocuments, canEdit: Bool, appModel: AppModel, deviceID: UUID) {
-        _model = State(initialValue: ReviewModel(
+    init(
+        documentID: UUID, documents: WorkspaceDocuments, canEdit: Bool, appModel: AppModel, deviceID: UUID,
+        onTasksChanged: @escaping @MainActor () -> Void
+    ) {
+        let model = ReviewModel(
             documentID: documentID,
             documents: documents,
             canEdit: canEdit,
             onRevoked: { appModel.sessionRevoked(deviceID: deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
-        ))
+        )
+        // After a confirm and after ticking off a task (also of the confirmed letter): the calendar follows.
+        model.onTasksChanged = onTasksChanged
+        _model = State(initialValue: model)
     }
 
     var body: some View {
         ReviewView(model: model)
+    }
+}
+
+/// Opens Brievie's page in the Settings app (camera or calendar access was refused).
+@MainActor
+private func openSystemSettings() {
+    if let url = URL(string: UIApplication.openSettingsURLString) {
+        UIApplication.shared.open(url)
     }
 }

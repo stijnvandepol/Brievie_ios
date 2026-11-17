@@ -19,10 +19,16 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
     public let sender: String
     public let documentType: String
     public let letterDate: CalendarDate?
+    public let inboxState: InboxState
+    /// The persons the letter is addressed to.
+    public let addresseeIDs: [UUID]
+    public let labelIDs: [UUID]
+    public let openSuggestionCount: Int
 
     public init(
         id: UUID, clientID: UUID, status: DocumentStatus, pageCount: Int, createdAt: Date, sender: String,
-        documentType: String, letterDate: CalendarDate?
+        documentType: String, letterDate: CalendarDate?, inboxState: InboxState = .sorted,
+        addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0
     ) {
         self.id = id
         self.clientID = clientID
@@ -32,6 +38,10 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         self.sender = sender
         self.documentType = documentType
         self.letterDate = letterDate
+        self.inboxState = inboxState
+        self.addresseeIDs = addresseeIDs
+        self.labelIDs = labelIDs
+        self.openSuggestionCount = openSuggestionCount
     }
 }
 
@@ -70,10 +80,12 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
     public let deadline: CalendarDate?
     public let deadlineSource: String
     public let deadlineQuote: String
+    /// Ticked off (`status` is `done`).
+    public var isDone: Bool
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String
+        deadlineQuote: String, isDone: Bool = false
     ) {
         self.id = id
         self.type = type
@@ -81,6 +93,7 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
         self.deadline = deadline
         self.deadlineSource = deadlineSource
         self.deadlineQuote = deadlineQuote
+        self.isDone = isDone
     }
 }
 
@@ -94,10 +107,12 @@ public struct DocumentDetail: Equatable, Sendable {
     public let pageTexts: [String]
     public let proposals: [Proposal]
     public let tasks: [ConfirmedTask]
+    /// The open suggestions for addressees and labels this app knows how to show.
+    public let suggestions: [Suggestion]
 
     public init(
         summary: DocumentSummary, failureCode: String, summaryText: String, summaryByAI: Bool,
-        pageTexts: [String], proposals: [Proposal], tasks: [ConfirmedTask]
+        pageTexts: [String], proposals: [Proposal], tasks: [ConfirmedTask], suggestions: [Suggestion] = []
     ) {
         self.summary = summary
         self.failureCode = failureCode
@@ -106,6 +121,7 @@ public struct DocumentDetail: Equatable, Sendable {
         self.pageTexts = pageTexts
         self.proposals = proposals
         self.tasks = tasks
+        self.suggestions = suggestions
     }
 }
 
@@ -142,10 +158,15 @@ public struct ConfirmedReview: Equatable, Sendable {
     public var summary: String
     public var summaryByAI: Bool
     public var tasks: [TaskDraft]
+    public var addresseeIDs: [UUID]
+    public var labelIDs: [UUID]
+    /// Whether the server sets the addressees and labels to the two lists. False leaves them as they are
+    /// (and is what a review without the organise lists sends).
+    public var setsOrganisation: Bool
 
     public init(
         sender: String, documentType: String, letterDate: CalendarDate?, summary: String, summaryByAI: Bool,
-        tasks: [TaskDraft]
+        tasks: [TaskDraft], addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], setsOrganisation: Bool = false
     ) {
         self.sender = sender
         self.documentType = documentType
@@ -153,6 +174,9 @@ public struct ConfirmedReview: Equatable, Sendable {
         self.summary = summary
         self.summaryByAI = summaryByAI
         self.tasks = tasks
+        self.addresseeIDs = addresseeIDs
+        self.labelIDs = labelIDs
+        self.setsOrganisation = setsOrganisation
     }
 }
 
@@ -174,11 +198,33 @@ public struct DocumentScope: Sendable {
 /// The document calls the app makes to a Brievie server. Features talk to this seam, never to the
 /// generated API types. (Uploading goes through the upload queue, not through here.)
 public protocol DocumentServer: Sendable {
-    /// The newest documents of the workspace.
-    func documents(in scope: DocumentScope) async throws -> [DocumentSummary]
+    /// The newest documents of the workspace that match `filter`.
+    func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary]
+    /// The number of letters per inbox state over the whole workspace (a 1b server does not have this).
+    func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts
     func document(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail
     /// The JPEG of one page (1-based index).
     func pageImage(document id: UUID, index: Int, in scope: DocumentScope) async throws -> Data
     func confirm(_ id: UUID, review: ConfirmedReview, in scope: DocumentScope) async throws -> DocumentDetail
     func retryProcessing(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    func persons(in scope: DocumentScope) async throws -> [Person]
+    func createPerson(named name: String, in scope: DocumentScope) async throws -> Person
+    func labels(in scope: DocumentScope) async throws -> [DocumentLabel]
+    /// Replaces the addressees of a document with exactly `ids`.
+    func setAddressees(_ ids: [UUID], document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    /// Replaces the labels of a document with exactly `ids`.
+    func setLabels(_ ids: [UUID], document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    func acceptSuggestion(_ id: UUID, document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    func dismissSuggestion(_ id: UUID, document: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    /// The open tasks of the workspace, by deadline (undated last).
+    func openTasks(in scope: DocumentScope) async throws -> [WorkspaceTask]
+    func completeTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
+    func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
+}
+
+public extension DocumentServer {
+    /// The newest documents of the workspace, unfiltered.
+    func documents(in scope: DocumentScope) async throws -> [DocumentSummary] {
+        try await documents(in: scope, filter: .all)
+    }
 }

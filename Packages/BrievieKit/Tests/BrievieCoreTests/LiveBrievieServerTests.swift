@@ -63,7 +63,8 @@ import Testing
         (413, "payload_too_large", ServerError.other("http_413")),
         (415, "unsupported_media_type", ServerError.other("http_415")),
         (429, "too_many_attempts", ServerError.tooManyAttempts),
-        (401, "not_authenticated", ServerError.unauthorized),
+        // Pairing sends no token, so the contract has no 401 for it: never a revocation.
+        (401, "not_authenticated", ServerError.other("http_401")),
         (500, "internal_error", ServerError.other("http_500"))
     ])
     func pairMapsRefusals(status: Int, code: String, expected: ServerError) async throws {

@@ -10,14 +10,73 @@ public enum APIClient {
     /// The contract's paths already start with `/api/v1`, so `baseURL` is the server address from the
     /// pairing QR code. The caller owns `session`: it carries the trust decision (its delegate) and must be
     /// invalidated by the caller when the work is done.
-    /// - Parameter token: the device token; when given, every request carries `Authorization: Bearer <token>`.
-    public static func make(baseURL: URL, session: URLSession, token: String?) -> Client {
-        Client(
+    /// - Parameters:
+    ///   - token: the device token; when given, every request carries `Authorization: Bearer <token>`.
+    ///   - maxJSONBytes: the largest JSON answer read; a longer one throws `ResponseTooLargeError`.
+    public static func make(baseURL: URL, session: URLSession, token: String?, maxJSONBytes: Int) -> Client {
+        let cap = ResponseSizeMiddleware(maxJSONBytes: maxJSONBytes)
+        return Client(
             serverURL: baseURL,
             configuration: Configuration(dateTranscoder: FlexibleDateTranscoder()),
             transport: URLSessionTransport(configuration: .init(session: session)),
-            middlewares: token.map { [BearerTokenMiddleware(token: $0)] } ?? []
+            middlewares: [ForeignUnauthorizedMiddleware(), cap]
+                + (token.map { [BearerTokenMiddleware(token: $0)] } ?? [])
         )
+    }
+}
+
+/// A 401 that is not a JSON answer: not from the Brievie server (a reverse proxy's login page, say), so not its
+/// verdict on the device token.
+public struct ForeignUnauthorizedError: Error, Equatable {}
+
+/// Stops a 401 without a JSON body before the generated client fails on its content type, so the caller can
+/// tell it from the host's own `not_authenticated`.
+struct ForeignUnauthorizedMiddleware: ClientMiddleware {
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let (response, responseBody) = try await next(request, body, baseURL)
+        let isJSON = response.headerFields[.contentType]?.lowercased().contains("json") ?? false
+        if response.status.code == 401, !isJSON { throw ForeignUnauthorizedError() }
+        return (response, responseBody)
+    }
+}
+
+/// The server sent a JSON answer longer than the client reads.
+public struct ResponseTooLargeError: Error, Equatable {
+    public let maxBytes: Int
+}
+
+/// Reads every answer that is not a page image into memory, at most `maxJSONBytes`, before the generated client
+/// decodes it: a broken or hostile server cannot make the app hold an unbounded body. Page images
+/// (`getDocumentPage` answering with an image) are streamed and capped by their caller.
+struct ResponseSizeMiddleware: ClientMiddleware {
+    let maxJSONBytes: Int
+
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let (response, responseBody) = try await next(request, body, baseURL)
+        guard let responseBody else { return (response, nil) }
+        let isImage = response.headerFields[.contentType]?.lowercased().hasPrefix("image/") ?? false
+        if operationID == "getDocumentPage", isImage { return (response, responseBody) }
+        if case .known(let length) = responseBody.length, length > maxJSONBytes {
+            throw ResponseTooLargeError(maxBytes: maxJSONBytes)
+        }
+        var bytes: [UInt8] = []
+        for try await chunk in responseBody {
+            guard bytes.count + chunk.count <= maxJSONBytes else { throw ResponseTooLargeError(maxBytes: maxJSONBytes) }
+            bytes.append(contentsOf: chunk)
+        }
+        return (response, HTTPBody(bytes))
     }
 }
 

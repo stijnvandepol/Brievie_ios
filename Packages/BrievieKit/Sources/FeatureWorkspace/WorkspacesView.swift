@@ -9,6 +9,7 @@ public struct WorkspacesView<Destination: View>: View {
     private let showsNoPasscodeWarning: Bool
     /// What a workspace opens: supplied by the app, so this target does not know the documents feature.
     private let destination: (WorkspacesModel.Row) -> Destination
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(
         model: WorkspacesModel,
@@ -32,15 +33,21 @@ public struct WorkspacesView<Destination: View>: View {
                     isUnpairing: model.isUnpairing,
                     isConfirming: $model.isConfirmingUnpair,
                     message: model.unpairMessage,
+                    offersCalendarRemoval: model.offersCalendarRemoval,
                     request: { model.requestUnpair() },
-                    confirm: { model.confirmUnpair() }
+                    confirm: { model.confirmUnpair() },
+                    confirmRemovingCalendars: { model.confirmUnpair(removingCalendars: true) }
                 ),
                 retry: { model.retry() },
+                calendarModel: { model.calendarModel(for: $0.id) },
                 destination: destination
             )
             .refreshable { await model.load() }
             .task { await model.load() }
             .onDisappear { model.stop() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { model.sceneLeftForeground() }
+            }
         }
     }
 }
@@ -50,8 +57,11 @@ struct UnpairControl {
     let isUnpairing: Bool
     let isConfirming: Binding<Bool>
     let message: String
+    /// A calendar switch is on: a second choice also removes the calendars.
+    let offersCalendarRemoval: Bool
     let request: () -> Void
     let confirm: () -> Void
+    let confirmRemovingCalendars: () -> Void
 }
 
 /// The rendering of `WorkspacesView`, free of the model so that previews can feed it plain values.
@@ -62,6 +72,8 @@ struct WorkspacesList<Destination: View>: View {
     let showsNoPasscodeWarning: Bool
     let unpair: UnpairControl
     let retry: () -> Void
+    /// The calendar switch under a workspace; `nil` shows none.
+    let calendarModel: (WorkspacesModel.Row) -> CalendarSettingModel?
     let destination: (WorkspacesModel.Row) -> Destination
 
     var body: some View {
@@ -102,6 +114,9 @@ struct WorkspacesList<Destination: View>: View {
                     destination(row)
                 } label: {
                     WorkspaceRowView(row: row)
+                }
+                if let calendar = calendarModel(row) {
+                    CalendarSwitchRow(model: calendar)
                 }
             }
         case .failed(let message):
@@ -165,11 +180,77 @@ extension WorkspacesList {
             Button(role: .destructive, action: unpair.confirm) {
                 Text("workspaces.unpair.confirm", bundle: .module)
             }
+            if unpair.offersCalendarRemoval {
+                Button(role: .destructive, action: unpair.confirmRemovingCalendars) {
+                    Text("workspaces.unpair.confirmRemovingCalendars", bundle: .module)
+                }
+            }
             Button(role: .cancel) {} label: {
                 Text("workspaces.unpair.cancel", bundle: .module)
             }
         } message: {
             Text(unpair.message)
+        }
+    }
+}
+
+/// "Zet deadlines in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
+/// question when it is turned off.
+private struct CalendarSwitchRow: View {
+    @Bindable var model: CalendarSettingModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // The row sits under its workspace and the footer names the calendar: no subtitle with the name.
+            Toggle(isOn: Binding(get: { model.isOn }, set: { model.toggle($0) })) {
+                Text("workspaces.calendar.toggle", bundle: .module)
+            }
+            .accessibilityHint(model.switchHint)
+            Text(model.footer)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            if model.isOn {
+                Toggle(isOn: Binding(get: { model.showsDetails }, set: { model.setShowsDetails($0) })) {
+                    Text("workspaces.calendar.details.toggle", bundle: .module)
+                }
+                .accessibilityHint(model.detailsFooter)
+                Text(model.detailsFooter)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            if let message = model.message {
+                ErrorBanner(
+                    message,
+                    actionTitle: model.showsOpenSettings
+                        ? String(localized: "workspaces.calendar.openSettings", bundle: .module) : nil,
+                    action: { model.openSettings() }
+                )
+            }
+        }
+        .confirmationDialog(model.removeQuestion, isPresented: $model.isAskingToRemove, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                model.switchOff(removeCalendar: true)
+            } label: {
+                Text("workspaces.calendar.remove", bundle: .module)
+            }
+            Button {
+                model.switchOff(removeCalendar: false)
+            } label: {
+                Text("workspaces.calendar.keep", bundle: .module)
+            }
+        }
+        // Only another account is left: the user decides, by that account's name.
+        .alert(model.consentQuestion, isPresented: $model.isAskingConsent) {
+            Button {
+                model.answerConsent(true)
+            } label: {
+                Text("workspaces.calendar.consent.yes", bundle: .module)
+            }
+            Button(role: .cancel) {
+                model.answerConsent(false)
+            } label: {
+                Text("workspaces.calendar.consent.no", bundle: .module)
+            }
         }
     }
 }
@@ -213,7 +294,7 @@ private var previewRows: [WorkspacesModel.Row] {
 private var previewUnpair: UnpairControl {
     UnpairControl(
         isUnpairing: false, isConfirming: .constant(false), message: WorkspaceStrings.unpairMessage,
-        request: {}, confirm: {}
+        offersCalendarRemoval: true, request: {}, confirm: {}, confirmRemovingCalendars: {}
     )
 }
 
@@ -221,7 +302,8 @@ private var previewUnpair: UnpairControl {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, destination: { _ in EmptyView() }
+            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, calendarModel: { _ in nil },
+            destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)
@@ -231,7 +313,8 @@ private var previewUnpair: UnpairControl {
     NavigationStack {
         WorkspacesList(
             state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, destination: { _ in EmptyView() }
+            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, calendarModel: { _ in nil },
+            destination: { _ in EmptyView() }
         )
     }
     .tint(BrievieColor.brand)

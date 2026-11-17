@@ -13,6 +13,258 @@
         }
       }
     },
+    "workspaces.calendar.consent.no": {
+      "comment": "Answer to the account question: leave the switch off.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet aanzetten"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.consent.question": {
+      "comment": "Asked before the calendar goes in an account that is not iCloud or this phone; %@ is the account's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie zet je taken in de agenda van %@. Wie die account beheert, kan ze lezen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.consent.yes": {
+      "comment": "Answer to the account question: make the calendar in that account.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ja, zet ze daar"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.details.footer": {
+      "comment": "Under the description switch: who can read the text when it is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dan staan de omschrijving en de afzender in de agenda. Die tekst is dan te lezen op het toegangsscherm en door andere apps die je agenda mogen lezen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.details.toggle": {
+      "comment": "Second switch under a calendar switch that is on: put the task's description and sender in the events.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon de omschrijving in de agenda"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer": {
+      "comment": "Under a calendar switch that is off: where its calendar will go; %@ is the calendar's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je taken met een deadline komen in een eigen agenda '%@' in iCloud of op deze iPhone. Een andere account gebruikt Brievie alleen als jij dat goedvindt."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.detailed": {
+      "comment": "Last sentence under a calendar switch while events show the description and sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De omschrijving en de afzender staan in de agenda. Ook op het toegangsscherm zijn ze te lezen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.iCloud": {
+      "comment": "Under a calendar switch whose calendar is in iCloud; %@ is the calendar's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je taken met een deadline staan in een eigen agenda '%@' in iCloud. Die agenda staat ook op je andere apparaten met iCloud."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.local": {
+      "comment": "Under a calendar switch whose calendar is on this phone only; %@ is the calendar's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je taken met een deadline staan in een eigen agenda '%@' op deze iPhone."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.neutral": {
+      "comment": "Last sentence under a calendar switch while events show no description.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In de agenda en bij meldingen op het toegangsscherm staat alleen de soort taak, zoals 'Betalen (Brievie)'."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.other": {
+      "comment": "Under a calendar switch whose calendar is in another account the user agreed to; %1$@ is the calendar's name, %2$@ the account's.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je taken met een deadline staan in een eigen agenda '%1$@' in de account %2$@. Wie die account beheert, kan ze lezen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.keep": {
+      "comment": "Answer: turn the switch off and keep the calendar.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laten staan"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.keptForUserEvents": {
+      "comment": "Under a calendar switch that was turned off with 'Verwijderen' while the calendar also held the user's own events.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In deze agenda staan ook afspraken van jou. De agenda blijft staan; de afspraken van Brievie zijn weg."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.noAccess": {
+      "comment": "Under the calendar switch when calendar access is refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geef Brievie toegang tot je agenda in Instellingen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.noCalendarAccount": {
+      "comment": "Under a calendar switch: the phone has no account a calendar can be made in.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is op deze telefoon geen account waarin Brievie een agenda kan maken."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.openSettings": {
+      "comment": "Button that opens the app's page in Settings, after calendar access was refused.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Instellingen"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.remove": {
+      "comment": "Answer: turn the switch off and delete the calendar.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.remove.question": {
+      "comment": "Asked when the calendar switch is turned off; %@ is the calendar's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenda '%@' ook verwijderen?"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.sourceGone": {
+      "comment": "Under a calendar switch that went off because its calendar's account is no longer on the phone.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De account van deze agenda staat niet meer op je telefoon. Daarom staat dit nu uit. Zet het weer aan om een nieuwe agenda te maken."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.tasksNotSupported": {
+      "comment": "Under the calendar switch when the server cannot list tasks yet; the switch stays off.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze server kan nog geen taken doorgeven. Werk de server bij."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.toggle": {
+      "comment": "Switch under a workspace: put its tasks with a deadline in a calendar on this phone.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zet deadlines in mijn agenda"
+          }
+        }
+      }
+    },
     "workspaces.empty": {
       "comment": "Shown when the list is empty.",
       "extractionState": "manual",
@@ -278,6 +530,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ontkoppelen"
+          }
+        }
+      }
+    },
+    "workspaces.unpair.confirmRemovingCalendars": {
+      "comment": "Second destructive button in the unpair confirmation, shown when a calendar switch is on: also delete Brievie's calendars.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontkoppelen en agenda's verwijderen"
           }
         }
       }

@@ -26,16 +26,6 @@ public final class DocumentsModel {
         }
     }
 
-    public struct Row: Equatable, Identifiable, Sendable {
-        /// The server's id, or the queue item's id while the scan is still on the phone.
-        public let id: UUID
-        /// `nil` while the scan has not reached the server: there is nothing to open yet.
-        public let documentID: UUID?
-        public let title: String
-        public let subtitle: String
-        public let status: RowStatus
-    }
-
     public enum State: Equatable, Sendable {
         case loading
         case loaded
@@ -51,7 +41,14 @@ public final class DocumentsModel {
     }
 
     public private(set) var state: State = .loading
+    public private(set) var scope: Scope = .inbox
+    /// The rows of the current scope, grouped. `rows` is the same rows in one list.
+    public private(set) var groups: [RowGroup] = []
     public private(set) var rows: [Row] = []
+    /// The persons and labels of the workspace, to name a row's addressees and labels. Empty against a
+    /// server without them (phase 1b answers 404); that does not fail the screen.
+    public private(set) var persons: [Person] = []
+    public private(set) var labels: [DocumentLabel] = []
     /// Members and admins may scan; a viewer only reads.
     public let canScan: Bool
     /// Shown after "Scan een brief" when the camera may not be used; photos remain the way in.
@@ -68,7 +65,14 @@ public final class DocumentsModel {
     private let refreshInterval: Duration
 
     private var serverDocuments: [DocumentSummary] = []
+    /// In the inbox: per state, the number its header names (more than shown when only the newest are listed).
+    private var inboxTotals: [InboxState: Int] = [:]
     private var queued: [UploadItem] = []
+    /// The number of the latest load: only that one writes the server's answer (a newer load always wins).
+    @ObservationIgnored private var latestLoad = 0
+    /// Full loads (not a tick) still waiting for the server. A tick is skipped meanwhile: the full load also
+    /// asks for what the tick would, and a newer tick would make it lose.
+    @ObservationIgnored private var wholeLoadsInFlight = 0
     private var progress: [UUID: Double] = [:]
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var progressTask: Task<Void, Never>?
@@ -98,37 +102,206 @@ public final class DocumentsModel {
     /// Something on screen is still on its way (uploading, being processed).
     public var needsRefresh: Bool { rows.contains { $0.status.isMoving } }
 
-    /// Reads the queue and the server. A list that is already on screen stays when the server cannot be reached.
+    /// Reads the queue, the server's list and the workspace's persons and labels. A list that is already on
+    /// screen stays when the server cannot be reached. For the first load, pull-to-refresh and retry.
     public func load() async {
+        await load(organisation: true)
+    }
+
+    /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
+    public func select(_ scope: Scope) async {
+        guard scope != self.scope else { return }
+        if Self.source(for: scope) != Self.source(for: self.scope) {
+            serverDocuments = []
+            inboxTotals = [:]
+            state = .loading
+        }
+        self.scope = scope
+        rebuild()
+        await load()
+    }
+
+    /// The automatic refresh while something moves: one list, not the persons and labels. In a loaded inbox
+    /// only the letters on their way ("Onderweg"); the whole inbox once when a letter left that list or a scan
+    /// left the upload queue without showing up in it (read by the server within one tick), so it shows up in
+    /// its new group. An inbox that is not loaded (still loading, or failed) is loaded whole.
+    public func refreshIfNeeded() async {
+        guard needsRefresh, wholeLoadsInFlight == 0 else { return }
+        await load(organisation: false, movingOnly: state == .loaded)
+    }
+
+    /// Every write that belongs to one scope is checked against the scope after each wait: a slow answer
+    /// for a scope the user has left never touches the current one, and only the latest load writes.
+    private func load(organisation: Bool, movingOnly: Bool = false) async {
+        let source = Self.source(for: scope)
+        latestLoad += 1
+        let load = latestLoad
+        if !movingOnly { wholeLoadsInFlight += 1 }
+        defer { if !movingOnly { wholeLoadsInFlight -= 1 } }
+        let shownQueue = Set(queued.map(\.id))
         let removed = await uploads.takeRemovedUnreadableCount()
         if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+        // Also a scan that only joined the queue now: it may be read by the server before the answer comes.
+        let wasQueued = shownQueue.union(queued.map(\.id))
         rebuild()
+        async let fetchedPersons = Self.persons(of: documents, if: organisation)
+        async let fetchedLabels = Self.labels(of: documents, if: organisation)
         do {
-            serverDocuments = try await documents.list()
-            // The queue may have moved on while the server answered.
-            queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-            state = .loaded
+            try await loadServerList(source, movingOnly: movingOnly, load: load, wasQueued: wasQueued)
         } catch {
-            switch error {
-            case .revoked:
-                onRevoked()
-            case .missingPairing:
-                onMissingPairing()
-            case .cancelled:
-                break
-            default:
-                if state != .loaded { state = .failed(message: Self.message(for: error)) }
-            }
+            if await handleFailure(error, source: source, load: load) { return }
+        }
+        // Persons and labels belong to the workspace, not to a scope.
+        let freshPersons = await fetchedPersons
+        if let freshPersons { persons = freshPersons }
+        if let fetched = await fetchedLabels { labels = fetched }
+        // The chosen person was archived or removed meanwhile: back to the inbox.
+        if let freshPersons, isCurrent(source), !isActivePersonScope(in: freshPersons) {
+            await select(.inbox)
+            return
         }
         rebuild()
     }
 
-    public func refreshIfNeeded() async {
-        guard needsRefresh else { return }
-        await load()
+    /// The server's part of a load: the inbox (only "new" on a tick, whole when needed) or one list.
+    private func loadServerList(
+        _ source: Source, movingOnly: Bool, load: Int, wasQueued: Set<UUID>
+    ) async throws(DocumentsError) {
+        switch source {
+        case .inbox:
+            let wholeInbox = movingOnly
+                ? try await loadInbox([.new], withCounts: false, load: load, wasQueued: wasQueued) : true
+            if wholeInbox {
+                _ = try await loadInbox(Self.inboxStates, withCounts: true, load: load, wasQueued: wasQueued)
+            }
+        case let .list(filter):
+            let listed = try await documents.list(filter: filter)
+            // The queue may have moved on while the server answered.
+            queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+            if owns(load, source) {
+                serverDocuments = listed
+                state = .loaded
+            }
+        }
     }
 
+    /// Whether `load` is the latest load and `source` still belongs to the current scope.
+    private func owns(_ load: Int, _ source: Source) -> Bool {
+        load == latestLoad && isCurrent(source)
+    }
+
+    /// Replaces the letters of `states` with the server's lists. `true` when the inbox must be loaded whole: a
+    /// letter that was "new" is no longer in the fresh "new" list, or a scan of `wasQueued` left the queue and
+    /// is nowhere in the inbox (the server read it before this phone saw it as "new").
+    private func loadInbox(
+        _ states: [InboxState], withCounts: Bool, load: Int, wasQueued: Set<UUID>
+    ) async throws(DocumentsError) -> Bool {
+        let answer = try await Self.fetchInbox(states, withCounts: withCounts, from: documents)
+        // The queue may have moved on while the server answered.
+        queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+        guard owns(load, .inbox) else { return false }
+        let wasNew = Set(serverDocuments.filter { $0.inboxState == .new }.map(\.id))
+        var kept = serverDocuments.filter { !states.contains($0.inboxState) }
+        for state in states {
+            let listed = (answer.lists[state] ?? []).filter { document in !kept.contains { $0.id == document.id } }
+            kept += listed
+            inboxTotals[state] = Self.total(
+                fetched: answer.fetched[state] ?? 0, shown: listed.count,
+                counted: withCounts ? answer.counts?.count(of: state) : inboxTotals[state]
+            )
+        }
+        serverDocuments = kept
+        state = .loaded
+        guard states != Self.inboxStates else { return false }
+        let isNew = Set(kept.filter { $0.inboxState == .new }.map(\.id))
+        let leftQueue = wasQueued.subtracting(queued.map(\.id))
+        return !wasNew.isSubset(of: isNew) || !leftQueue.isSubset(of: kept.map(\.clientID))
+    }
+
+    /// `true` when the load stops here (it went back to the inbox).
+    private func handleFailure(_ error: DocumentsError, source: Source, load: Int) async -> Bool {
+        switch error {
+        case .revoked:
+            onRevoked()
+        case .missingPairing:
+            onMissingPairing()
+        case .cancelled:
+            break
+        case .notFound where owns(load, source) && scope.isPerson:
+            // The person is gone: back to the inbox rather than "this document no longer exists".
+            await select(.inbox)
+            return true
+        default:
+            if owns(load, source), state != .loaded { state = .failed(message: Self.message(for: error)) }
+        }
+        return false
+    }
+
+    private func rebuild() {
+        let arrived = Set(serverDocuments.map(\.clientID))
+        // A scan on the phone has no addressee yet: it is not under a person.
+        let waiting = scope.showsQueue ? waitingRows(arrived: arrived) : []
+        let onServer = serverDocuments
+            .sorted { $0.createdAt > $1.createdAt }
+            .map { document in (document.inboxState, row(for: document)) }
+        groups = makeGroups(waiting: waiting, onServer: onServer, totals: inboxTotals)
+        rows = groups.flatMap(\.rows)
+    }
+
+    private func waitingRows(arrived: Set<UUID>) -> [Row] {
+        queued
+            .filter { !arrived.contains($0.id) }
+            .sorted { $0.createdAt > $1.createdAt }
+            .map { item in
+                Row(
+                    id: item.id, documentID: nil, title: DocumentStrings.newDocument,
+                    subtitle: Self.subtitle(date: item.createdAt, pages: item.pageCount),
+                    status: status(of: item)
+                )
+            }
+    }
+
+    private func row(for document: DocumentSummary) -> Row {
+        let addressees = Set(document.addresseeIDs)
+        let labelIDs = Set(document.labelIDs)
+        return Row(
+            id: document.id, documentID: document.id,
+            title: document.sender.isEmpty ? DocumentStrings.newDocument : document.sender,
+            subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
+            status: Self.status(of: document),
+            addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
+            labels: labels.filter { labelIDs.contains($0.id) },
+            hasSuggestions: document.openSuggestionCount > 0
+        )
+    }
+
+    private func status(of item: UploadItem) -> RowStatus {
+        switch item.state {
+        case .waiting: .waitingForUpload
+        case .uploading:
+            // Handed to the system but nothing sent yet (offline, or scheduled for later): it waits.
+            progress[item.id].map { .uploading(progress: $0) } ?? .waitingForUpload
+        case .failed:
+            .uploadFailed(
+                message: Self.uploadMessage(for: item.failureCode), canRetry: item.failureCode != "server_changed"
+            )
+        }
+    }
+
+    private static func status(of document: DocumentSummary) -> RowStatus {
+        switch document.status {
+        case .processing: .processing
+        case .needsReview: .needsReview
+        case .failed: .failed
+        // A status this app does not know yet is at least a document that can be opened.
+        case .done, .unknown: .done
+        }
+    }
+}
+
+// Polling, the camera and the queue buttons: kept out of the class body, which holds the loading.
+extension DocumentsModel {
     /// While the screen is visible: follow upload progress and refresh as long as something is moving.
     public func startPolling() {
         stopPolling()
@@ -154,6 +327,16 @@ public final class DocumentsModel {
             progress = update
             rebuild()
         }
+    }
+
+    public func retryUpload(_ id: UUID) async {
+        await uploads.retry(id)
+        await load(organisation: false)
+    }
+
+    public func deleteUpload(_ id: UUID) async {
+        await uploads.delete(id)
+        await load(organisation: false)
     }
 
     /// Before the scanner opens: asks for the camera the first time; `false` (with a notice) when it may not
@@ -182,91 +365,5 @@ public final class DocumentsModel {
 
     public func openSettings() {
         settingsOpener()
-    }
-
-    public func retryUpload(_ id: UUID) async {
-        await uploads.retry(id)
-        await load()
-    }
-
-    public func deleteUpload(_ id: UUID) async {
-        await uploads.delete(id)
-        await load()
-    }
-
-    private func rebuild() {
-        let arrived = Set(serverDocuments.map(\.clientID))
-        let waiting = queued
-            .filter { !arrived.contains($0.id) }
-            .sorted { $0.createdAt > $1.createdAt }
-            .map { item in
-                Row(
-                    id: item.id, documentID: nil, title: DocumentStrings.newDocument,
-                    subtitle: Self.subtitle(date: item.createdAt, pages: item.pageCount),
-                    status: status(of: item)
-                )
-            }
-        let onServer = serverDocuments
-            .sorted { $0.createdAt > $1.createdAt }
-            .map { document in
-                Row(
-                    id: document.id, documentID: document.id,
-                    title: document.sender.isEmpty ? DocumentStrings.newDocument : document.sender,
-                    subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
-                    status: Self.status(of: document)
-                )
-            }
-        rows = waiting + onServer
-    }
-
-    private func status(of item: UploadItem) -> RowStatus {
-        switch item.state {
-        case .waiting: .waitingForUpload
-        case .uploading:
-            // Handed to the system but nothing sent yet (offline, or scheduled for later): it waits.
-            progress[item.id].map { .uploading(progress: $0) } ?? .waitingForUpload
-        case .failed:
-            .uploadFailed(
-                message: Self.uploadMessage(for: item.failureCode), canRetry: item.failureCode != "server_changed"
-            )
-        }
-    }
-
-    private static func status(of document: DocumentSummary) -> RowStatus {
-        switch document.status {
-        case .processing: .processing
-        case .needsReview: .needsReview
-        case .failed: .failed
-        // A status this app does not know yet is at least a document that can be opened.
-        case .done, .unknown: .done
-        }
-    }
-
-    private static func uploadMessage(for code: String?) -> String {
-        switch code {
-        case "untrusted": DocumentStrings.notVerified
-        case "workspace_not_found": DocumentStrings.workspaceGone
-        case "server_changed": DocumentStrings.otherServer
-        case "payload_too_large": DocumentStrings.tooLarge
-        default: DocumentStrings.uploadFailed
-        }
-    }
-
-    static func message(for error: DocumentsError) -> String {
-        switch error {
-        case .unreachable: DocumentStrings.unreachable
-        case .notVerified: DocumentStrings.notVerified
-        case .notFound: DocumentStrings.notFound
-        default: DocumentStrings.generic
-        }
-    }
-
-    private static let dateStyle = Date.FormatStyle(
-        date: .abbreviated, time: .omitted, locale: Locale(identifier: "nl_NL")
-    )
-
-    static func subtitle(date: Date, pages: Int) -> String {
-        let pageText = pages == 1 ? DocumentStrings.pagesOne : String(format: DocumentStrings.pagesManyFormat, pages)
-        return "\(date.formatted(dateStyle)) · \(pageText)"
     }
 }

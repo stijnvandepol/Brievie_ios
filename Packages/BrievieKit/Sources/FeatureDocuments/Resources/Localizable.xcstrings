@@ -1,6 +1,102 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "document.change.failed": {
+      "comment": "A change to a confirmed letter (name, label, suggestion, task) did not reach the server.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit lukte niet. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "document.suggestion.accept": {
+      "comment": "Button on an open proposal of a confirmed letter: take it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen"
+          }
+        }
+      }
+    },
+    "document.suggestion.dismiss": {
+      "comment": "Button on an open proposal of a confirmed letter: drop it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Negeren"
+          }
+        }
+      }
+    },
+    "document.suggestion.dismissNamed": {
+      "comment": "VoiceOver label of the dismiss button on a proposal, e.g. 'Papa negeren'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ negeren"
+          }
+        }
+      }
+    },
+    "document.task.done": {
+      "comment": "VoiceOver value of a task's tick box when it is ticked off.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "afgerond"
+          }
+        }
+      }
+    },
+    "document.task.open": {
+      "comment": "VoiceOver value of a task's tick box when it still has to be done.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "open"
+          }
+        }
+      }
+    },
+    "document.tasks": {
+      "comment": "Header above the tasks of a confirmed letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
+          }
+        }
+      }
+    },
+    "document.title": {
+      "comment": "Title of the screen of a confirmed letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief"
+          }
+        }
+      }
+    },
     "documents.add": {
       "comment": "Toolbar menu: add a letter by scanning or from photos.",
       "extractionState": "manual",
@@ -9,6 +105,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Post toevoegen"
+          }
+        }
+      }
+    },
+    "documents.addressees": {
+      "comment": "Under a letter in the list: the persons it is addressed to, e.g. 'Papa en Mama'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op naam van %@"
           }
         }
       }
@@ -73,6 +181,30 @@
         }
       }
     },
+    "documents.group.count": {
+      "comment": "Group header with its number of letters: title, count.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$d)"
+          }
+        }
+      }
+    },
+    "documents.group.partial": {
+      "comment": "Group header when the list shows only the newest letters: title, total count, number shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$d, de nieuwste %3$d)"
+          }
+        }
+      }
+    },
     "documents.import": {
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",
@@ -81,6 +213,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kies foto's"
+          }
+        }
+      }
+    },
+    "documents.inbox.empty": {
+      "comment": "Shown when the inbox has nothing in it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je inbox is leeg. Alles staat op naam."
+          }
+        }
+      }
+    },
+    "documents.inbox.review": {
+      "comment": "Inbox group header: letters waiting for a review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te controleren"
+          }
+        }
+      }
+    },
+    "documents.inbox.unassigned": {
+      "comment": "Inbox group header: reviewed letters without an addressee.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op niemands naam"
+          }
+        }
+      }
+    },
+    "documents.inbox.underway": {
+      "comment": "Inbox group header: scans being uploaded or processed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onderweg"
+          }
+        }
+      }
+    },
+    "documents.labels": {
+      "comment": "Spoken by VoiceOver for a letter: its label names, comma separated.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels: %@"
           }
         }
       }
@@ -133,6 +325,18 @@
         }
       }
     },
+    "documents.person.empty": {
+      "comment": "Shown when no letter is addressed to the chosen person.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staat nog geen post op deze naam."
+          }
+        }
+      }
+    },
     "documents.retry": {
       "comment": "Retry button.",
       "extractionState": "manual",
@@ -153,6 +357,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan een brief"
+          }
+        }
+      }
+    },
+    "documents.scope.all": {
+      "comment": "Scope menu in the post list: every letter of the workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle post"
+          }
+        }
+      }
+    },
+    "documents.scope.inbox": {
+      "comment": "Scope menu in the post list: the letters that still need something.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbox"
           }
         }
       }
@@ -249,6 +477,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wacht op verbinding"
+          }
+        }
+      }
+    },
+    "documents.suggestion": {
+      "comment": "Marker on a letter with open proposals, and the tag next to a proposed person or label.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voorstel"
           }
         }
       }
@@ -577,6 +817,222 @@
         }
       }
     },
+    "review.organise.add": {
+      "comment": "A proposed person or label in the review, e.g. 'Papa toevoegen'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ toevoegen"
+          }
+        }
+      }
+    },
+    "review.organise.addressees": {
+      "comment": "Review section: the persons a letter is addressed to.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op naam van"
+          }
+        }
+      }
+    },
+    "review.organise.chosenLabel": {
+      "comment": "VoiceOver: a chosen label in the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label %@. Tik om weg te halen"
+          }
+        }
+      }
+    },
+    "review.organise.chosenPerson": {
+      "comment": "VoiceOver: a chosen person in the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op naam van %@. Tik om weg te halen."
+          }
+        }
+      }
+    },
+    "review.organise.done": {
+      "comment": "Person or label picker: closes the list.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar"
+          }
+        }
+      }
+    },
+    "review.organise.gone": {
+      "comment": "Review: a chosen person or label was deleted meanwhile.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een persoon of label bestaat niet meer. Controleer je keuze en bevestig opnieuw."
+          }
+        }
+      }
+    },
+    "review.organise.labels": {
+      "comment": "Review section: the labels of a letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        }
+      }
+    },
+    "review.organise.labelsInWeb": {
+      "comment": "Label picker footer: labels cannot be made in the app.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe labels maak je in de webinterface."
+          }
+        }
+      }
+    },
+    "review.organise.nameTaken": {
+      "comment": "Person picker: a person with this name exists already.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is al iemand met deze naam."
+          }
+        }
+      }
+    },
+    "review.organise.newPerson": {
+      "comment": "Person picker: section to add a person.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuwe persoon"
+          }
+        }
+      }
+    },
+    "review.organise.newPerson.add": {
+      "comment": "Person picker: button that adds the new person.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen"
+          }
+        }
+      }
+    },
+    "review.organise.newPerson.name": {
+      "comment": "Person picker: placeholder of the new person's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naam"
+          }
+        }
+      }
+    },
+    "review.organise.noAddressee": {
+      "comment": "Review: no person chosen and none proposed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog op niemands naam."
+          }
+        }
+      }
+    },
+    "review.organise.origin.ai": {
+      "comment": "Under a person or label in the review: the AI proposed it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voorstel van AI"
+          }
+        }
+      }
+    },
+    "review.organise.origin.nameMatch": {
+      "comment": "Under a person in the review: their name was found in the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herkend in de brief"
+          }
+        }
+      }
+    },
+    "review.organise.origin.rule": {
+      "comment": "Under a person or label in the review: the rule that proposed it, by name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regel: %@"
+          }
+        }
+      }
+    },
+    "review.organise.pickLabels": {
+      "comment": "Review: opens the list of labels to choose from.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies labels"
+          }
+        }
+      }
+    },
+    "review.organise.pickPersons": {
+      "comment": "Review: opens the list of persons to choose from.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies personen"
+          }
+        }
+      }
+    },
     "review.page.loading": {
       "comment": "Shown while a page image loads.",
       "extractionState": "manual",
@@ -609,6 +1065,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pagina %1$d van %2$d"
+          }
+        }
+      }
+    },
+    "review.pages.missing": {
+      "comment": "Above the pages when a letter has more pages than the review shows; %1$d is all pages, %2$d the pages shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief heeft %1$d pagina's. Je ziet hier alleen de eerste %2$d."
           }
         }
       }

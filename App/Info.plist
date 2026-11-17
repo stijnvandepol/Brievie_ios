@@ -16,6 +16,17 @@
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>nl.stijnvdpol.brievie</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>brievie</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
@@ -24,6 +35,8 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Brievie zet je deadlines in een eigen agenda en werkt die bij als je een taak afrondt.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Brievie gebruikt de camera om de koppelcode en je post te scannen.</string>
 	<key>NSFaceIDUsageDescription</key>

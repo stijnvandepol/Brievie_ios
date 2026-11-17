@@ -63,7 +63,8 @@ public enum ServerError: Error, Equatable {
     case unreachable
     /// The TLS connection was refused because the server's certificate is not trusted.
     case untrusted
-    /// HTTP 401: the device token is missing, wrong or revoked.
+    /// HTTP 401 with the host's code `not_authenticated`: the device token is missing, wrong or revoked. A 401
+    /// without that code (a reverse proxy) is `.other("http_401")`.
     case unauthorized
     /// The pairing code is unknown, expired or already used.
     case invalidCode

@@ -47,6 +47,50 @@ public struct CalendarDate: Equatable, Hashable, Comparable, Sendable {
         (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
     }
 
+    /// The same day `years` later (earlier when negative); February 29 becomes February 28 in a year without it.
+    public func adding(years: Int) -> CalendarDate {
+        let year = year + years
+        return CalendarDate(year: year, month: month, day: min(day, Self.daysIn(month: month, year: year)))
+    }
+
+    /// The day `days` later (earlier when negative), on the Gregorian calendar.
+    public func adding(days: Int) -> CalendarDate {
+        var result = self
+        var remaining = days
+        while remaining > 0 {
+            let left = Self.daysIn(month: result.month, year: result.year) - result.day
+            if remaining <= left {
+                return CalendarDate(year: result.year, month: result.month, day: result.day + remaining)
+            }
+            remaining -= left + 1
+            result = result.month == 12
+                ? CalendarDate(year: result.year + 1, month: 1, day: 1)
+                : CalendarDate(year: result.year, month: result.month + 1, day: 1)
+        }
+        while remaining < 0 {
+            if -remaining < result.day {
+                return CalendarDate(year: result.year, month: result.month, day: result.day + remaining)
+            }
+            remaining += result.day
+            let month = result.month == 1 ? 12 : result.month - 1
+            let year = result.month == 1 ? result.year - 1 : result.year
+            result = CalendarDate(year: year, month: month, day: Self.daysIn(month: month, year: year))
+        }
+        return result
+    }
+
+    static func daysIn(month: Int, year: Int) -> Int {
+        switch month {
+        case 2: isLeapYear(year) ? 29 : 28
+        case 4, 6, 9, 11: 30
+        default: 31
+        }
+    }
+
+    private static func isLeapYear(_ year: Int) -> Bool {
+        (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+    }
+
     private static let utcCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC") ?? .gmt

@@ -29,6 +29,9 @@ public final class WorkspacesModel {
     public var isConfirmingUnpair = false
     /// Scans waiting in the upload queue when the user asked to unpair; the confirmation says they go.
     public private(set) var queuedScanCount = 0
+    /// At least one calendar switch was on when the user asked to unpair: the confirmation also offers
+    /// "Ontkoppelen en agenda's verwijderen".
+    public private(set) var offersCalendarRemoval = false
     /// Unpairing is running: the button is disabled and shows progress.
     public var isUnpairing: Bool { appModel.isUnpairing }
 
@@ -47,20 +50,30 @@ public final class WorkspacesModel {
     private let server: any BrievieServer
     private let appModel: AppModel
     private let unpairing: Unpairing
+    private let calendar: WorkspaceCalendar?
+    /// The calendar switch per workspace of the last load; kept across reloads.
+    private var calendarModels: [UUID: CalendarSettingModel] = [:]
     /// The load started by `retry()`; `stop()` cancels it when the screen goes away. Tests await it.
     @ObservationIgnored private(set) var retryTask: Task<Void, Never>?
     /// Counts the queue before the confirmation opens. Tests await it.
     @ObservationIgnored private(set) var unpairCountTask: Task<Void, Never>?
 
+    /// - Parameter calendar: the calendar switches; `nil` shows none.
     public init(
         connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel,
-        unpairing: Unpairing
+        unpairing: Unpairing, calendar: WorkspaceCalendar? = nil
     ) {
         self.connection = connection
         self.store = store
         self.server = server
         self.appModel = appModel
         self.unpairing = unpairing
+        self.calendar = calendar
+    }
+
+    /// The "Zet deadlines in mijn agenda" switch of a loaded workspace; `nil` without calendar support.
+    public func calendarModel(for workspace: UUID) -> CalendarSettingModel? {
+        calendarModels[workspace]
     }
 
     /// The "Ontkoppelen" button: counts the waiting scans, then asks for confirmation.
@@ -68,14 +81,21 @@ public final class WorkspacesModel {
         guard !isUnpairing, unpairCountTask == nil else { return }
         unpairCountTask = Task {
             queuedScanCount = await unpairing.queuedScanCount()
+            offersCalendarRemoval = unpairing.hasCalendars
             isConfirmingUnpair = true
             unpairCountTask = nil
         }
     }
 
-    /// The user confirmed. `AppModel` owns the work and ignores a second tap.
-    public func confirmUnpair() {
-        appModel.requestUnpair(unpairing)
+    /// The user confirmed; with `removingCalendars`, each workspace's own calendar goes too. `AppModel` owns the
+    /// work and ignores a second tap.
+    public func confirmUnpair(removingCalendars: Bool = false) {
+        appModel.requestUnpair(removingCalendars ? unpairing.removingCalendars() : unpairing)
+    }
+
+    /// The app leaves the foreground: questions that name a workspace close (they would sit above the lock).
+    public func sceneLeftForeground() {
+        for model in calendarModels.values { model.sceneLeftForeground() }
     }
 
     /// For the retry button: loads again, tied to this model so that `stop()` can cancel it.
@@ -107,7 +127,12 @@ public final class WorkspacesModel {
 
         switch await fetch(token: token) {
         case .workspaces(let workspaces):
-            state = .loaded(workspaces.map(Row.init(workspace:)))
+            let rows = workspaces.map(Row.init(workspace:))
+            updateCalendarModels(rows)
+            state = .loaded(rows)
+            // The app learns the names first: a sync names the calendar after its workspace.
+            calendar?.didLoad(rows)
+            for model in calendarModels.values { model.refresh() }
         case .revoked:
             appModel.sessionRevoked(deviceID: connection.deviceID)
         case .cancelled:
@@ -117,6 +142,22 @@ public final class WorkspacesModel {
             if case .loaded = state { return }
             state = .failed(message: message)
         }
+    }
+
+    private func updateCalendarModels(_ rows: [Row]) {
+        guard let calendar else { return }
+        var models: [UUID: CalendarSettingModel] = [:]
+        for row in rows {
+            if let existing = calendarModels[row.id], existing.workspaceName == row.name {
+                models[row.id] = existing
+            } else {
+                models[row.id] = CalendarSettingModel(
+                    workspaceID: row.id, workspaceName: row.name, sync: calendar.sync, settings: calendar.settings,
+                    openSettings: calendar.openSettings
+                )
+            }
+        }
+        calendarModels = models
     }
 
     private enum Outcome {

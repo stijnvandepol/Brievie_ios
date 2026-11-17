@@ -145,7 +145,7 @@ import Testing
         let deviceB = UUID()
         pair(deviceID: deviceB, urls: [Self.local], token: "token-b")
 
-        await uploads.handle(finished(item, .status(401, code: nil), device: deviceA))
+        await uploads.handle(finished(item, .status(401, code: "not_authenticated"), device: deviceA))
 
         // The old device is reported (AppModel ignores a stale id); the item goes out with the new pairing.
         #expect(revoked.value == [deviceA])
@@ -265,7 +265,7 @@ import Testing
         // Final review: revoked, then paired with a different server: the scans must stay here.
         let uploads = coordinator()
         let item = try await uploads.enqueue(pages: page, workspaceID: workspaceID)
-        await uploads.handle(finished(item, .status(401, code: nil)))
+        await uploads.handle(finished(item, .status(401, code: "not_authenticated")))
         let other = ServerConnection(
             urls: [Self.remote], caCertificateDER: Data([1, 2, 3]), deviceID: UUID(), userName: "Iemand"
         )
