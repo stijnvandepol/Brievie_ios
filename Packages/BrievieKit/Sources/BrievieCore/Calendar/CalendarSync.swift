@@ -21,6 +21,10 @@ public actor CalendarSync {
     /// The work running per workspace. Its task ends after it took itself out of here, so a caller that waited
     /// for it finds the place free (or taken by a caller that came first).
     private var running: [UUID: (token: UUID, done: Task<Void, Never>)] = [:]
+    /// The last calendar choice queued, for all workspaces together: reading the other workspaces' calendars,
+    /// choosing or making one and storing it is one step, so two workspaces with the same name never take the
+    /// same calendar.
+    private var choosing: Task<Void, Never>?
 
     /// - Parameters:
     ///   - tasks: the open tasks of a workspace on the server.
@@ -64,11 +68,16 @@ public actor CalendarSync {
     /// no calendar. Any other failure to read them still makes the calendar; the next sync fills it.
     public func enable(workspace: UUID) async -> CalendarSyncResult {
         await exclusively(workspace) { sync in
+            // An unpair while this runs clears the settings: then nothing may be stored afterwards.
+            let generation = sync.settings.clearGeneration()
             let open = await sync.openTasks(workspace)
             if case .failure(let error) = open, error as? DocumentsError == .notSupported { return .tasksNotSupported }
             guard await sync.requestAccessIfNeeded() else { return .noAccess }
-            guard await sync.makeCalendar(workspace) else { return .failed }
-            return await sync.performSync(workspace, open: open)
+            switch await sync.makeCalendar(workspace, generation: generation) {
+            case .made: return await sync.performSync(workspace, open: open)
+            case .notWanted: return .off
+            case .failed: return .failed
+            }
         }
     }
 
@@ -99,26 +108,51 @@ public actor CalendarSync {
         if running[workspace]?.token == token { running[workspace] = nil }
     }
 
+    /// Runs `work` after every calendar choice queued before it, for all workspaces.
+    private func choosingCalendar<Result: Sendable>(
+        _ work: @escaping @Sendable (isolated CalendarSync) async -> Result
+    ) async -> Result {
+        let previous = choosing
+        let job = Task {
+            await previous?.value
+            return await work(self)
+        }
+        choosing = Task { _ = await job.value }
+        return await job.value
+    }
+
     private func requestAccessIfNeeded() async -> Bool {
         if await store.access() == .granted { return true }
         return await store.requestAccess() == .granted
     }
 
-    private func makeCalendar(_ workspace: UUID) async -> Bool {
+    private enum MadeCalendar {
+        case made
+        /// The settings were cleared (unpaired) since `generation`: nothing was stored.
+        case notWanted
+        case failed
+    }
+
+    private func makeCalendar(_ workspace: UUID, generation: Int) async -> MadeCalendar {
         let name = workspaceName(workspace)
-        guard !name.isEmpty else { return false }
-        do {
-            let id = try await store.ensureCalendar(
-                named: Self.calendarName(workspaceName: name),
-                existingID: settings.calendarID(for: workspace),
-                excluding: calendarsOfOtherWorkspaces(workspace),
-                window: CalendarSyncPlanner.window(today: today())
-            )
-            settings.enable(workspace: workspace, calendarID: id)
-            return true
-        } catch {
-            Self.logger.error("Could not make the calendar: \(String(describing: error), privacy: .private)")
-            return false
+        guard !name.isEmpty else { return .failed }
+        return await choosingCalendar { sync in
+            guard sync.settings.clearGeneration() == generation else { return .notWanted }
+            do {
+                let id = try await sync.store.ensureCalendar(
+                    named: Self.calendarName(workspaceName: name),
+                    existingID: sync.settings.calendarID(for: workspace),
+                    excluding: sync.calendarsOfOtherWorkspaces(workspace),
+                    window: CalendarSyncPlanner.window(today: sync.today())
+                )
+                guard sync.settings.enable(workspace: workspace, calendarID: id, ifGeneration: generation) else {
+                    return .notWanted
+                }
+                return .made
+            } catch {
+                Self.logger.error("Could not make the calendar: \(String(describing: error), privacy: .private)")
+                return .failed
+            }
         }
     }
 
@@ -142,13 +176,10 @@ public actor CalendarSync {
             let fetched = if let open { open } else { await openTasks(workspace) }
             let open = try fetched.get()
             let window = CalendarSyncPlanner.window(today: today())
-            let calendarID = try await store.ensureCalendar(
-                named: Self.calendarName(workspaceName: name), existingID: storedID,
-                excluding: calendarsOfOtherWorkspaces(workspace), window: window
-            )
-            // Unpairing (or the switch) may have cleared the setting while this sync waited: never write it back.
-            guard settings.calendarID(for: workspace) == storedID else { return .off }
-            if calendarID != storedID { settings.enable(workspace: workspace, calendarID: calendarID) }
+            let chosen = await choosingCalendar { sync in
+                await sync.chooseCalendar(workspace, named: name, storedID: storedID, window: window)
+            }
+            guard let calendarID = try chosen.get() else { return .off }
             let events = try await store.events(calendarID: calendarID, window: window)
             let changes = CalendarSyncPlanner.plan(tasks: open, events: events, window: window)
             if !changes.isEmpty { try await store.apply(changes, calendarID: calendarID) }
@@ -158,6 +189,29 @@ public actor CalendarSync {
         } catch {
             Self.logger.error("Calendar sync failed: \(String(describing: error), privacy: .private)")
             return .failed
+        }
+    }
+
+    /// The calendar this sync writes in: the stored one, or one found or made again. `nil` when the setting was
+    /// cleared meanwhile (unpairing or the switch): it is never written back.
+    private func chooseCalendar(
+        _ workspace: UUID, named name: String, storedID: String, window: ClosedRange<CalendarDate>
+    ) async -> Result<String?, any Error> {
+        let generation = settings.clearGeneration()
+        guard settings.calendarID(for: workspace) == storedID else { return .success(nil) }
+        do {
+            let calendarID = try await store.ensureCalendar(
+                named: Self.calendarName(workspaceName: name), existingID: storedID,
+                excluding: calendarsOfOtherWorkspaces(workspace), window: window
+            )
+            guard settings.calendarID(for: workspace) == storedID else { return .success(nil) }
+            if calendarID != storedID,
+               !settings.enable(workspace: workspace, calendarID: calendarID, ifGeneration: generation) {
+                return .success(nil)
+            }
+            return .success(calendarID)
+        } catch {
+            return .failure(error)
         }
     }
 

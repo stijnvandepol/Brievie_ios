@@ -14,11 +14,18 @@ public protocol CalendarSettings: Sendable {
     func enable(workspace: UUID, calendarID: String)
     func disable(workspace: UUID)
     func removeAll()
+    /// Changes every time `removeAll()` runs (in this process): read it before a calendar is chosen.
+    func clearGeneration() -> Int
+    /// Stores the calendar only when `removeAll()` did not run since `generation` was read (an unpair while the
+    /// switch was being turned on); `false` and nothing stored otherwise.
+    func enable(workspace: UUID, calendarID: String, ifGeneration generation: Int) -> Bool
 }
 
 /// `CalendarSettings` over `UserDefaults`: one key `calendar.<workspace-uuid>` per workspace that is on.
 public struct UserDefaultsCalendarSettings: CalendarSettings {
     private static let prefix = "calendar."
+    /// The clears in this process; also the lock that makes "check the generation, then store" one step.
+    private static let generation = Mutex(0)
     private let suiteName: String?
 
     /// - Parameter suiteName: `nil` for the app's standard defaults; tests pass their own suite.
@@ -59,8 +66,24 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
 
     public func removeAll() {
         let defaults = defaults
-        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(Self.prefix) {
-            defaults.removeObject(forKey: key)
+        Self.generation.withLock { generation in
+            generation += 1
+            for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(Self.prefix) {
+                defaults.removeObject(forKey: key)
+            }
+        }
+    }
+
+    public func clearGeneration() -> Int {
+        Self.generation.withLock { $0 }
+    }
+
+    public func enable(workspace: UUID, calendarID: String, ifGeneration generation: Int) -> Bool {
+        let defaults = defaults
+        return Self.generation.withLock { current in
+            guard current == generation else { return false }
+            defaults.set(calendarID, forKey: Self.key(workspace))
+            return true
         }
     }
 
@@ -71,16 +94,16 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
 
 /// `CalendarSettings` in memory, for tests and previews.
 public final class InMemoryCalendarSettings: CalendarSettings {
-    private let calendars = Mutex<[UUID: String]>([:])
+    private let calendars = Mutex<(ids: [UUID: String], generation: Int)>(([:], 0))
 
     public init() {}
 
     public func calendarID(for workspace: UUID) -> String? {
-        calendars.withLock { $0[workspace] }
+        calendars.withLock { $0.ids[workspace] }
     }
 
     public func calendarIDs() -> [UUID: String] {
-        calendars.withLock { $0 }
+        calendars.withLock { $0.ids }
     }
 
     public func isEnabled(for workspace: UUID) -> Bool {
@@ -88,14 +111,29 @@ public final class InMemoryCalendarSettings: CalendarSettings {
     }
 
     public func enable(workspace: UUID, calendarID: String) {
-        calendars.withLock { $0[workspace] = calendarID }
+        calendars.withLock { $0.ids[workspace] = calendarID }
     }
 
     public func disable(workspace: UUID) {
-        calendars.withLock { $0[workspace] = nil }
+        calendars.withLock { $0.ids[workspace] = nil }
     }
 
     public func removeAll() {
-        calendars.withLock { $0.removeAll() }
+        calendars.withLock { state in
+            state.ids.removeAll()
+            state.generation += 1
+        }
+    }
+
+    public func clearGeneration() -> Int {
+        calendars.withLock { $0.generation }
+    }
+
+    public func enable(workspace: UUID, calendarID: String, ifGeneration generation: Int) -> Bool {
+        calendars.withLock { state in
+            guard state.generation == generation else { return false }
+            state.ids[workspace] = calendarID
+            return true
+        }
     }
 }
