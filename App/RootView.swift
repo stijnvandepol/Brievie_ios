@@ -5,7 +5,8 @@ import FeaturePairing
 import FeatureWorkspace
 import SwiftUI
 
-/// Switches on `AppModel.state`; hides everything but the app name while the app is not in the foreground.
+/// Switches on `AppModel.state`. While the app is not active, `PrivacyCoverWindow` (a window above this one and
+/// everything it presents) hides it.
 struct RootView: View {
     let appModel: AppModel
     let environment: AppEnvironment
@@ -17,11 +18,6 @@ struct RootView: View {
     var body: some View {
         content
             .tint(BrievieColor.brand)
-            .overlay {
-                if hidesContent {
-                    PrivacyCover()
-                }
-            }
             .onChange(of: scenePhase, initial: true) { _, phase in
                 switch phase {
                 case .background:
@@ -80,13 +76,6 @@ struct RootView: View {
     private var isReady: Bool {
         if case .ready = appModel.state { return true }
         return false
-    }
-
-    /// The app switcher takes its snapshot when the scene leaves the foreground: nothing from a paired app
-    /// may be on screen by then. Pairing shows no personal data.
-    private var hidesContent: Bool {
-        if case .unpaired = appModel.state { return false }
-        return scenePhase != .active
     }
 }
 

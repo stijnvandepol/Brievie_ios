@@ -33,8 +33,8 @@ struct LockView: View {
     }
 }
 
-/// Covers the screen so the app switcher snapshot shows no content.
-struct PrivacyCover: View {
+/// What `PrivacyCoverWindow` shows: the app's name on the background, nothing of the screens below.
+struct PrivacyCoverView: View {
     var body: some View {
         ZStack {
             Rectangle()

@@ -17,6 +17,7 @@
 		59DAC517B496F61B89A287A4 /* FeatureWorkspace in Frameworks */ = {isa = PBXBuildFile; productRef = 5F265A0CF1FE6F312034AA0A /* FeatureWorkspace */; };
 		5FAF97D61D1EE19F66222550 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 5980CF85820FFDF8E486834C /* Localizable.xcstrings */; };
 		6C22E267FBEB9377BA0CA2D0 /* BrievieCore in Frameworks */ = {isa = PBXBuildFile; productRef = E7EC3D56DAD31FB51E8C621A /* BrievieCore */; };
+		76A15A038AD7CD336F6DBEC4 /* PrivacyCoverWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E19D94C757C4C64574994F /* PrivacyCoverWindow.swift */; };
 		83849713F5D0AE0BB469B866 /* BrievieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DBF496F60D6A8E9350BE5C1 /* BrievieApp.swift */; };
 		854EB0B47F21ECB5D7BF38B8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */; };
 		8FD67E2BD4045DF0422F9F5E /* BrievieAPI in Frameworks */ = {isa = PBXBuildFile; productRef = F4F6CDC3CC7341669371F61F /* BrievieAPI */; };
@@ -39,6 +40,7 @@
 		02DA0FB97F54142D6DE69A97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		2764E1ACC49558A4678F3A6C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		29E19D94C757C4C64574994F /* PrivacyCoverWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyCoverWindow.swift; sourceTree = "<group>"; };
 		5980CF85820FFDF8E486834C /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		616EA71179575C46C38B5BC2 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
 		8DBF496F60D6A8E9350BE5C1 /* BrievieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrievieApp.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 				DF9ABFEF409F70E0452C97CC /* Info.plist */,
 				5980CF85820FFDF8E486834C /* Localizable.xcstrings */,
 				E769481337554AD9D9A19289 /* LockView.swift */,
+				29E19D94C757C4C64574994F /* PrivacyCoverWindow.swift */,
 				16CC487E50F5B67311F238A8 /* PrivacyInfo.xcprivacy */,
 				DCC4F2726ED10E34A3AC655A /* RootView.swift */,
 			);
@@ -250,6 +253,7 @@
 				10638E1F3ADCC18E5E4BC16B /* AppEnvironment.swift in Sources */,
 				83849713F5D0AE0BB469B866 /* BrievieApp.swift in Sources */,
 				1EFB106964A887B3CBD23CE9 /* LockView.swift in Sources */,
+				76A15A038AD7CD336F6DBEC4 /* PrivacyCoverWindow.swift in Sources */,
 				A5D1EA6800F994EBAB91506A /* RootView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -6,6 +6,8 @@ import UIKit
 struct BrievieApp: App {
     @State private var appModel: AppModel
     private let environment: AppEnvironment
+    /// Hides the paired app while it is not active (the app switcher's snapshot); pairing shows no personal data.
+    private let privacyCover: PrivacyCoverWindow
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
@@ -24,6 +26,10 @@ struct BrievieApp: App {
         )
         model.start()
         _appModel = State(initialValue: model)
+        privacyCover = PrivacyCoverWindow { [model] in
+            if case .unpaired = model.state { return false }
+            return true
+        }
         // An upload that gets a 401 sends the user back to pairing, like any other call.
         environment = AppEnvironment.live(store: store, calendarSettings: calendarSettings) { [model] deviceID in
             await model.sessionRevoked(deviceID: deviceID)
