@@ -139,6 +139,12 @@ extension DocumentStrings {
     static let letterTitle = String(localized: "document.title", defaultValue: "Brief", bundle: .module)
     static let reviewLoading = String(localized: "review.loading", defaultValue: "Brief laden…", bundle: .module)
     static let pageFormat = String(localized: "review.pages", defaultValue: "Pagina %1$d van %2$d", bundle: .module)
+    /// Above the pages when a letter has more than the review shows; `%1$d` all pages, `%2$d` those shown.
+    static let missingPagesFormat = String(
+        localized: "review.pages.missing",
+        defaultValue: "Deze brief heeft %1$d pagina's. Je ziet hier alleen de eerste %2$d.",
+        bundle: .module
+    )
     static let pageLoading = String(localized: "review.page.loading", defaultValue: "Pagina laden…", bundle: .module)
     static let sender = String(localized: "review.sender", defaultValue: "Afzender", bundle: .module)
     static let documentType = String(localized: "review.type", defaultValue: "Soort post", bundle: .module)
@@ -303,6 +309,7 @@ extension DocumentStrings {
         "document.title": letterTitle,
         "review.loading": reviewLoading,
         "review.pages": pageFormat,
+        "review.pages.missing": missingPagesFormat,
         "review.page.loading": pageLoading,
         "review.sender": sender,
         "review.type": documentType,

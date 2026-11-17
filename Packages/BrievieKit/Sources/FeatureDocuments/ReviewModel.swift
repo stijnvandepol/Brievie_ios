@@ -84,7 +84,15 @@ public final class ReviewModel {
 
     /// The server's page count, between 0 and `maxPages`.
     public var pageCount: Int { min(max(detail?.summary.pageCount ?? 0, 0), Self.maxPages) }
-    public var pageTexts: [String] { detail?.pageTexts ?? [] }
+    /// The text of the pages shown, at most `maxPages`.
+    public var pageTexts: [String] { Array((detail?.pageTexts ?? []).prefix(Self.maxPages)) }
+
+    /// "Deze brief heeft 80 pagina's. Je ziet hier alleen de eerste 50."; `nil` when nothing is left out.
+    public var missingPagesNote: String? {
+        let total = max(detail?.summary.pageCount ?? 0, detail?.pageTexts.count ?? 0)
+        guard total > Self.maxPages else { return nil }
+        return String(format: DocumentStrings.missingPagesFormat, total, Self.maxPages)
+    }
     /// Processing failed on the server; the review can still be filled in by hand.
     public var processingFailed: Bool { detail?.summary.status == .failed }
 

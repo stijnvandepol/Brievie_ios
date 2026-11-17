@@ -49,7 +49,9 @@ public struct ReviewView: View {
         // Closes every sheet when the app leaves the foreground (they would sit above the lock screen).
         .onChange(of: scenePhase) { _, phase in model.sceneDidChange(isActive: phase == .active) }
         .sheet(item: $model.shownQuote) { quote in
-            SourceView(quote: quote.text, pageTexts: model.pageTexts) { model.shownQuote = nil }
+            SourceView(quote: quote.text, pageTexts: model.pageTexts, missingPagesNote: model.missingPagesNote) {
+                model.shownQuote = nil
+            }
         }
         .sheet(item: $model.picker) { picker in
             if let confirmed = model.confirmed {
@@ -99,6 +101,9 @@ public struct ReviewView: View {
     @ViewBuilder private var pagesSection: some View {
         if model.pageCount > 0 {
             Section {
+                if let note = model.missingPagesNote {
+                    ErrorBanner(note, style: .warning)
+                }
                 TabView {
                     ForEach(1...model.pageCount, id: \.self) { index in
                         PageImageView(

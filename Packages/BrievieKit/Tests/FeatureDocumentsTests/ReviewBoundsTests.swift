@@ -9,7 +9,7 @@ import Testing
 @Suite struct ReviewBoundsTests {
     private let harness = ReviewHarness()
 
-    private nonisolated static func detail(id: UUID, pageCount: Int) -> DocumentDetail {
+    private nonisolated static func detail(id: UUID, pageCount: Int, pageTexts: [String]? = nil) -> DocumentDetail {
         let base = DocumentFixtures.detail(id: id)
         let summary = base.summary
         return DocumentDetail(
@@ -19,7 +19,7 @@ import Testing
                 letterDate: summary.letterDate, inboxState: summary.inboxState
             ),
             failureCode: base.failureCode, summaryText: base.summaryText, summaryByAI: base.summaryByAI,
-            pageTexts: base.pageTexts, proposals: base.proposals, tasks: base.tasks
+            pageTexts: pageTexts ?? base.pageTexts, proposals: base.proposals, tasks: base.tasks
         )
     }
 
@@ -56,5 +56,34 @@ import Testing
     @Test func theMaximumIsAboveWhatTheServerAcceptsByDefault() {
         // The host refuses more than 30 pages per letter (`BRIEVIE_MAX_PAGES`, default 30).
         #expect(ReviewModel.maxPages >= UploadLimits.server.maxPages)
+    }
+
+    @Test func aLetterWithMorePagesThanShownSaysSo() async throws {
+        harness.answer { id in Self.detail(id: id, pageCount: 80) }
+        let model = try harness.model()
+
+        await model.load()
+
+        #expect(model.missingPagesNote == "Deze brief heeft 80 pagina's. Je ziet hier alleen de eerste 50.")
+    }
+
+    @Test func aLetterWithinTheMaximumHasNoNote() async throws {
+        harness.answer { id in Self.detail(id: id, pageCount: 3) }
+        let model = try harness.model()
+
+        await model.load()
+
+        #expect(model.missingPagesNote == nil)
+    }
+
+    @Test func thePageTextsAreCappedTheSameWay() async throws {
+        let texts = (1...80).map { "Pagina \($0)" }
+        harness.answer { id in Self.detail(id: id, pageCount: 80, pageTexts: texts) }
+        let model = try harness.model()
+
+        await model.load()
+
+        #expect(model.pageTexts.count == ReviewModel.maxPages)
+        #expect(model.pageTexts.last == "Pagina 50")
     }
 }

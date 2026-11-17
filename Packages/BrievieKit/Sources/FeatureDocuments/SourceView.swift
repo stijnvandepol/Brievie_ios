@@ -6,13 +6,19 @@ import SwiftUI
 /// The letter text with the quote marked: where a value was read.
 struct SourceView: View {
     let quote: String
+    /// At most `ReviewModel.maxPages`.
     let pageTexts: [String]
+    /// Said above the text when the letter has more pages than shown.
+    let missingPagesNote: String?
     let close: () -> Void
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    if let missingPagesNote {
+                        ErrorBanner(missingPagesNote, style: .warning)
+                    }
                     if !pageTexts.contains(where: { !QuoteLocator.ranges(of: quote, in: $0).isEmpty }) {
                         ErrorBanner(DocumentStrings.sourceMissing, style: .warning)
                         Text(String(format: DocumentStrings.sourceFormat, quote))

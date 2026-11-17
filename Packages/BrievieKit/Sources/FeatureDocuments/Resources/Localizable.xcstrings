@@ -1069,6 +1069,18 @@
         }
       }
     },
+    "review.pages.missing": {
+      "comment": "Above the pages when a letter has more pages than the review shows; %1$d is all pages, %2$d the pages shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief heeft %1$d pagina's. Je ziet hier alleen de eerste %2$d."
+          }
+        }
+      }
+    },
     "review.processing": {
       "comment": "Shown while the server processes the document.",
       "extractionState": "manual",
