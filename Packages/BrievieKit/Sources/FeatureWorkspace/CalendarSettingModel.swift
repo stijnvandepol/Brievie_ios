@@ -35,6 +35,9 @@ public final class CalendarSettingModel {
         String(format: WorkspaceStrings.calendarFooterFormat, CalendarSync.calendarName(workspaceName: workspaceName))
     }
 
+    /// The switch's VoiceOver hint: every switch has the same label, the footer names this workspace's calendar.
+    public var switchHint: String { footer }
+
     /// Why the switch went back off; `nil` when there is nothing to say.
     public private(set) var message: String?
     /// The message is about refused access: offer "Open Instellingen".

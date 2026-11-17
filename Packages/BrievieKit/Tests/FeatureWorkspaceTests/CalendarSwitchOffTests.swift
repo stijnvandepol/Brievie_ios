@@ -56,4 +56,11 @@ import Testing
         #expect(model.message == nil)
         #expect(await store.calendars.isEmpty)
     }
+
+    @Test func voiceOverHearsWhichWorkspacesCalendarTheSwitchIsFor() {
+        let model = makeModel()
+
+        #expect(model.switchHint == model.footer)
+        #expect(model.switchHint.contains("Brievie – Thuis"))
+    }
 }

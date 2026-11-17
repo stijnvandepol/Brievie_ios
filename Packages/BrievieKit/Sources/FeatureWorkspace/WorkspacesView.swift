@@ -205,6 +205,7 @@ private struct CalendarSwitchRow: View {
             Toggle(isOn: Binding(get: { model.isOn }, set: { model.toggle($0) })) {
                 Text("workspaces.calendar.toggle", bundle: .module)
             }
+            .accessibilityHint(model.switchHint)
             Text(model.footer)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
