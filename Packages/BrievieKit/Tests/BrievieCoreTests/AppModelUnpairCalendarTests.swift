@@ -20,10 +20,12 @@ import Testing
         try ConnectionStore(secrets: secrets).save(connection, token: "device-token")
     }
 
-    private func readyModel(calendarSettings: (any CalendarSettings)? = nil) async -> AppModel {
+    private func readyModel(
+        calendarSettings: (any CalendarSettings)? = nil, calendarSync: CalendarSync? = nil
+    ) async -> AppModel {
         let model = AppModel(
             store: store, authenticator: FakeAuthenticator(), launchFlag: InMemoryLaunchFlag(hasLaunchedBefore: true),
-            isProtectedDataAvailable: { true }, calendarSettings: calendarSettings
+            isProtectedDataAvailable: { true }, calendarSettings: calendarSettings, calendarSync: calendarSync
         )
         model.start()
         await model.unlock()
@@ -90,14 +92,62 @@ import Testing
         try expectNothingStored()
     }
 
-    @Test func aRevocationTurnsTheCalendarSwitchesOffButKeepsTheCalendars() async throws {
+    @Test func aRevocationRemovesTheCalendarsWithoutAsking() async throws {
+        // A revoked phone may be a stolen one: its calendars must not keep showing the tasks.
+        let (settings, sync) = try await enableTwoCalendars()
+        let model = await readyModel(calendarSettings: settings, calendarSync: sync)
+
+        model.sessionRevoked(deviceID: connection.deviceID)
+        await model.calendarRemovalTask?.value
+
+        #expect(model.state == .unpaired(notice: AppStrings.sessionRevoked))
+        #expect(settings.calendarIDs().isEmpty)
+        #expect(await calendars.calendars.isEmpty)
+    }
+
+    @Test func aRevocationKeepsACalendarWithTheUsersOwnEventsAndOnlyTakesBrieviesOut() async throws {
+        let settings = InMemoryCalendarSettings()
+        let home = UUID()
+        let task = WorkspaceTask(
+            id: UUID(), type: "pay", description: "Factuur", deadline: CalendarDate(year: 2026, month: 12, day: 1),
+            isDone: false, documentID: nil, sender: "Eneco"
+        )
+        let sync = CalendarSync(
+            store: calendars, settings: settings, tasks: { _ in [task] }, workspaceName: { _ in "Thuis" },
+            typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 17) }
+        )
+        _ = await sync.enable(workspace: home)
+        let id = try #require(settings.calendarID(for: home))
+        await calendars.userAddsEvent(
+            title: "Verjaardag", day: CalendarDate(year: 2026, month: 12, day: 3), calendarID: id
+        )
+        let model = await readyModel(calendarSettings: settings, calendarSync: sync)
+
+        model.sessionRevoked(deviceID: connection.deviceID)
+        await model.calendarRemovalTask?.value
+
+        #expect(await calendars.calendars[id] != nil)
+        #expect(await calendars.storedEvents(calendarID: id).map(\.title) == ["Verjaardag"])
+    }
+
+    @Test func aRevocationWithoutCalendarSyncOnlyTurnsTheSwitchesOff() async throws {
         let (settings, _) = try await enableTwoCalendars()
         let model = await readyModel(calendarSettings: settings)
 
         model.sessionRevoked(deviceID: connection.deviceID)
 
-        #expect(model.state == .unpaired(notice: AppStrings.sessionRevoked))
         #expect(settings.calendarIDs().isEmpty)
+        #expect(model.calendarRemovalTask == nil)
+    }
+
+    @Test func plainUnpairingStartsNoRemovalOfItsOwn() async throws {
+        let (settings, sync) = try await enableTwoCalendars()
+        let unpairing = Unpairing(server: server, uploads: uploads, calendarSettings: settings, calendarSync: sync)
+        let model = await readyModel(calendarSettings: settings, calendarSync: sync)
+
+        await model.unpair(unpairing)
+
+        #expect(model.calendarRemovalTask == nil)
         #expect(await calendars.calendars.count == 2)
     }
 

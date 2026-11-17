@@ -141,10 +141,12 @@ import Testing
         )
     }
 
-    @Test func anOpenTaskWithADeadlineGivesTitleAndNotes() throws {
+    @Test func anOpenTaskWithADeadlineGivesTitleAndNotesWithDetails() throws {
         let source = workspaceTask(deadline: Self.today)
 
-        let task = try #require(CalendarTask.from(source, typeTitle: { $0 == "pay" ? "Betalen" : "?" }))
+        let task = try #require(CalendarTask.from(
+            source, typeTitle: { $0 == "pay" ? "Betalen" : "?" }, showsDetails: true
+        ))
 
         #expect(task == CalendarTask(
             id: source.id, title: "Betalen: Factuur november", notes: "Eneco\nUit Brievie", day: Self.today
@@ -152,7 +154,9 @@ import Testing
     }
 
     @Test func withoutASenderTheNotesOnlySayWhereItCameFrom() {
-        let task = CalendarTask.from(workspaceTask(deadline: Self.today, sender: "  "), typeTitle: { _ in "Betalen" })
+        let task = CalendarTask.from(
+            workspaceTask(deadline: Self.today, sender: "  "), typeTitle: { _ in "Betalen" }, showsDetails: true
+        )
 
         #expect(task?.notes == "Uit Brievie")
     }

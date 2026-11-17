@@ -30,6 +30,12 @@ enum AppStrings {
         String(localized: "calendar.notes.footer", defaultValue: "Uit Brievie", bundle: .module)
     }
 
+    /// The title of a calendar event without details: on the lock screen, in widgets and for other apps with
+    /// calendar access. `%@` is the task type ("Betalen (Brievie)").
+    static var calendarNeutralTitleFormat: String {
+        String(localized: "calendar.event.neutralTitle", defaultValue: "%@ (Brievie)", bundle: .module)
+    }
+
     /// The name of a workspace's calendar; `%@` is the workspace's name.
     static var calendarNameFormat: String {
         String(localized: "calendar.name", defaultValue: "Brievie – %@", bundle: .module)

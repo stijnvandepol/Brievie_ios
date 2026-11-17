@@ -14,15 +14,18 @@ struct BrievieApp: App {
     init() {
         let store = ConnectionStore(secrets: KeychainSecretStore())
         let launchFlag = UserDefaultsLaunchFlag()
-        let calendarSettings = UserDefaultsCalendarSettings()
+        let server = LiveBrievieServer()
+        let calendar = AppCalendar(store: store, server: server, settings: UserDefaultsCalendarSettings())
         let model = AppModel(
             store: store,
             authenticator: LocalAuthenticator(),
             launchFlag: launchFlag,
             // False before the first unlock after a reboot (prewarm, background launch).
             isProtectedDataAvailable: { UIApplication.shared.isProtectedDataAvailable },
-            // A revoked or unpaired pairing turns every calendar switch off; the calendars stay.
-            calendarSettings: calendarSettings
+            // A revoked or unpaired pairing turns every calendar switch off; a revocation also removes the
+            // calendars (a revoked phone may be a stolen one).
+            calendarSettings: calendar.settings,
+            calendarSync: calendar.sync
         )
         model.start()
         _appModel = State(initialValue: model)
@@ -31,7 +34,7 @@ struct BrievieApp: App {
             return true
         }
         // An upload that gets a 401 sends the user back to pairing, like any other call.
-        environment = AppEnvironment.live(store: store, calendarSettings: calendarSettings) { [model] deviceID in
+        environment = AppEnvironment.live(store: store, server: server, calendar: calendar) { [model] deviceID in
             await model.sessionRevoked(deviceID: deviceID)
         }
     }

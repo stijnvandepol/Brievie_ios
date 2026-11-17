@@ -209,6 +209,15 @@ private struct CalendarSwitchRow: View {
             Text(model.footer)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+            if model.isOn {
+                Toggle(isOn: Binding(get: { model.showsDetails }, set: { model.setShowsDetails($0) })) {
+                    Text("workspaces.calendar.details.toggle", bundle: .module)
+                }
+                .accessibilityHint(model.detailsFooter)
+                Text(model.detailsFooter)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             if let message = model.message {
                 ErrorBanner(
                     message,

@@ -49,6 +49,30 @@
         }
       }
     },
+    "workspaces.calendar.details.footer": {
+      "comment": "Under the description switch: who can read the text when it is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dan staan de omschrijving en de afzender in de agenda. Die tekst is dan te lezen op het toegangsscherm en door andere apps die je agenda mogen lezen."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.details.toggle": {
+      "comment": "Second switch under a calendar switch that is on: put the task's description and sender in the events.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon de omschrijving in de agenda"
+          }
+        }
+      }
+    },
     "workspaces.calendar.footer": {
       "comment": "Under a calendar switch that is off: where its calendar will go; %@ is the calendar's name.",
       "extractionState": "manual",
@@ -57,6 +81,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je taken met een deadline komen in een eigen agenda '%@' in iCloud of op deze iPhone. Een andere account gebruikt Brievie alleen als jij dat goedvindt."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.detailed": {
+      "comment": "Last sentence under a calendar switch while events show the description and sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De omschrijving en de afzender staan in de agenda. Ook op het toegangsscherm zijn ze te lezen."
           }
         }
       }
@@ -81,6 +117,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je taken met een deadline staan in een eigen agenda '%@' op deze iPhone."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.footer.neutral": {
+      "comment": "Last sentence under a calendar switch while events show no description.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In de agenda en bij meldingen op het toegangsscherm staat alleen de soort taak, zoals 'Betalen (Brievie)'."
           }
         }
       }

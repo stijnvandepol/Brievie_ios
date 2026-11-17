@@ -19,11 +19,12 @@ struct AppEnvironment {
     let workspaceNames: WorkspaceNames
 
     /// - Parameters:
-    ///   - calendarSettings: the calendar switches, shared with `AppModel` (which clears them with the pairing).
+    ///   - calendar: the calendar switches, sync and workspace names, shared with `AppModel` (which clears the
+    ///     switches with the pairing and removes the calendars after a revocation).
     ///   - onRevoked: called when an upload finds that the server no longer knows this device.
     @MainActor
     static func live(
-        store: ConnectionStore, calendarSettings: any CalendarSettings,
+        store: ConnectionStore, server: LiveBrievieServer, calendar: AppCalendar,
         onRevoked: @escaping @Sendable (UUID) async -> Void
     ) -> AppEnvironment {
         let transport = BackgroundUploadTransport(trustProvider: StoredConnectionTrustProvider(store: store))
@@ -37,27 +38,12 @@ struct AppEnvironment {
         )
         AppDelegate.uploads = uploads
         Task { await uploads.run() }
-        let server = LiveBrievieServer()
-        let workspaceNames = WorkspaceNames()
-        let calendarSync = CalendarSync(
-            store: EventKitCalendarStore(),
-            settings: calendarSettings,
-            tasks: { workspace in
-                guard let stored = try store.load() else { throw DocumentsError.missingPairing }
-                return try await WorkspaceDocuments(
-                    workspaceID: workspace, connection: stored.connection, store: store, server: server
-                ).openTasks()
-            },
-            workspaceName: { workspaceNames.name(of: $0) },
-            typeTitle: { TaskTypeName.label(for: $0) },
-            today: { CalendarDate(Date(), in: .current) }
-        )
         return AppEnvironment(
             store: store, server: server, documents: server, launchFlag: UserDefaultsLaunchFlag(), uploads: uploads,
             unpairing: Unpairing(
-                server: server, uploads: uploads, calendarSettings: calendarSettings, calendarSync: calendarSync
+                server: server, uploads: uploads, calendarSettings: calendar.settings, calendarSync: calendar.sync
             ),
-            calendarSettings: calendarSettings, calendarSync: calendarSync, workspaceNames: workspaceNames
+            calendarSettings: calendar.settings, calendarSync: calendar.sync, workspaceNames: calendar.workspaceNames
         )
     }
 
@@ -70,6 +56,33 @@ struct AppEnvironment {
     /// Scans waiting for upload. Not in a cache directory: the system may empty those.
     private static var uploadsDirectory: URL {
         URL.applicationSupportDirectory.appending(path: "Uploads", directoryHint: .isDirectory)
+    }
+}
+
+/// The calendar parts the app model and the environment share. Made before both: `AppModel` needs the sync to
+/// remove the calendars after a revocation.
+struct AppCalendar {
+    let settings: any CalendarSettings
+    let sync: CalendarSync
+    let workspaceNames: WorkspaceNames
+
+    init(store: ConnectionStore, server: LiveBrievieServer, settings: any CalendarSettings) {
+        let workspaceNames = WorkspaceNames()
+        self.settings = settings
+        self.workspaceNames = workspaceNames
+        sync = CalendarSync(
+            store: EventKitCalendarStore(),
+            settings: settings,
+            tasks: { workspace in
+                guard let stored = try store.load() else { throw DocumentsError.missingPairing }
+                return try await WorkspaceDocuments(
+                    workspaceID: workspace, connection: stored.connection, store: store, server: server
+                ).openTasks()
+            },
+            workspaceName: { workspaceNames.name(of: $0) },
+            typeTitle: { TaskTypeName.label(for: $0) },
+            today: { CalendarDate(Date(), in: .current) }
+        )
     }
 }
 

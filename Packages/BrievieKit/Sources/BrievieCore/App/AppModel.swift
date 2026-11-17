@@ -25,6 +25,8 @@ public final class AppModel {
     private let isProtectedDataAvailable: @MainActor () -> Bool
     /// Cleared with the pairing (revoked or unpaired), so the switches do not come back on after pairing again.
     private let calendarSettings: (any CalendarSettings)?
+    /// Removes the calendars after a revocation by the server.
+    private let calendarSync: CalendarSync?
     /// The first-launch check has completed (or a pairing made it moot) in this process. Until then nothing
     /// unlocks: a stored connection may be a leftover of a previous install.
     private var launchCheckDone = false
@@ -40,6 +42,8 @@ public final class AppModel {
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
     /// The task started by `requestUnpair(_:)`; owned by the model, so the screen going away cannot cancel it.
     @ObservationIgnored private(set) var unpairTask: Task<Void, Never>?
+    /// The removal of the calendars after a revocation; tests await it.
+    @ObservationIgnored private(set) var calendarRemovalTask: Task<Void, Never>?
 
     /// A pairing that must be forgotten but is not yet: emptying the queue or clearing the store failed.
     /// Until it succeeds the app stays locked (never "unpaired" with a token left in the Keychain) and every
@@ -48,26 +52,31 @@ public final class AppModel {
         let notice: String?
         /// Unpairing only; `nil` once the queue is empty.
         var wipeUploads: (@Sendable () async throws -> Void)?
+        /// A revocation: the calendars go too, without asking (unpairing asks, and removes them itself).
+        var removesCalendars = false
     }
 
     @ObservationIgnored private var pendingForget: PendingForget?
 
     /// - Parameter isProtectedDataAvailable: `false` before the first unlock after a reboot (prewarm or
     ///   background launch), when the Keychain and `UserDefaults` may not be readable yet.
-    /// - Parameter calendarSettings: the calendar switches, cleared whenever the pairing is forgotten (the
-    ///   calendars themselves stay).
+    /// - Parameter calendarSettings: the calendar switches, cleared whenever the pairing is forgotten.
+    /// - Parameter calendarSync: removes the calendars those switches named when the server revoked the device;
+    ///   on "Ontkoppelen" the user chooses (`Unpairing`).
     public init(
         store: ConnectionStore,
         authenticator: any DeviceAuthenticator,
         launchFlag: any LaunchFlag,
         isProtectedDataAvailable: @escaping @MainActor () -> Bool,
-        calendarSettings: (any CalendarSettings)? = nil
+        calendarSettings: (any CalendarSettings)? = nil,
+        calendarSync: CalendarSync? = nil
     ) {
         self.store = store
         self.authenticator = authenticator
         self.launchFlag = launchFlag
         self.isProtectedDataAvailable = isProtectedDataAvailable
         self.calendarSettings = calendarSettings
+        self.calendarSync = calendarSync
     }
 
     /// Unpaired when nothing is stored, locked otherwise. A store that cannot be read does not unpair the
@@ -160,7 +169,9 @@ public final class AppModel {
             return
         }
         // An unpair whose queue could not be emptied yet keeps that step.
-        pendingForget = PendingForget(notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads)
+        pendingForget = PendingForget(
+            notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads, removesCalendars: true
+        )
         if pendingForget?.wipeUploads == nil {
             clearForgottenPairing()
         } else {
@@ -259,9 +270,14 @@ public final class AppModel {
             state = .locked
             return false
         }
+        let calendars = pending.removesCalendars ? calendarSettings?.calendarIDs() ?? [:] : [:]
         calendarSettings?.removeAll()
         pendingForget = nil
         state = .unpaired(notice: pending.notice)
+        if let calendarSync, !calendars.isEmpty {
+            // After the switches are cleared, so no sync writes in them meanwhile.
+            calendarRemovalTask = Task { await calendarSync.removeAfterRevocation(calendars) }
+        }
         return true
     }
 

@@ -119,6 +119,33 @@ enum WorkspaceStrings {
         bundle: .module
     )
 
+    /// The footer's last sentence while the description switch is off.
+    static let calendarFooterNeutral = String(
+        localized: "workspaces.calendar.footer.neutral",
+        defaultValue: """
+            In de agenda en bij meldingen op het toegangsscherm staat alleen de soort taak, \
+            zoals 'Betalen (Brievie)'.
+            """,
+        bundle: .module
+    )
+
+    /// The footer's last sentence while the description switch is on.
+    static let calendarFooterDetailed = String(
+        localized: "workspaces.calendar.footer.detailed",
+        defaultValue: "De omschrijving en de afzender staan in de agenda. Ook op het toegangsscherm zijn ze te lezen.",
+        bundle: .module
+    )
+
+    /// Under "Toon de omschrijving in de agenda".
+    static let calendarDetailsFooter = String(
+        localized: "workspaces.calendar.details.footer",
+        defaultValue: """
+            Dan staan de omschrijving en de afzender in de agenda. Die tekst is dan te lezen op het toegangsscherm \
+            en door andere apps die je agenda mogen lezen.
+            """,
+        bundle: .module
+    )
+
     /// Asked before the calendar goes in an account that is not iCloud or this phone; `%@` is that account.
     static let calendarConsentFormat = String(
         localized: "workspaces.calendar.consent.question",
@@ -170,6 +197,9 @@ enum WorkspaceStrings {
         "workspaces.calendar.footer.local": calendarFooterLocalFormat,
         "workspaces.calendar.footer.other": calendarFooterOtherFormat,
         "workspaces.calendar.consent.question": calendarConsentFormat,
+        "workspaces.calendar.footer.neutral": calendarFooterNeutral,
+        "workspaces.calendar.footer.detailed": calendarFooterDetailed,
+        "workspaces.calendar.details.footer": calendarDetailsFooter,
         "workspaces.calendar.sourceGone": calendarSourceGone,
         "workspaces.calendar.noCalendarAccount": calendarNoCalendarAccount,
         "workspaces.calendar.keptForUserEvents": calendarKeptForUserEvents,

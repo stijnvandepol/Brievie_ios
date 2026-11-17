@@ -240,7 +240,8 @@ import Testing
     @Test func theFooterNamesTheWorkspacesCalendar() {
         #expect(makeModel().footer == """
             Je taken met een deadline komen in een eigen agenda 'Brievie – Thuis' in iCloud of op deze iPhone. \
-            Een andere account gebruikt Brievie alleen als jij dat goedvindt.
+            Een andere account gebruikt Brievie alleen als jij dat goedvindt. In de agenda en bij meldingen op het \
+            toegangsscherm staat alleen de soort taak, zoals 'Betalen (Brievie)'.
             """)
     }
 

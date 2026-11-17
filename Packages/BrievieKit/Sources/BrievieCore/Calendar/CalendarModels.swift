@@ -14,13 +14,26 @@ public struct CalendarTask: Equatable, Sendable {
         self.day = day
     }
 
-    /// "<taaksoort>: <omschrijving>" on the deadline, with the sender and "Uit Brievie" as notes. `nil` for a
-    /// task that is done or has no deadline: it has no event.
-    /// - Parameter typeTitle: the Dutch name of a task type code.
-    public static func from(_ task: WorkspaceTask, typeTitle: (String) -> String) -> CalendarTask? {
+    /// The event of an open task on its deadline; `nil` for a task that is done or has no deadline (no event).
+    /// Its title shows on the lock screen and in widgets (the alarms) and other apps with calendar access read
+    /// it, so by default it says only "<taaksoort> (Brievie)" with "Uit Brievie" as notes: no description (the
+    /// AI's wording, often with an amount and an institution), no sender.
+    /// - Parameters:
+    ///   - typeTitle: the Dutch name of a task type code.
+    ///   - showsDetails: "Toon de omschrijving in de agenda": "<taaksoort>: <omschrijving>", with the sender in
+    ///     the notes.
+    public static func from(
+        _ task: WorkspaceTask, typeTitle: (String) -> String, showsDetails: Bool = false
+    ) -> CalendarTask? {
         guard !task.isDone, let deadline = task.deadline else { return nil }
-        let sender = task.sender.trimmingCharacters(in: .whitespacesAndNewlines)
         let footer = AppStrings.calendarNotesFooter
+        guard showsDetails else {
+            return CalendarTask(
+                id: task.id, title: String(format: AppStrings.calendarNeutralTitleFormat, typeTitle(task.type)),
+                notes: footer, day: deadline
+            )
+        }
+        let sender = task.sender.trimmingCharacters(in: .whitespacesAndNewlines)
         return CalendarTask(
             id: task.id,
             title: "\(typeTitle(task.type)): \(task.description)",

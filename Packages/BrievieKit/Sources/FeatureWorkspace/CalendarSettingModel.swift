@@ -34,16 +34,25 @@ public final class CalendarSettingModel {
     /// The account the calendar is in, once it is known (`nil` while off).
     public private(set) var destination: CalendarSource?
 
-    /// What the switch puts where, under it: the calendar's name and the account it is in.
+    /// "Toon de omschrijving in de agenda" (off by default): the events carry the description and the sender.
+    public private(set) var showsDetails: Bool
+
+    /// What the switch puts where, under it: the calendar's name, the account it is in, and what the events
+    /// show (also on the lock screen).
     public var footer: String {
         let name = CalendarSync.calendarName(workspaceName: workspaceName)
-        guard let destination else { return String(format: WorkspaceStrings.calendarFooterFormat, name) }
-        return switch destination.kind {
+        let place = switch destination?.kind {
+        case nil: String(format: WorkspaceStrings.calendarFooterFormat, name)
         case .iCloud: String(format: WorkspaceStrings.calendarFooterICloudFormat, name)
         case .local: String(format: WorkspaceStrings.calendarFooterLocalFormat, name)
-        case .other: String(format: WorkspaceStrings.calendarFooterOtherFormat, name, destination.title)
+        case .other: String(format: WorkspaceStrings.calendarFooterOtherFormat, name, destination?.title ?? "")
         }
+        let shown = showsDetails ? WorkspaceStrings.calendarFooterDetailed : WorkspaceStrings.calendarFooterNeutral
+        return "\(place) \(shown)"
     }
+
+    /// Under "Toon de omschrijving in de agenda": who can read the text then.
+    public var detailsFooter: String { WorkspaceStrings.calendarDetailsFooter }
 
     /// The switch's VoiceOver hint: every switch has the same label, the footer names this workspace's calendar.
     public var switchHint: String { footer }
@@ -97,6 +106,23 @@ public final class CalendarSettingModel {
         self.settings = settings
         openSystemSettings = openSettings
         isOn = settings.isEnabled(for: workspaceID)
+        showsDetails = settings.showsDetails(for: workspaceID)
+    }
+
+    /// "Toon de omschrijving in de agenda" was flipped: stored at once, and the events are rewritten by a sync
+    /// (one now, after any work the switch still has running).
+    public func setShowsDetails(_ shows: Bool) {
+        guard shows != showsDetails else { return }
+        showsDetails = shows
+        settings.setShowsDetails(shows, for: workspaceID)
+        guard isOn else { return }
+        let sync = sync
+        let workspace = workspaceID
+        let previous = pendingTask
+        pendingTask = Task {
+            await previous?.value
+            _ = await sync.sync(workspace: workspace)
+        }
     }
 
     /// The switch was flipped. On: asks for access, makes the calendar and fills it. Off: asks first whether the

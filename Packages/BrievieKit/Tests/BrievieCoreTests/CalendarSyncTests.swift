@@ -75,7 +75,7 @@ import Testing
         let id = try calendarID(home)
         #expect(await store.calendars == [id: "Brievie – Thuis"])
         let titles = await store.storedEvents(calendarID: id).map(\.title)
-        #expect(titles.sorted() == ["Betalen: Aanslag", "Betalen: Factuur"])
+        #expect(titles == ["Betalen (Brievie)", "Betalen (Brievie)"])
     }
 
     @Test func aSecondSyncUpdatesAndDeletes() async throws {
@@ -150,7 +150,9 @@ import Testing
     }
 
     @Test func twoWorkspacesUseTwoCalendars() async throws {
-        tasks.value = [home: [openTask("Thuisfactuur")], business: [openTask("Zaakfactuur")]]
+        let homeTask = openTask("Thuisfactuur")
+        let businessTask = openTask("Zaakfactuur")
+        tasks.value = [home: [homeTask], business: [businessTask]]
         let sync = makeSync()
 
         _ = await sync.enable(workspace: home)
@@ -160,8 +162,8 @@ import Testing
         let businessID = try calendarID(business)
         #expect(homeID != businessID)
         #expect(await store.calendars == [homeID: "Brievie – Thuis", businessID: "Brievie – Zaak"])
-        #expect(await store.storedEvents(calendarID: homeID).map(\.title) == ["Betalen: Thuisfactuur"])
-        #expect(await store.storedEvents(calendarID: businessID).map(\.title) == ["Betalen: Zaakfactuur"])
+        #expect(await store.storedEvents(calendarID: homeID).map(\.taskID) == [homeTask.id])
+        #expect(await store.storedEvents(calendarID: businessID).map(\.taskID) == [businessTask.id])
     }
 
     // MARK: - Which calendar is the workspace's

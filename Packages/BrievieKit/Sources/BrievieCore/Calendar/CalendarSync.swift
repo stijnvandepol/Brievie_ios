@@ -106,6 +106,26 @@ public actor CalendarSync {
         }
     }
 
+    /// The server revoked this device, and the switches are already cleared: removes the calendars they named,
+    /// without asking (a revoked phone may be a stolen one). A calendar that also holds events of the user stays;
+    /// only Brievie's events go (`CalendarStore.removeCalendar(id:)`). Best effort; a calendar a new pairing took
+    /// over meanwhile is left alone.
+    /// - Parameter calendars: the workspaces' calendars as they were before the switches were cleared.
+    public func removeAfterRevocation(_ calendars: [UUID: String]) async {
+        for (workspace, calendarID) in calendars {
+            await exclusively(workspace) { sync in
+                guard !sync.settings.calendarIDs().values.contains(calendarID) else { return }
+                do {
+                    _ = try await sync.store.removeCalendar(id: calendarID)
+                } catch {
+                    Self.logger.error(
+                        "Could not remove a calendar after revocation: \(String(describing: error), privacy: .private)"
+                    )
+                }
+            }
+        }
+    }
+
     private func exclusively<Result: Sendable>(
         _ workspace: UUID, _ work: @escaping @Sendable (isolated CalendarSync) async -> Result
     ) async -> Result {
@@ -192,7 +212,12 @@ public actor CalendarSync {
     /// The open tasks of the workspace as calendar events-to-be.
     private func openTasks(_ workspace: UUID) async -> Result<[CalendarTask], any Error> {
         do {
-            return .success(try await tasks(workspace).compactMap { CalendarTask.from($0, typeTitle: typeTitle) })
+            let tasks = try await tasks(workspace)
+            // Read after the tasks: a choice made while they loaded counts.
+            let showsDetails = settings.showsDetails(for: workspace)
+            return .success(tasks.compactMap { task in
+                CalendarTask.from(task, typeTitle: typeTitle, showsDetails: showsDetails)
+            })
         } catch {
             return .failure(error)
         }
