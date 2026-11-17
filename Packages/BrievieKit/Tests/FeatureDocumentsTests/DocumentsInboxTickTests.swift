@@ -138,6 +138,73 @@ import Testing
         #expect(model.state == .loaded)
         #expect(model.rows.map(\.id) == [fresh.id])
     }
+
+    @Test func aTickWaitsForAPullToRefreshThatIsRunning() async throws {
+        let moving = Self.document(.new, status: .processing)
+        let oldReview = Self.document(.review, status: .needsReview)
+        server.onList { _, filter in
+            switch filter.inboxState {
+            case .new: [moving]
+            case .review: [oldReview]
+            default: []
+            }
+        }
+        let gated = GatedDocumentServer(server)
+        let model = try model(server: gated)
+        await model.load()
+        #expect(model.needsRefresh)
+        gated.close(gate: .inbox(.review))
+        let pull = Task { await model.load() }
+        while !gated.isWaiting(gate: .inbox(.review)) { await Task.yield() }
+        let freshReview = Self.document(.review, status: .needsReview)
+        let unassigned = Self.document(.unassigned, status: .done)
+        server.onList { _, filter in
+            switch filter.inboxState {
+            case .new: [moving]
+            case .review: [freshReview]
+            case .unassigned: [unassigned]
+            default: []
+            }
+        }
+        let before = server.calls.count
+
+        await model.refreshIfNeeded()
+        #expect(server.calls.count == before)
+
+        gated.open(gate: .inbox(.review))
+        await pull.value
+        #expect(model.groups.map { $0.rows.map(\.id) } == [[freshReview.id], [unassigned.id], [moving.id]])
+        #expect(model.groups.map(\.header) == [
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 1),
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnassigned, 1),
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnderway, 1)
+        ])
+    }
+
+    @Test func aScanThatAppearsAndIsReadWithinOneTickStillShowsUp() async throws {
+        let moving = Self.document(.new, status: .processing)
+        server.onList { _, filter in filter.inboxState == .new ? [moving] : [] }
+        let model = try model()
+        await model.load()
+        // A scan joins the queue just before the tick and is uploaded and read while the tick asks the server.
+        let item = FakeUploadQueue.item(workspaceID: workspaceID)
+        queue.set([item])
+        let arrived = Self.document(.review, status: .needsReview, clientID: item.id)
+        let queue = queue
+        server.onList { _, filter in
+            switch filter.inboxState {
+            case .new:
+                queue.set([])
+                return [moving]
+            case .review: return [arrived]
+            default: return []
+            }
+        }
+
+        await model.refreshIfNeeded()
+
+        #expect(model.groups.map { $0.rows.map(\.id) } == [[arrived.id], [moving.id]])
+    }
 }
 
 @MainActor

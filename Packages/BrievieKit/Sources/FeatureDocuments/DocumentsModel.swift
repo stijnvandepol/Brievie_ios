@@ -70,6 +70,9 @@ public final class DocumentsModel {
     private var queued: [UploadItem] = []
     /// The number of the latest load: only that one writes the server's answer (a newer load always wins).
     @ObservationIgnored private var latestLoad = 0
+    /// Full loads (not a tick) still waiting for the server. A tick is skipped meanwhile: the full load also
+    /// asks for what the tick would, and a newer tick would make it lose.
+    @ObservationIgnored private var wholeLoadsInFlight = 0
     private var progress: [UUID: Double] = [:]
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var progressTask: Task<Void, Never>?
@@ -123,7 +126,7 @@ public final class DocumentsModel {
     /// left the upload queue without showing up in it (read by the server within one tick), so it shows up in
     /// its new group. An inbox that is not loaded (still loading, or failed) is loaded whole.
     public func refreshIfNeeded() async {
-        guard needsRefresh else { return }
+        guard needsRefresh, wholeLoadsInFlight == 0 else { return }
         await load(organisation: false, movingOnly: state == .loaded)
     }
 
@@ -133,10 +136,14 @@ public final class DocumentsModel {
         let source = Self.source(for: scope)
         latestLoad += 1
         let load = latestLoad
-        let wasQueued = Set(queued.map(\.id))
+        if !movingOnly { wholeLoadsInFlight += 1 }
+        defer { if !movingOnly { wholeLoadsInFlight -= 1 } }
+        let shownQueue = Set(queued.map(\.id))
         let removed = await uploads.takeRemovedUnreadableCount()
         if removed > 0 { removedNotice = DocumentStrings.unreadableRemoved(removed) }
         queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+        // Also a scan that only joined the queue now: it may be read by the server before the answer comes.
+        let wasQueued = shownQueue.union(queued.map(\.id))
         rebuild()
         async let fetchedPersons = Self.persons(of: documents, if: organisation)
         async let fetchedLabels = Self.labels(of: documents, if: organisation)
