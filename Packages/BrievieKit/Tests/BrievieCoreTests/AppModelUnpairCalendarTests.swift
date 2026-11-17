@@ -141,20 +141,24 @@ import Testing
 
     @Test(.timeLimit(.minutes(1)))
     func aRemovalThatWaitedNeverRemovesTheCalendarOfANewPairing() async throws {
-        let settings = InMemoryCalendarSettings()
+        let settings = WatchedCalendarSettings()
         let home = UUID()
         let oldCalendar = await calendars.userAddsCalendar(title: "Brievie – Thuis")
         settings.enable(workspace: home, calendarID: oldCalendar)
         let (held, release) = AsyncStream<Void>.makeStream()
+        let syncHolds = Locked(false)
         let sync = CalendarSync(
             store: calendars, settings: settings,
             tasks: { _ in
+                syncHolds.value = true
                 for await _ in held {}
                 return []
             },
             workspaceName: { _ in "Thuis" }, typeTitle: { $0 }, today: { CalendarDate(year: 2026, month: 11, day: 17) }
         )
         let running = Task { await sync.sync(workspace: home) }
+        // The sync holds the workspace before the removal asks for it.
+        while !syncHolds.value { await Task.yield() }
         let unpairing = Unpairing(
             server: server, uploads: uploads, calendarSettings: settings, calendarSync: sync,
             timeout: .milliseconds(200)
@@ -165,13 +169,49 @@ import Testing
         // Paired again, and the same workspace's switch is on with a new calendar before the old removal ran.
         let newCalendar = await calendars.userAddsCalendar(title: "Brievie – Thuis")
         settings.enable(workspace: home, calendarID: newCalendar)
+        settings.startWatching()
         release.finish()
         _ = await running.value
-        for _ in 0..<50 { await Task.yield() }
-        // Let the waiting removal run to its end: it goes through the same workspace's queue.
-        _ = await sync.sync(workspace: home)
+        // Wait for the waiting removal's own turn: it either checks the clear generation (with the check: the
+        // released sync reads it once, the removal once) or, without the check, turns the switch off.
+        while settings.generationReads < 2, settings.disables == 0 { await Task.yield() }
 
-        #expect(await calendars.calendars[newCalendar] != nil)
+        #expect(settings.disables == 0)
         #expect(settings.calendarID(for: home) == newCalendar)
+        #expect(await calendars.calendars[newCalendar] != nil)
+    }
+}
+
+/// In-memory calendar settings that count, from `startWatching()` on, the reads of the clear generation and the
+/// switches turned off: a test can wait for a late `disable` to take its turn without timing.
+private final class WatchedCalendarSettings: CalendarSettings {
+    private let inner = InMemoryCalendarSettings()
+    private let counts = Locked((watching: false, generationReads: 0, disables: 0))
+
+    var generationReads: Int { counts.value.generationReads }
+    var disables: Int { counts.value.disables }
+
+    func startWatching() {
+        counts.update { $0.watching = true }
+    }
+
+    func calendarID(for workspace: UUID) -> String? { inner.calendarID(for: workspace) }
+    func calendarIDs() -> [UUID: String] { inner.calendarIDs() }
+    func isEnabled(for workspace: UUID) -> Bool { inner.isEnabled(for: workspace) }
+    func enable(workspace: UUID, calendarID: String) { inner.enable(workspace: workspace, calendarID: calendarID) }
+    func removeAll() { inner.removeAll() }
+
+    func disable(workspace: UUID) {
+        counts.update { if $0.watching { $0.disables += 1 } }
+        inner.disable(workspace: workspace)
+    }
+
+    func clearGeneration() -> Int {
+        counts.update { if $0.watching { $0.generationReads += 1 } }
+        return inner.clearGeneration()
+    }
+
+    func enable(workspace: UUID, calendarID: String, ifGeneration generation: Int) -> Bool {
+        inner.enable(workspace: workspace, calendarID: calendarID, ifGeneration: generation)
     }
 }
