@@ -106,17 +106,22 @@ public actor CalendarSync {
         }
     }
 
-    /// The server revoked this device, and the switches are already cleared: removes the calendars they named,
-    /// without asking (a revoked phone may be a stolen one). A calendar that also holds events of the user stays;
-    /// only Brievie's events go (`CalendarStore.removeCalendar(id:)`). Best effort; a calendar a new pairing took
-    /// over meanwhile is left alone.
-    /// - Parameter calendars: the workspaces' calendars as they were before the switches were cleared.
-    public func removeAfterRevocation(_ calendars: [UUID: String]) async {
-        for (workspace, calendarID) in calendars {
+    /// Removes the calendars marked for removal after a revocation (`CalendarSettings.pendingRemovals()`),
+    /// without asking: a revoked phone may be a stolen one. A calendar that also holds events of the user stays;
+    /// only Brievie's events go (`CalendarStore.removeCalendar(id:)`). A calendar stays marked until that
+    /// succeeded with access, so the next activation tries again; one a new pairing took over meanwhile is left
+    /// alone and unmarked.
+    public func removePendingRemovals() async {
+        for (calendarID, workspace) in settings.pendingRemovals() {
             await exclusively(workspace) { sync in
-                guard !sync.settings.calendarIDs().values.contains(calendarID) else { return }
+                guard sync.settings.pendingRemovals()[calendarID] != nil else { return }
+                if sync.settings.calendarIDs().values.contains(calendarID) {
+                    sync.settings.removalDone(calendarID: calendarID)
+                    return
+                }
                 do {
                     _ = try await sync.store.removeCalendar(id: calendarID)
+                    sync.settings.removalDone(calendarID: calendarID)
                 } catch {
                     Self.logger.error(
                         "Could not remove a calendar after revocation: \(String(describing: error), privacy: .private)"

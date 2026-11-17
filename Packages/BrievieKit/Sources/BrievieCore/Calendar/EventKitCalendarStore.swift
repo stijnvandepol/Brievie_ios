@@ -37,7 +37,7 @@ public actor EventKitCalendarStore: CalendarStore {
 
     public func sources() async -> CalendarSourceList {
         CalendarSourceList(
-            sources: eventStore.sources.compactMap(Self.calendarSource),
+            sources: Self.calendarSources(eventStore.sources),
             defaultSourceID: eventStore.defaultCalendarForNewEvents?.source.sourceIdentifier
         )
     }
@@ -63,7 +63,7 @@ public actor EventKitCalendarStore: CalendarStore {
         // Only in the account the sync chose (iCloud, the phone, or one the user said yes to): never another.
         guard let sourceID,
               let source = eventStore.sources.first(where: { $0.sourceIdentifier == sourceID }),
-              Self.calendarSource(source) != nil
+              Self.calendarSources(eventStore.sources).contains(where: { $0.id == sourceID })
         else { throw CalendarStoreError(.sourceGone) }
         if let match = adoptableCalendar(named: named, in: source, excluding: excluding, window: window) {
             return CalendarRef(id: match.calendarIdentifier, sourceID: sourceID)
@@ -120,6 +120,11 @@ public actor EventKitCalendarStore: CalendarStore {
     }
 
     public func removeCalendar(id: String) async throws -> CalendarRemoval {
+        // Without full access EventKit finds no calendar at all: that is not "gone".
+        guard Self.access(EKEventStore.authorizationStatus(for: .event)) == .granted else {
+            throw CalendarStoreError(.noAccess)
+        }
+        resetOnceAfterGrant()
         guard let calendar = eventStore.calendar(withIdentifier: id) else { return .removed }
         var events: [String: EKEvent] = [:]
         for slice in CalendarRemoval.querySlices {
@@ -189,18 +194,18 @@ public actor EventKitCalendarStore: CalendarStore {
         event.alarms = Self.alarmOffsets.map { EKAlarm(relativeOffset: $0) }
     }
 
-    /// An account that can hold a new calendar, sorted into iCloud, the phone and everything else; `nil` for a
-    /// subscribed, birthday or other read-only kind. iCloud is the CalDAV account the phone calls "iCloud".
-    private static func calendarSource(_ source: EKSource) -> CalendarSource? {
-        let kind: CalendarSource.Kind
-        switch source.sourceType {
-        case .local: kind = .local
-        case .calDAV: kind = source.title == "iCloud" ? .iCloud : .other
-        case .exchange: kind = .other
-        case .mobileMe, .subscribed, .birthdays: return nil
-        @unknown default: return nil
-        }
-        return CalendarSource(id: source.sourceIdentifier, title: source.title, kind: kind)
+    /// The accounts that can hold a new calendar (`CalendarSource.classify`).
+    private static func calendarSources(_ sources: [EKSource]) -> [CalendarSource] {
+        CalendarSource.classify(sources.map { source in
+            let type: RawCalendarSource.SourceType = switch source.sourceType {
+            case .local: .local
+            case .calDAV: .calDAV
+            case .exchange: .exchange
+            case .mobileMe, .subscribed, .birthdays: .readOnly
+            @unknown default: .readOnly
+            }
+            return RawCalendarSource(id: source.sourceIdentifier, title: source.title, type: type)
+        })
     }
 
     /// 00:00 of `day` on this phone: the start of an all-day event.

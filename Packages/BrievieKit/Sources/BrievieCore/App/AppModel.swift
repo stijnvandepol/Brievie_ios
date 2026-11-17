@@ -132,6 +132,8 @@ public final class AppModel {
     private func activate() async {
         // The scene may have gone to the background again before this ran.
         guard !isInBackground else { return }
+        // `UserDefaults` may not be readable before the first unlock after a reboot.
+        if isProtectedDataAvailable() { removePendingCalendars() }
         clearLeftoversOfAPreviousInstall()
         guard await finishForgetting() else { return }
         // A pending check keeps the prompt for the activation that completes it.
@@ -169,8 +171,10 @@ public final class AppModel {
             return
         }
         // An unpair whose queue could not be emptied yet keeps that step.
+        // A pending "Ontkoppelen" keeps its own choice about the calendars (it removes them itself when chosen).
         pendingForget = PendingForget(
-            notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads, removesCalendars: true
+            notice: AppStrings.sessionRevoked, wipeUploads: pendingForget?.wipeUploads,
+            removesCalendars: pendingForget?.removesCalendars ?? true
         )
         if pendingForget?.wipeUploads == nil {
             clearForgottenPairing()
@@ -270,15 +274,27 @@ public final class AppModel {
             state = .locked
             return false
         }
-        let calendars = pending.removesCalendars ? calendarSettings?.calendarIDs() ?? [:] : [:]
+        if pending.removesCalendars, let calendarSettings {
+            // Stored before the switches are cleared, apart from them: a removal that cannot run now (no calendar
+            // access, the app ended) is tried again on every activation.
+            let calendars = calendarSettings.calendarIDs().map { ($0.value, $0.key) }
+            calendarSettings.markForRemoval(Dictionary(calendars, uniquingKeysWith: { first, _ in first }))
+        }
         calendarSettings?.removeAll()
         pendingForget = nil
         state = .unpaired(notice: pending.notice)
-        if let calendarSync, !calendars.isEmpty {
-            // After the switches are cleared, so no sync writes in them meanwhile.
-            calendarRemovalTask = Task { await calendarSync.removeAfterRevocation(calendars) }
-        }
+        removePendingCalendars()
         return true
+    }
+
+    /// Removes the calendars still marked after a revocation, after any removal already running.
+    private func removePendingCalendars() {
+        guard let calendarSync, let calendarSettings, !calendarSettings.pendingRemovals().isEmpty else { return }
+        let previous = calendarRemovalTask
+        calendarRemovalTask = Task {
+            await previous?.value
+            await calendarSync.removePendingRemovals()
+        }
     }
 
     private func finishUnlock() {

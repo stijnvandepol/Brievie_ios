@@ -27,6 +27,12 @@ public protocol CalendarSettings: Sendable {
     /// "Toon de omschrijving in de agenda": events carry the task's description and sender. Off by default.
     func showsDetails(for workspace: UUID) -> Bool
     func setShowsDetails(_ shows: Bool, for workspace: UUID)
+    /// Calendars still to remove after a revocation (calendar identifier to its workspace). Kept apart from the
+    /// switches: `removeAll()` leaves them, so a removal that could not run (no access, the app ended) is tried
+    /// again.
+    func pendingRemovals() -> [String: UUID]
+    func markForRemoval(_ calendars: [String: UUID])
+    func removalDone(calendarID: String)
 }
 
 extension CalendarSettings {
@@ -47,6 +53,7 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
     private static let prefix = "calendar."
     private static let sourcePrefix = "calendarSource."
     private static let detailsPrefix = "calendarDetails."
+    private static let pendingRemovalPrefix = "calendarPendingRemoval."
     /// The clears in this process per defaults suite (`""` is the standard defaults); also the lock that makes
     /// "check the generation, then store" one step. Per suite, so separate suites (tests) never disturb each other.
     private static let generations = Mutex<[String: Int]>([:])
@@ -116,6 +123,27 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
         }
     }
 
+    public func pendingRemovals() -> [String: UUID] {
+        var result: [String: UUID] = [:]
+        for (key, value) in defaults.dictionaryRepresentation() where key.hasPrefix(Self.pendingRemovalPrefix) {
+            if let text = value as? String, let workspace = UUID(uuidString: text) {
+                result[String(key.dropFirst(Self.pendingRemovalPrefix.count))] = workspace
+            }
+        }
+        return result
+    }
+
+    public func markForRemoval(_ calendars: [String: UUID]) {
+        let defaults = defaults
+        for (calendarID, workspace) in calendars {
+            defaults.set(workspace.uuidString, forKey: Self.pendingRemovalPrefix + calendarID)
+        }
+    }
+
+    public func removalDone(calendarID: String) {
+        defaults.removeObject(forKey: Self.pendingRemovalPrefix + calendarID)
+    }
+
     public func clearGeneration() -> Int {
         Self.generations.withLock { $0[suiteKey] ?? 0 }
     }
@@ -151,6 +179,7 @@ public final class InMemoryCalendarSettings: CalendarSettings {
         var ids: [UUID: String] = [:]
         var sources: [UUID: String] = [:]
         var details: Set<UUID> = []
+        var pendingRemovals: [String: UUID] = [:]
         var generation = 0
     }
 
@@ -205,6 +234,18 @@ public final class InMemoryCalendarSettings: CalendarSettings {
         calendars.withLock { state in
             if shows { state.details.insert(workspace) } else { state.details.remove(workspace) }
         }
+    }
+
+    public func pendingRemovals() -> [String: UUID] {
+        calendars.withLock { $0.pendingRemovals }
+    }
+
+    public func markForRemoval(_ calendars: [String: UUID]) {
+        self.calendars.withLock { $0.pendingRemovals.merge(calendars) { _, new in new } }
+    }
+
+    public func removalDone(calendarID: String) {
+        calendars.withLock { $0.pendingRemovals[calendarID] = nil }
     }
 
     public func clearGeneration() -> Int {

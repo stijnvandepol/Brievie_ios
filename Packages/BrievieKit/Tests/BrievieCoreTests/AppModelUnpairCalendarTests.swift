@@ -252,6 +252,9 @@ private final class WatchedCalendarSettings: CalendarSettings {
     func removeAll() { inner.removeAll() }
     func showsDetails(for workspace: UUID) -> Bool { inner.showsDetails(for: workspace) }
     func setShowsDetails(_ shows: Bool, for workspace: UUID) { inner.setShowsDetails(shows, for: workspace) }
+    func pendingRemovals() -> [String: UUID] { inner.pendingRemovals() }
+    func markForRemoval(_ calendars: [String: UUID]) { inner.markForRemoval(calendars) }
+    func removalDone(calendarID: String) { inner.removalDone(calendarID: calendarID) }
 
     func enable(workspace: UUID, calendarID: String, sourceID: String?) {
         inner.enable(workspace: workspace, calendarID: calendarID, sourceID: sourceID)

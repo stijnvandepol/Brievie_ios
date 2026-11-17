@@ -31,6 +31,46 @@ public struct CalendarSource: Equatable, Sendable {
     }
 }
 
+/// An account as EventKit describes it, before `CalendarSource.classify` sorts it.
+public struct RawCalendarSource: Equatable, Sendable {
+    public enum SourceType: Equatable, Sendable {
+        case local
+        case calDAV
+        case exchange
+        /// Subscribed, birthdays and other kinds that never take a new calendar.
+        case readOnly
+    }
+
+    public let id: String
+    public let title: String
+    public let type: SourceType
+
+    public init(id: String, title: String, type: SourceType) {
+        self.id = id
+        self.title = title
+        self.type = type
+    }
+}
+
+extension CalendarSource {
+    /// The accounts that can take a new calendar, sorted. EventKit has no iCloud type: iCloud is the CalDAV
+    /// account the phone calls "iCloud". When more than one CalDAV account has that title, none of them is
+    /// trusted to be the user's own: each counts as another account (the user is asked first).
+    public static func classify(_ raw: [RawCalendarSource]) -> [CalendarSource] {
+        let iCloudTitled = raw.filter { $0.type == .calDAV && $0.title == "iCloud" }.count
+        return raw.compactMap { source in
+            let kind: Kind
+            switch source.type {
+            case .local: kind = .local
+            case .calDAV: kind = source.title == "iCloud" && iCloudTitled == 1 ? .iCloud : .other
+            case .exchange: kind = .other
+            case .readOnly: return nil
+            }
+            return CalendarSource(id: source.id, title: source.title, kind: kind)
+        }
+    }
+}
+
 /// The accounts that can hold a new calendar, and the account of the phone's default calendar.
 public struct CalendarSourceList: Equatable, Sendable {
     public let sources: [CalendarSource]
@@ -110,6 +150,8 @@ public protocol CalendarStore: Sendable {
     /// Removes the calendar `id`, but only when it holds no event without a task link on any day of
     /// `CalendarRemoval.checkedDays` (an adopted calendar the user made can hold their own events far outside the
     /// sync window). When it does, only the events with a task link go and the calendar stays.
+    /// - Throws: `CalendarStoreError(.noAccess)` without full calendar access: then a calendar that cannot be
+    ///   found is not known to be gone.
     func removeCalendar(id: String) async throws -> CalendarRemoval
 }
 
@@ -142,6 +184,8 @@ public struct CalendarStoreError: Error, Equatable {
         case failed
         /// The account the calendar must be made in is not on the phone (any more).
         case sourceGone
+        /// Brievie has no full calendar access: it cannot see whether a calendar is still there.
+        case noAccess
     }
 
     public let reason: Reason
@@ -306,6 +350,7 @@ public actor FakeCalendarStore: CalendarStore {
 
     public func removeCalendar(id: String) async throws -> CalendarRemoval {
         try check()
+        guard accessState == .granted else { throw CalendarStoreError(.noAccess) }
         let usersOwn = stored.contains {
             $0.calendarID == id && $0.snapshot.taskID == nil && CalendarRemoval.checkedDays.contains($0.snapshot.day)
         }
