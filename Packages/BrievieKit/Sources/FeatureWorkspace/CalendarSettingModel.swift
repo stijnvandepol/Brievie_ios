@@ -90,6 +90,9 @@ public final class CalendarSettingModel {
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
     /// Counts the switch's actions: only the result of the latest one may change what the switch shows.
     @ObservationIgnored private var generation = 0
+    /// Switch-ons whose work has not ended: until then the setting is off because it is not stored yet (or will
+    /// not be: a question, no account, a failure), not because a sync turned it off.
+    @ObservationIgnored private var switchOnsRunning = 0
     /// The access check and sync started by `refresh()`. Tests await it.
     @ObservationIgnored private(set) var refreshTask: Task<Void, Never>?
 
@@ -154,7 +157,9 @@ public final class CalendarSettingModel {
         let previous = pendingTask
         generation += 1
         let action = generation
+        switchOnsRunning += 1
         pendingTask = Task {
+            defer { switchOnsRunning -= 1 }
             await previous?.value
             let result = await sync.enable(workspace: workspace, consentedSourceID: consentedSourceID)
             let destination = await sync.destination(workspace: workspace)
@@ -207,6 +212,9 @@ public final class CalendarSettingModel {
         let sync = sync
         let workspace = workspaceID
         let action = generation
+        // A switch-on running now stores the setting at its end, or not at all (a question, no account, a
+        // failure): an off setting then says nothing about the account.
+        let startedDuringSwitchOn = switchOnsRunning > 0
         refreshTask = Task {
             let access = await sync.access()
             guard isOn, action == generation else { return }
@@ -226,7 +234,9 @@ public final class CalendarSettingModel {
             guard action == generation else { return }
             // Also when another sync (after a confirm or a ticked task) found the account gone and turned the
             // setting off: this sync then only answers `.off`.
-            if result == .sourceGone || !settings.isEnabled(for: workspace) {
+            let turnedOffElsewhere = !startedDuringSwitchOn && switchOnsRunning == 0
+                && !settings.isEnabled(for: workspace)
+            if result == .sourceGone || turnedOffElsewhere {
                 isOn = false
                 message = WorkspaceStrings.calendarSourceGone
                 showsOpenSettings = false

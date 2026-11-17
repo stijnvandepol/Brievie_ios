@@ -133,6 +133,43 @@ import Testing
         #expect(settings.pendingRemovals().isEmpty)
     }
 
+    @Test func aCalendarPendingRemovalIsNeverAdoptedByANewPairing() async throws {
+        // Revoked without access: the old workspace's calendar waits for removal. After pairing again (a new
+        // workspace id, the same name) switching on must make a new calendar: the removal may run at any moment
+        // and would delete one it adopted.
+        let sync = makeSync()
+        let old = UUID()
+        _ = await sync.enable(workspace: old)
+        let pending = try #require(settings.calendarID(for: old))
+        settings.markForRemoval([pending: old])
+        settings.removeAll()
+
+        let new = UUID()
+        _ = await sync.enable(workspace: new)
+        let adopted = try #require(settings.calendarID(for: new))
+        #expect(adopted != pending)
+
+        await sync.removePendingRemovals()
+        #expect(await calendars.calendars[adopted] != nil)
+        #expect(await calendars.calendars[pending] == nil)
+    }
+
+    @Test func aCalendarPendingRemovalIsNotTakenAgainWhenASyncRemakesOne() async throws {
+        let sync = makeSync()
+        let old = UUID()
+        _ = await sync.enable(workspace: old)
+        let pending = try #require(settings.calendarID(for: old))
+        settings.markForRemoval([pending: old])
+        settings.removeAll()
+        // A switch whose calendar was deleted: the sync makes it again and must not pick the pending one.
+        let new = UUID()
+        settings.enable(workspace: new, calendarID: "deleted", sourceID: FakeCalendarStore.iCloud.id)
+
+        _ = await sync.sync(workspace: new)
+
+        #expect(settings.calendarID(for: new) != pending)
+    }
+
     @Test func aRevocationWhileAnUnpairThatKeptTheCalendarsIsPendingKeepsThem() async throws {
         let sync = makeSync()
         _ = await sync.enable(workspace: UUID())

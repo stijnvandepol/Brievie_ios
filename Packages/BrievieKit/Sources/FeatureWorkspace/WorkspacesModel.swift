@@ -170,6 +170,7 @@ public final class WorkspacesModel {
     private func fetch(token: String) async -> Outcome {
         let trust = ServerTrust(caCertificateDER: connection.caCertificateDER)
         var sawUntrusted = false
+        var sawForeign401 = false
         for url in connection.urls {
             do {
                 return .workspaces(try await server.workspaces(at: url, trust: trust, token: token))
@@ -179,6 +180,9 @@ public final class WorkspacesModel {
                 continue
             } catch ServerError.untrusted {
                 sawUntrusted = true
+            } catch ServerError.other("http_401") {
+                // Not the host's verdict (no `not_authenticated`): try the next address, never a revocation.
+                sawForeign401 = true
             } catch is CancellationError {
                 return .cancelled
             } catch {
@@ -186,7 +190,8 @@ public final class WorkspacesModel {
             }
         }
         if Task.isCancelled { return .cancelled }
-        return .failed(message: sawUntrusted ? WorkspaceStrings.notVerified : WorkspaceStrings.unreachable)
+        if sawUntrusted { return .failed(message: WorkspaceStrings.notVerified) }
+        return .failed(message: sawForeign401 ? WorkspaceStrings.generic : WorkspaceStrings.unreachable)
     }
 }
 

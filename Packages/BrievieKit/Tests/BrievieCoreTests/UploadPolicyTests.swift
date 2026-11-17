@@ -55,6 +55,14 @@ import Testing
         #expect(decide(.status(503, code: nil), attempt: 49) == .retry(urlIndex: 0, after: .seconds(3600)))
     }
 
+    @Test(arguments: [nil, "proxy_login"] as [String?])
+    func aForeign401WaitsAndRetriesLikeABusyServer(code: String?) {
+        // Never a revocation, never a dead end the user has to tap "Opnieuw" for.
+        let decision = decide(.status(401, code: code), attempt: 2, urlIndex: 1, urls: 2)
+        #expect(decision == .retry(urlIndex: 1, after: .seconds(600)))
+        #expect(decide(.status(401, code: code), attempt: 49) == .retry(urlIndex: 0, after: .seconds(3600)))
+    }
+
     @Test func revokedDeviceIsNotAFailure() {
         #expect(decide(.status(401, code: "not_authenticated")) == .revoked)
     }

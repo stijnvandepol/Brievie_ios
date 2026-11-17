@@ -296,8 +296,11 @@ public actor CalendarSync {
         return nil
     }
 
+    /// Calendars this workspace may not take: those of other workspaces, and every calendar still to be removed
+    /// after a revocation. The removal runs at any moment (it only holds the old workspace), so a calendar it
+    /// waits for is never adopted: a new one is made, which the removal does not know about.
     private func calendarsOfOtherWorkspaces(_ workspace: UUID) -> Set<String> {
-        Set(settings.calendarIDs().filter { $0.key != workspace }.values)
+        Set(settings.calendarIDs().filter { $0.key != workspace }.values).union(settings.pendingRemovals().keys)
     }
 
     private func performDisable(_ workspace: UUID, removeCalendar: Bool) async -> CalendarRemoval? {

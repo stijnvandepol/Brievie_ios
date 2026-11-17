@@ -69,7 +69,9 @@ public enum UploadPolicy {
         case 401 where code == "not_authenticated":
             // Only the host's own code: a 401 from something in front of it is no revocation.
             return .revoked
-        case 429, 500...:
+        case 401, 429, 500...:
+            // A 401 without the host's code (a proxy, or a body that did not arrive) is no revocation and no
+            // verdict on the document either: wait and try again, with the same backoff (at most an hour).
             return .retry(urlIndex: item.urlIndex, after: wait)
         case 400..<500:
             if let code, knownCodes.contains(code) {

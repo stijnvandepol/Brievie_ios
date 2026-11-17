@@ -175,3 +175,43 @@ import Testing
         #expect(model.message == WorkspaceStrings.calendarSourceGone)
     }
 }
+
+/// A pull-to-refresh while switching on is still running must not say "account gone": the setting is off only
+/// because the switch-on has not stored it (yet, or at all).
+@MainActor
+@Suite struct CalendarRefreshDuringEnableTests {
+    private static let exchange = CalendarSource(id: "exchange", title: "Werk", kind: .other)
+
+    @Test func aRefreshDuringASwitchOnThatNeedsAYesShowsNoAccountGone() async {
+        let settings = InMemoryCalendarSettings()
+        let workspace = UUID()
+        let store = FakeCalendarStore(sources: [Self.exchange], defaultSourceID: Self.exchange.id)
+        // The switch-on waits for the open tasks until the refresh is under way.
+        let (gate, open) = AsyncStream<Void>.makeStream()
+        let sync = CalendarSync(
+            store: store, settings: settings,
+            tasks: { _ in
+                for await _ in gate { break }
+                return []
+            },
+            workspaceName: { _ in "Thuis" }, typeTitle: { $0 },
+            today: { CalendarDate(year: 2026, month: 11, day: 16) }
+        )
+        let model = CalendarSettingModel(
+            workspaceID: workspace, workspaceName: "Thuis", sync: sync, settings: settings, openSettings: {}
+        )
+
+        model.toggle(true)
+        model.refresh()
+        // The refresh has asked for access (the switch-on has not: it waits for the tasks first).
+        while await store.accessChecks < 1 { await Task.yield() }
+        for _ in 0..<10 { await Task.yield() }
+        open.yield()
+        open.yield()
+        await model.pendingTask?.value
+        await model.refreshTask?.value
+
+        #expect(model.isAskingConsent)
+        #expect(model.message != WorkspaceStrings.calendarSourceGone)
+    }
+}
