@@ -201,13 +201,9 @@ private struct CalendarSwitchRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // The row sits under its workspace and the footer names the calendar: no subtitle with the name.
             Toggle(isOn: Binding(get: { model.isOn }, set: { model.toggle($0) })) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("workspaces.calendar.toggle", bundle: .module)
-                    Text(model.workspaceName)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                Text("workspaces.calendar.toggle", bundle: .module)
             }
             Text(model.footer)
                 .font(.footnote)
