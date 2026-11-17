@@ -156,13 +156,13 @@ import Testing
         gated.close(gate: .inbox(.review))
         let pull = Task { await model.load() }
         while !gated.isWaiting(gate: .inbox(.review)) { await Task.yield() }
+        // Only the held list answers after this change: the other two may already have answered.
         let freshReview = Self.document(.review, status: .needsReview)
-        let unassigned = Self.document(.unassigned, status: .done)
+        let secondReview = Self.document(.review, status: .needsReview)
         server.onList { _, filter in
             switch filter.inboxState {
             case .new: [moving]
-            case .review: [freshReview]
-            case .unassigned: [unassigned]
+            case .review: [freshReview, secondReview]
             default: []
             }
         }
@@ -173,10 +173,9 @@ import Testing
 
         gated.open(gate: .inbox(.review))
         await pull.value
-        #expect(model.groups.map { $0.rows.map(\.id) } == [[freshReview.id], [unassigned.id], [moving.id]])
+        #expect(model.groups.map { Set($0.rows.map(\.id)) } == [[freshReview.id, secondReview.id], [moving.id]])
         #expect(model.groups.map(\.header) == [
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 1),
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnassigned, 1),
+            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 2),
             String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnderway, 1)
         ])
     }

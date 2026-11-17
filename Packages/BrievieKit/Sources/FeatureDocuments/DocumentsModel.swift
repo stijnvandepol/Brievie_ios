@@ -148,22 +148,7 @@ public final class DocumentsModel {
         async let fetchedPersons = Self.persons(of: documents, if: organisation)
         async let fetchedLabels = Self.labels(of: documents, if: organisation)
         do {
-            switch source {
-            case .inbox:
-                let wholeInbox = movingOnly
-                    ? try await loadInbox([.new], withCounts: false, load: load, wasQueued: wasQueued) : true
-                if wholeInbox {
-                    _ = try await loadInbox(Self.inboxStates, withCounts: true, load: load, wasQueued: wasQueued)
-                }
-            case let .list(filter):
-                let listed = try await documents.list(filter: filter)
-                // The queue may have moved on while the server answered.
-                queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
-                if owns(load, source) {
-                    serverDocuments = listed
-                    state = .loaded
-                }
-            }
+            try await loadServerList(source, movingOnly: movingOnly, load: load, wasQueued: wasQueued)
         } catch {
             if await handleFailure(error, source: source, load: load) { return }
         }
@@ -177,6 +162,28 @@ public final class DocumentsModel {
             return
         }
         rebuild()
+    }
+
+    /// The server's part of a load: the inbox (only "new" on a tick, whole when needed) or one list.
+    private func loadServerList(
+        _ source: Source, movingOnly: Bool, load: Int, wasQueued: Set<UUID>
+    ) async throws(DocumentsError) {
+        switch source {
+        case .inbox:
+            let wholeInbox = movingOnly
+                ? try await loadInbox([.new], withCounts: false, load: load, wasQueued: wasQueued) : true
+            if wholeInbox {
+                _ = try await loadInbox(Self.inboxStates, withCounts: true, load: load, wasQueued: wasQueued)
+            }
+        case let .list(filter):
+            let listed = try await documents.list(filter: filter)
+            // The queue may have moved on while the server answered.
+            queued = await uploads.items().filter { $0.workspaceID == documents.workspaceID }
+            if owns(load, source) {
+                serverDocuments = listed
+                state = .loaded
+            }
+        }
     }
 
     /// Whether `load` is the latest load and `source` still belongs to the current scope.
@@ -229,33 +236,6 @@ public final class DocumentsModel {
             if owns(load, source), state != .loaded { state = .failed(message: Self.message(for: error)) }
         }
         return false
-    }
-
-    /// While the screen is visible: follow upload progress and refresh as long as something is moving.
-    public func startPolling() {
-        stopPolling()
-        progressTask = Task { await observeProgress() }
-        pollTask = Task {
-            while !Task.isCancelled {
-                try? await Task.sleep(for: refreshInterval)
-                if Task.isCancelled { return }
-                await refreshIfNeeded()
-            }
-        }
-    }
-
-    public func stopPolling() {
-        pollTask?.cancel()
-        progressTask?.cancel()
-        pollTask = nil
-        progressTask = nil
-    }
-
-    func observeProgress() async {
-        for await update in await uploads.progressUpdates() {
-            progress = update
-            rebuild()
-        }
     }
 
     private func rebuild() {
@@ -320,8 +300,35 @@ public final class DocumentsModel {
     }
 }
 
-// The camera and the queue buttons: kept out of the class body, which holds the loading.
+// Polling, the camera and the queue buttons: kept out of the class body, which holds the loading.
 extension DocumentsModel {
+    /// While the screen is visible: follow upload progress and refresh as long as something is moving.
+    public func startPolling() {
+        stopPolling()
+        progressTask = Task { await observeProgress() }
+        pollTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: refreshInterval)
+                if Task.isCancelled { return }
+                await refreshIfNeeded()
+            }
+        }
+    }
+
+    public func stopPolling() {
+        pollTask?.cancel()
+        progressTask?.cancel()
+        pollTask = nil
+        progressTask = nil
+    }
+
+    func observeProgress() async {
+        for await update in await uploads.progressUpdates() {
+            progress = update
+            rebuild()
+        }
+    }
+
     public func retryUpload(_ id: UUID) async {
         await uploads.retry(id)
         await load(organisation: false)
