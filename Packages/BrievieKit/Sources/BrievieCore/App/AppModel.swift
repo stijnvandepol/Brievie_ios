@@ -23,6 +23,8 @@ public final class AppModel {
     private let authenticator: any DeviceAuthenticator
     private let launchFlag: any LaunchFlag
     private let isProtectedDataAvailable: @MainActor () -> Bool
+    /// Cleared with the pairing (revoked or unpaired), so the switches do not come back on after pairing again.
+    private let calendarSettings: (any CalendarSettings)?
     /// The first-launch check has completed (or a pairing made it moot) in this process. Until then nothing
     /// unlocks: a stored connection may be a leftover of a previous install.
     private var launchCheckDone = false
@@ -52,16 +54,20 @@ public final class AppModel {
 
     /// - Parameter isProtectedDataAvailable: `false` before the first unlock after a reboot (prewarm or
     ///   background launch), when the Keychain and `UserDefaults` may not be readable yet.
+    /// - Parameter calendarSettings: the calendar switches, cleared whenever the pairing is forgotten (the
+    ///   calendars themselves stay).
     public init(
         store: ConnectionStore,
         authenticator: any DeviceAuthenticator,
         launchFlag: any LaunchFlag,
-        isProtectedDataAvailable: @escaping @MainActor () -> Bool
+        isProtectedDataAvailable: @escaping @MainActor () -> Bool,
+        calendarSettings: (any CalendarSettings)? = nil
     ) {
         self.store = store
         self.authenticator = authenticator
         self.launchFlag = launchFlag
         self.isProtectedDataAvailable = isProtectedDataAvailable
+        self.calendarSettings = calendarSettings
     }
 
     /// Unpaired when nothing is stored, locked otherwise. A store that cannot be read does not unpair the
@@ -253,6 +259,7 @@ public final class AppModel {
             state = .locked
             return false
         }
+        calendarSettings?.removeAll()
         pendingForget = nil
         state = .unpaired(notice: pending.notice)
         return true

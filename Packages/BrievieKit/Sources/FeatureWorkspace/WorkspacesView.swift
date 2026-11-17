@@ -33,8 +33,10 @@ public struct WorkspacesView<Destination: View>: View {
                     isUnpairing: model.isUnpairing,
                     isConfirming: $model.isConfirmingUnpair,
                     message: model.unpairMessage,
+                    offersCalendarRemoval: model.offersCalendarRemoval,
                     request: { model.requestUnpair() },
-                    confirm: { model.confirmUnpair() }
+                    confirm: { model.confirmUnpair() },
+                    confirmRemovingCalendars: { model.confirmUnpair(removingCalendars: true) }
                 ),
                 retry: { model.retry() },
                 calendarModel: { model.calendarModel(for: $0.id) },
@@ -55,8 +57,11 @@ struct UnpairControl {
     let isUnpairing: Bool
     let isConfirming: Binding<Bool>
     let message: String
+    /// A calendar switch is on: a second choice also removes the calendars.
+    let offersCalendarRemoval: Bool
     let request: () -> Void
     let confirm: () -> Void
+    let confirmRemovingCalendars: () -> Void
 }
 
 /// The rendering of `WorkspacesView`, free of the model so that previews can feed it plain values.
@@ -175,6 +180,11 @@ extension WorkspacesList {
             Button(role: .destructive, action: unpair.confirm) {
                 Text("workspaces.unpair.confirm", bundle: .module)
             }
+            if unpair.offersCalendarRemoval {
+                Button(role: .destructive, action: unpair.confirmRemovingCalendars) {
+                    Text("workspaces.unpair.confirmRemovingCalendars", bundle: .module)
+                }
+            }
             Button(role: .cancel) {} label: {
                 Text("workspaces.unpair.cancel", bundle: .module)
             }
@@ -265,7 +275,7 @@ private var previewRows: [WorkspacesModel.Row] {
 private var previewUnpair: UnpairControl {
     UnpairControl(
         isUnpairing: false, isConfirming: .constant(false), message: WorkspaceStrings.unpairMessage,
-        request: {}, confirm: {}
+        offersCalendarRemoval: true, request: {}, confirm: {}, confirmRemovingCalendars: {}
     )
 }
 

@@ -378,6 +378,18 @@
         }
       }
     },
+    "workspaces.unpair.confirmRemovingCalendars": {
+      "comment": "Second destructive button in the unpair confirmation, shown when a calendar switch is on: also delete Brievie's calendars.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontkoppelen en agenda's verwijderen"
+          }
+        }
+      }
+    },
     "workspaces.unpair.message": {
       "comment": "Unpair confirmation message when no scans wait in the upload queue.",
       "extractionState": "manual",

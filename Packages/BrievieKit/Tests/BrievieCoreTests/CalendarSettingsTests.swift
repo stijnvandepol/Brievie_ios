@@ -83,8 +83,8 @@ import Testing
     }
 }
 
-/// An upload queue with nothing in it.
-private struct EmptyUploadQueue: UploadQueue {
+/// An upload queue with nothing in it (also used by `AppModelUnpairCalendarTests`).
+struct EmptyUploadQueue: UploadQueue {
     func enqueue(pages: [ScannedPage], workspaceID: UUID) async throws(UploadQueueError) -> UploadItem {
         throw UploadQueueError.writeFailed
     }

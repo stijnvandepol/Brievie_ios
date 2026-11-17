@@ -4,7 +4,8 @@ import Synchronization
 /// The calendar switch per workspace: on means "this calendar identifier is Brievie's for that workspace".
 ///
 /// The identifier is not a secret; next to `hasLaunchedBefore` this is the second sanctioned use of
-/// `UserDefaults` (see `docs/DECISIONS.md`). Unpairing clears it; the calendars themselves stay.
+/// `UserDefaults` (see `docs/DECISIONS.md`). Forgetting the pairing (unpairing, or the server revoking the
+/// device) clears it; the calendars themselves stay unless the user chose to remove them.
 public protocol CalendarSettings: Sendable {
     func calendarID(for workspace: UUID) -> String?
     /// The calendar of every workspace that is on.

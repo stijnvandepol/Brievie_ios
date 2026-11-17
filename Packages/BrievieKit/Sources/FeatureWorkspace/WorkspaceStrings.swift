@@ -51,6 +51,13 @@ enum WorkspaceStrings {
         )
     }
 
+    /// The second destructive choice in the unpair confirmation, when a calendar switch is on.
+    static let unpairRemovingCalendars = String(
+        localized: "workspaces.unpair.confirmRemovingCalendars",
+        defaultValue: "Ontkoppelen en agenda's verwijderen",
+        bundle: .module
+    )
+
     static let calendarNoAccess = String(
         localized: "workspaces.calendar.noAccess",
         defaultValue: "Geef Brievie toegang tot je agenda in Instellingen.",
@@ -93,6 +100,7 @@ enum WorkspaceStrings {
         "workspaces.error.notVerified": notVerified,
         "error.generic": generic,
         "workspaces.unpair.message": unpairMessage,
+        "workspaces.unpair.confirmRemovingCalendars": unpairRemovingCalendars,
         "workspaces.calendar.noAccess": calendarNoAccess,
         "workspaces.calendar.tasksNotSupported": calendarTasksNotSupported,
         "workspaces.calendar.footer": calendarFooterFormat,

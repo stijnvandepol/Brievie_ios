@@ -19,9 +19,14 @@ struct AppEnvironment {
     /// the activation sync covers these.
     let workspaceNames: WorkspaceNames
 
-    /// - Parameter onRevoked: called when an upload finds that the server no longer knows this device.
+    /// - Parameters:
+    ///   - calendarSettings: the calendar switches, shared with `AppModel` (which clears them with the pairing).
+    ///   - onRevoked: called when an upload finds that the server no longer knows this device.
     @MainActor
-    static func live(store: ConnectionStore, onRevoked: @escaping @Sendable (UUID) async -> Void) -> AppEnvironment {
+    static func live(
+        store: ConnectionStore, calendarSettings: any CalendarSettings,
+        onRevoked: @escaping @Sendable (UUID) async -> Void
+    ) -> AppEnvironment {
         let transport = BackgroundUploadTransport(trustProvider: StoredConnectionTrustProvider(store: store))
         // Created at launch, also in the background: the system delivers upload events to this session.
         transport.activate()
@@ -34,7 +39,6 @@ struct AppEnvironment {
         AppDelegate.uploads = uploads
         Task { await uploads.run() }
         let server = LiveBrievieServer()
-        let calendarSettings = UserDefaultsCalendarSettings()
         let workspaceNames = WorkspaceNames()
         let calendarSync = CalendarSync(
             store: EventKitCalendarStore(),
@@ -51,7 +55,9 @@ struct AppEnvironment {
         )
         return AppEnvironment(
             store: store, server: server, documents: server, launchFlag: UserDefaultsLaunchFlag(), uploads: uploads,
-            unpairing: Unpairing(server: server, uploads: uploads, calendarSettings: calendarSettings),
+            unpairing: Unpairing(
+                server: server, uploads: uploads, calendarSettings: calendarSettings, calendarSync: calendarSync
+            ),
             calendarSettings: calendarSettings, calendarSync: calendarSync, workspaceNames: workspaceNames
         )
     }

@@ -29,6 +29,9 @@ public final class WorkspacesModel {
     public var isConfirmingUnpair = false
     /// Scans waiting in the upload queue when the user asked to unpair; the confirmation says they go.
     public private(set) var queuedScanCount = 0
+    /// At least one calendar switch was on when the user asked to unpair: the confirmation also offers
+    /// "Ontkoppelen en agenda's verwijderen".
+    public private(set) var offersCalendarRemoval = false
     /// Unpairing is running: the button is disabled and shows progress.
     public var isUnpairing: Bool { appModel.isUnpairing }
 
@@ -78,14 +81,16 @@ public final class WorkspacesModel {
         guard !isUnpairing, unpairCountTask == nil else { return }
         unpairCountTask = Task {
             queuedScanCount = await unpairing.queuedScanCount()
+            offersCalendarRemoval = unpairing.hasCalendars
             isConfirmingUnpair = true
             unpairCountTask = nil
         }
     }
 
-    /// The user confirmed. `AppModel` owns the work and ignores a second tap.
-    public func confirmUnpair() {
-        appModel.requestUnpair(unpairing)
+    /// The user confirmed; with `removingCalendars`, each workspace's own calendar goes too. `AppModel` owns the
+    /// work and ignores a second tap.
+    public func confirmUnpair(removingCalendars: Bool = false) {
+        appModel.requestUnpair(removingCalendars ? unpairing.removingCalendars() : unpairing)
     }
 
     /// The app leaves the foreground: questions that name a workspace close (they would sit above the lock).
