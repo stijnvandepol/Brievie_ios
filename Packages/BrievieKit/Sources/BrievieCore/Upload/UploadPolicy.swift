@@ -66,7 +66,8 @@ public enum UploadPolicy {
         switch status {
         case 200, 201:
             return .done
-        case 401:
+        case 401 where code == "not_authenticated":
+            // Only the host's own code: a 401 from something in front of it is no revocation.
             return .revoked
         case 429, 500...:
             return .retry(urlIndex: item.urlIndex, after: wait)

@@ -20,7 +20,10 @@ extension ServerError {
         switch (status, code) {
         case (400, "pairing_code_invalid"):
             self = .invalidCode
-        case (401, _):
+        case (401, "not_authenticated"):
+            // The host's answer to a revoked or unknown device token. Any other 401 (a reverse proxy with its own
+            // login, say) is not the server's verdict on this device: it must not forget the pairing or remove
+            // the calendars.
             self = .unauthorized
         case (429, _):
             self = .tooManyAttempts
@@ -40,6 +43,8 @@ extension ServerError {
             self = error
         case is ResponseTooLargeError:
             self = .responseTooLarge
+        case is ForeignUnauthorizedError:
+            self = .other("http_401")
         case let error as URLError:
             self = Self(urlError: error.code)
         case is DecodingError:

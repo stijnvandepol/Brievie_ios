@@ -15,8 +15,8 @@ extension LiveBrievieServer: DocumentServer {
             switch output {
             case let .ok(response):
                 return try response.body.json.map(DocumentSummary.init(summary:))
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .unprocessableContent(response):
@@ -33,8 +33,8 @@ extension LiveBrievieServer: DocumentServer {
             case let .ok(response):
                 let counts = try response.body.json
                 return InboxCounts(new: counts.new, review: counts.review, unassigned: counts.unassigned)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .undocumented(status, _):
@@ -51,8 +51,8 @@ extension LiveBrievieServer: DocumentServer {
             switch output {
             case let .ok(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .undocumented(status, _):
@@ -74,8 +74,8 @@ extension LiveBrievieServer: DocumentServer {
                     guard data.count <= Self.maxPageImageBytes else { throw ServerError.incompatible }
                 }
                 return data
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .undocumented(status, _):
@@ -95,8 +95,8 @@ extension LiveBrievieServer: DocumentServer {
             switch output {
             case let .ok(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
             case let .forbidden(response):
@@ -125,8 +125,8 @@ extension LiveBrievieServer: DocumentServer {
             switch output {
             case let .accepted(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .forbidden(response):
                 throw ServerError(status: 403, code: try? response.body.json.code)
             case let .notFound(response):

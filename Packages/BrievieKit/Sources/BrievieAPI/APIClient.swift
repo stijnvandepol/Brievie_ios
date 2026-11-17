@@ -19,8 +19,30 @@ public enum APIClient {
             serverURL: baseURL,
             configuration: Configuration(dateTranscoder: FlexibleDateTranscoder()),
             transport: URLSessionTransport(configuration: .init(session: session)),
-            middlewares: [cap] + (token.map { [BearerTokenMiddleware(token: $0)] } ?? [])
+            middlewares: [ForeignUnauthorizedMiddleware(), cap]
+                + (token.map { [BearerTokenMiddleware(token: $0)] } ?? [])
         )
+    }
+}
+
+/// A 401 that is not a JSON answer: not from the Brievie server (a reverse proxy's login page, say), so not its
+/// verdict on the device token.
+public struct ForeignUnauthorizedError: Error, Equatable {}
+
+/// Stops a 401 without a JSON body before the generated client fails on its content type, so the caller can
+/// tell it from the host's own `not_authenticated`.
+struct ForeignUnauthorizedMiddleware: ClientMiddleware {
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        let (response, responseBody) = try await next(request, body, baseURL)
+        let isJSON = response.headerFields[.contentType]?.lowercased().contains("json") ?? false
+        if response.status.code == 401, !isJSON { throw ForeignUnauthorizedError() }
+        return (response, responseBody)
     }
 }
 

@@ -12,8 +12,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try response.body.json.map(WorkspaceTask.init(task:))
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .unprocessableContent(response):
@@ -32,8 +32,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try WorkspaceTask(task: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .forbidden(response):
                 throw ServerError(status: 403, code: try? response.body.json.code)
             case let .notFound(response):
@@ -52,8 +52,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try WorkspaceTask(task: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .forbidden(response):
                 throw ServerError(status: 403, code: try? response.body.json.code)
             case let .notFound(response):

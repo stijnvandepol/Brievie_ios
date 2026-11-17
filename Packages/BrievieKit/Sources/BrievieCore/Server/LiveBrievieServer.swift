@@ -75,8 +75,8 @@ public struct LiveBrievieServer: BrievieServer {
             switch try await client.listWorkspaces() {
             case let .ok(response):
                 return try response.body.json.map(WorkspaceSummary.init(workspace:))
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .undocumented(status, _):
                 throw ServerError(status: status, code: nil)
             }
@@ -88,8 +88,8 @@ public struct LiveBrievieServer: BrievieServer {
             switch try await client.revokeDevice(path: .init(deviceId: deviceID.uuidString.lowercased())) {
             case .noContent:
                 return
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .forbidden(response):
                 throw ServerError(status: 403, code: try? response.body.json.code)
             case let .notFound(response):

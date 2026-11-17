@@ -9,8 +9,8 @@ extension LiveBrievieServer {
             switch try await client.listPersons(path: .init(workspaceId: scope.workspaceID.apiString)) {
             case let .ok(response):
                 return try response.body.json.map(Person.init(person:))
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .undocumented(status, _):
@@ -28,8 +28,8 @@ extension LiveBrievieServer {
             switch output {
             case let .created(response):
                 return try Person(person: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
             case let .forbidden(response):
@@ -55,8 +55,8 @@ extension LiveBrievieServer {
             switch try await client.listLabels(path: .init(workspaceId: scope.workspaceID.apiString)) {
             case let .ok(response):
                 return try response.body.json.map(DocumentLabel.init(label:))
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
                 throw ServerError(status: 404, code: try? response.body.json.code)
             case let .undocumented(status, _):
@@ -76,8 +76,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
             case let .forbidden(response):
@@ -107,8 +107,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
             case let .forbidden(response):
@@ -139,8 +139,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .forbidden(response):
                 throw ServerError(status: 403, code: try? response.body.json.code)
             case let .notFound(response):
@@ -165,8 +165,8 @@ extension LiveBrievieServer {
             switch output {
             case let .ok(response):
                 return try DocumentDetail(document: response.body.json)
-            case .unauthorized:
-                throw ServerError.unauthorized
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
             case let .forbidden(response):
                 throw ServerError(status: 403, code: try? response.body.json.code)
             case let .notFound(response):
