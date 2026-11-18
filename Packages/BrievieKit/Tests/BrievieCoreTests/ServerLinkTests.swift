@@ -146,16 +146,14 @@ import Testing
         #expect(try ServerLink.parse(url) == parse(Self.hostLink))
     }
 
-    @Test func displayAddressShowsHostAndPortOnly() throws {
-        let port = try parse("v=1&url=https%3A%2F%2Fbrievie.local%3A8443%2Fpad&pairing=\(Self.pairing)")
-        let plain = try parse("v=1&url=https%3A%2F%2Fbrievie.example.nl%3A443&pairing=\(Self.pairing)")
-        let ipv6 = try parse("v=1&url=https%3A%2F%2F%5B2001%3Adb8%3A%3A1%5D%3A8443&pairing=\(Self.pairing)")
-        let unicode = try parse("v=1&url=https%3A%2F%2Fb%C3%BCcher.example&pairing=\(Self.pairing)")
-
-        #expect(port.displayAddress == "brievie.local:8443")
-        #expect(plain.displayAddress == "brievie.example.nl")
-        #expect(ipv6.displayAddress == "[2001:db8::1]:8443")
-        // What is shown is what is contacted: the ASCII form, never a look-alike Unicode name.
-        #expect(unicode.displayAddress == "xn--bcher-kva.example")
+    /// The address form itself; the sheet shows it for the located address (`PairingServiceLinkTests`).
+    @Test func displayAddressOfAURLShowsHostAndPortOnly() throws {
+        let cases = [
+            ("https://brievie.local:8443/pad", "brievie.local:8443"), ("https://brievie.example.nl:443", "brievie.example.nl"),
+            ("https://[2001:db8::1]:8443", "[2001:db8::1]:8443"), ("https://bücher.example", "xn--bcher-kva.example")
+        ]
+        for (text, shown) in cases {
+            #expect(ServerLink.displayAddress(of: try #require(URL(string: text))) == shown)
+        }
     }
 }

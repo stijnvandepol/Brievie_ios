@@ -94,7 +94,7 @@ import Testing
 
         #expect(server.calls.first == .health(away))
         #expect(!server.calls.contains { String(describing: $0).contains("brievie.local") })
-        #expect(connection.urls == [home, away])
+        #expect(connection.urls == [away])
         let proofs = server.calls.compactMap(\.sentProof)
         #expect(proofs == [try expectedProof(binding: "brievie.example.nl")])
     }
@@ -123,6 +123,22 @@ import Testing
         #expect(!server.calls.contains { $0.isChallenge || $0.isProof || $0.isPair })
     }
 
+    /// What the sheet shows: the located address as contacted (ASCII, lower case, IPv6 in brackets, a port other
+    /// than 443), never a decoded Unicode name.
+    @Test(arguments: [
+        ("https://brievie.local:8443/pad", true, "brievie.local:8443"),
+        ("https://Brievie.Example.NL:443", false, "brievie.example.nl"),
+        ("https://[2001:db8::1]:8443", true, "[2001:db8::1]:8443"),
+        ("https://bücher.example.nl", false, "xn--bcher-kva.example.nl")
+    ])
+    func theLocatedAddressShowsHostAndPortOnly(address: String, pinned: Bool, shown: String) async throws {
+        let url = try #require(URL(string: address))
+
+        let located = try await harness.service.locate(try link([url], pin: pinned ? try pin() : nil))
+
+        #expect(located.displayAddress == shown)
+    }
+
     @Test func pairingAtALocatedServerNeverContactsAnotherAddress() async throws {
         let link = try pinnedLink()
         let located = try await harness.service.locate(link)
@@ -134,6 +150,53 @@ import Testing
         }
 
         #expect(server.calls.dropFirst(before).map { $0 } == [.challenge(home)])
+    }
+
+    // MARK: - What is stored
+
+    /// Without a pin a later connection trusts the system roots: an extra address in someone else's link (own
+    /// domain, valid public certificate) would get the device token. Only the proven address is stored.
+    @Test func aLinkWithoutAPinStoresOnlyTheLocatedAddress() async throws {
+        let first = try #require(URL(string: "https://first.example.nl"))
+        let extra = try #require(URL(string: "https://extra.example.com"))
+        let connection = try await harness.service.pair(
+            link: try link([away, first, extra], pin: nil), code: code, deviceName: "iPhone"
+        )
+
+        #expect(connection.urls == [away])
+        #expect(try harness.store.load()?.connection.urls == [away])
+    }
+
+    @Test func aLaterRequestAfterAnUnpinnedLinkContactsOnlyTheLocatedAddress() async throws {
+        let extra = try #require(URL(string: "https://extra.example.com"))
+        let connection = try await harness.service.pair(
+            link: try link([away, extra], pin: nil), code: code, deviceName: "iPhone"
+        )
+        let documents = FakeDocumentServer(detail: { _, id in DocumentFixtures.detail(id: id) })
+        documents.onList { _ in throw ServerError.unreachable }
+        let workspace = WorkspaceDocuments(
+            workspaceID: UUID(), connection: connection, store: harness.store, server: documents
+        )
+
+        await #expect(throws: DocumentsError.unreachable) { try await workspace.list() }
+
+        #expect(documents.calls == [.list(away, .all)])
+        #expect(documents.tokens == [FakeBrievieServer.device.token])
+    }
+
+    /// With a pin every later connection, to any of the addresses, is anchored to that CA alone
+    /// (`ServerTrust` with `SecTrustSetAnchorCertificatesOnly`; API calls, uploads, unpairing): the link's other
+    /// addresses stay, as on the QR path.
+    @Test func aPinnedLinkKeepsItsAddresses() async throws {
+        server.health = { url in
+            if url.host() == "brievie.local" { throw ServerError.unreachable }
+            return "1.0.0"
+        }
+
+        let connection = try await harness.service.pair(link: try pinnedLink(), code: code, deviceName: "iPhone")
+
+        #expect(connection.urls == [home, away])
+        #expect(connection.caCertificateDER == (try Fixtures.der("ca.pem")))
     }
 
     // MARK: - Verification first, as on the QR path

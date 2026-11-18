@@ -9,6 +9,14 @@ import Testing
     private static let pairingID = "0b7e2f4c-5d1a-4e8b-9c3f-6a2d8e1f4b70"
     private static let nonce = FakeBrievieServer.nonce
     private static let proof = String(repeating: "0a", count: 32)
+    /// 42 and 44 characters, 43 with an illegal, a non-ASCII or a combined character, and other junk.
+    private static let badNonces: [String] = {
+        let short = String(nonce.dropLast())
+        let nonASCII: String = String(nonce.dropLast(2)) + "é"
+        let combining: String = short + "e\u{301}"
+        return ["", "has space", "slash/", String(repeating: "a", count: 65), "née", short, nonce + "A",
+                short + "+", short + "=", nonASCII, combining]
+    }()
     private static let challengeOut = #"{"nonce":"\#(nonce)","expires_at":"2026-11-18T10:00:00Z"}"#
 
     @Test func challengeAndProofHitTheContractPaths() async throws {
@@ -40,10 +48,7 @@ import Testing
     }
 
     /// Exactly 43 characters of the base64url alphabet, as the host makes them (`secrets.token_urlsafe(32)`).
-    @Test(arguments: [
-        "", "has space", "slash/", String(repeating: "a", count: 65), "née",
-        String(nonce.dropLast()), nonce + "A", String(nonce.dropLast()) + "+", String(nonce.dropLast()) + "="
-    ])
+    @Test(arguments: badNonces)
     func aNonceThatIsNotOneIsIncompatible(nonce: String) async throws {
         let json = try #require(String(
             bytes: try JSONSerialization.data(withJSONObject: ["nonce": nonce, "expires_at": "2026-11-18T10:00:00Z"]),

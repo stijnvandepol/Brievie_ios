@@ -104,7 +104,15 @@ import Testing
         let illegal = String(nonce.dropLast()) + "+"
 
         #expect(nonce.count == 43)
-        for bad in [String(nonce.dropLast()), nonce + "A", illegal, String(nonce.dropLast()) + "=", ""] {
+        // 43 characters, but one non-ASCII (43 UTF-8 bytes) or carrying a combining mark (43 Characters).
+        let nonASCII = String(nonce.dropLast(2)) + "é"
+        let combining = String(nonce.dropLast()) + "e\u{301}"
+        #expect(nonASCII.utf8.count == 43)
+        #expect(combining.count == 43)
+        let bads = [
+            String(nonce.dropLast()), nonce + "A", illegal, String(nonce.dropLast()) + "=", "", nonASCII, combining
+        ]
+        for bad in bads {
             #expect(PairingProof.proof(key: key, nonce: bad, trustBinding: "brievie.example.nl") == nil, "\(bad)")
             #expect(await PairingProof.proof(
                 code: code, pairingID: pairingID, nonce: bad,

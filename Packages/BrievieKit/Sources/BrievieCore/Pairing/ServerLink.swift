@@ -13,8 +13,9 @@ public enum ServerLinkError: Error, Equatable {
 /// `brievie://server#v=1&url=<https url>[&url=…][&ca_sha256=<64 hex>]&pairing=<uuid>`, values form-encoded.
 ///
 /// It is only a pointer: the server's addresses, its CA pin and the id of a pairing code. It carries no secret,
-/// and a code smuggled into it is never read: the user types the code, and on this path it never leaves the
-/// phone (`PairingService.pair(link:code:deviceName:)`).
+/// and a code smuggled into it is never read. Nothing is contacted until the user taps "Server zoeken"; then
+/// `PairingService.locate(_:)` fixes one address and `PairingService.pair(link:at:code:deviceName:)` pairs there,
+/// where the typed code never leaves the phone: only a proof does.
 public struct ServerLink: Equatable, Sendable {
     /// `https` only, in server order, one to eight.
     public let urls: [URL]
@@ -88,11 +89,6 @@ public struct ServerLink: Equatable, Sendable {
         self.urls = urls
         caSHA256 = pins.first?.lowercased()
         self.pairingID = pairingID
-    }
-
-    /// The first address as the app would contact it (see `displayAddress(of:)`).
-    public var displayAddress: String {
-        urls.first.map(Self.displayAddress(of:)) ?? ""
     }
 
     /// `url` as the app contacts it: host (ASCII, lower case; an IPv6 address in brackets) and a port other than

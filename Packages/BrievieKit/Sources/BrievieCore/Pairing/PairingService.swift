@@ -130,7 +130,15 @@ public struct PairingService: Sendable {
         case .failure(.cancelled): throw .cancelled
         case let .failure(.server(error)): throw PairingError(pairing: error)
         }
-        return try store(device, urls: link.urls, attempt: attempt)
+        return try store(device, urls: Self.storedURLs(link, located: located), attempt: attempt)
+    }
+
+    /// What a link pairing keeps. With a pinned CA every later connection to any address (API calls, uploads,
+    /// unpairing) is anchored to that CA alone (`ServerTrust`), so the link's addresses stay, as on the QR path.
+    /// Without one a later connection trusts the system roots: an extra address in someone else's link (own
+    /// domain, valid public certificate) would get the device token, so only the proven address is kept.
+    private static func storedURLs(_ link: ServerLink, located: LocatedServer) -> [URL] {
+        located.attempt.caCertificateDER == nil ? [located.url] : link.urls
     }
 
     /// The proof for `nonce`; cancellation is checked before and after the slow key derivation. A nonce of
