@@ -8,10 +8,14 @@ enum AppStrings {
         String(localized: "lock.reason", defaultValue: "Ontgrendel Brievie om je post te zien.", bundle: .module)
     }
 
+    /// After the server refused the device token: revoked on the server, or expired after a long time unused.
     static var sessionRevoked: String {
         String(
             localized: "session.revoked",
-            defaultValue: "Dit apparaat is ontkoppeld. Koppel het opnieuw om verder te gaan.",
+            defaultValue: """
+                Deze koppeling werkt niet meer: ze is ingetrokken of je hebt Brievie lang niet gebruikt. \
+                Koppel dit toestel opnieuw om verder te gaan.
+                """,
             bundle: .module
         )
     }

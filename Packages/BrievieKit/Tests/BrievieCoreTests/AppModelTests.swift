@@ -226,7 +226,8 @@ import Testing
         model.sessionRevoked(deviceID: connection.deviceID)
 
         #expect(model.state == .unpaired(
-            notice: "Dit apparaat is ontkoppeld. Koppel het opnieuw om verder te gaan."
+            notice: "Deze koppeling werkt niet meer: ze is ingetrokken of je hebt Brievie lang niet gebruikt. "
+                + "Koppel dit toestel opnieuw om verder te gaan."
         ))
         #expect(try store.load() == nil)
         #expect(secrets.read(.deviceToken) == nil)
