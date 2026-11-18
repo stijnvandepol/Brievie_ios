@@ -12,7 +12,7 @@ public struct LiveBrievieServer: BrievieServer {
 
     private let makeConfiguration: @Sendable () -> URLSessionConfiguration
     private let maxJSONBytes: Int
-    private let appVersion: String?
+    let appVersion: String?
 
     /// - Parameter appVersion: sent with every request (`AppVersionHeader`) and in the pairing body; `nil` sends
     ///   none.
@@ -59,9 +59,7 @@ public struct LiveBrievieServer: BrievieServer {
                 body: .json(.init(appVersion: appVersion, code: code, deviceName: deviceName))
             ) {
             case let .created(response):
-                let paired = try response.body.json
-                guard let deviceID = UUID(uuidString: paired.deviceId) else { throw ServerError.incompatible }
-                return PairedDevice(deviceID: deviceID, token: paired.token, userName: paired.user.name)
+                return try PairedDevice(pairOut: try response.body.json)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
             case .contentTooLarge:

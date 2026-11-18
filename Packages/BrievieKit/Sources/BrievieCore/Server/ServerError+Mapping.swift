@@ -18,7 +18,8 @@ extension ServerError {
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.
     init(status: Int, code: String?) {
         switch (status, code) {
-        case (400, "pairing_code_invalid"):
+        // A wrong proof or code, an unknown pairing, and an expired or replayed challenge: one refusal for the user.
+        case (400, "pairing_code_invalid"), (400, "pairing_challenge_invalid"):
             self = .invalidCode
         case (401, "not_authenticated"):
             // The host's answer to a revoked or unknown device token. Any other 401 (a reverse proxy with its own

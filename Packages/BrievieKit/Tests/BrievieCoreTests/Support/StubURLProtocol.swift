@@ -4,8 +4,10 @@ import Synchronization
 /// Answers requests from a table keyed by host, so tests running in parallel each use their own host.
 /// Requests are recorded per host for inspection.
 final class StubURLProtocol: URLProtocol {
-    enum Answer: Sendable {
+    indirect enum Answer: Sendable {
         case response(status: Int, json: String)
+        /// A different answer per path (`/api/v1/health`, ...); an unlisted path fails as an unknown host.
+        case routes([String: Answer])
         case data(status: Int, contentType: String, body: Data)
         case redirect(URL)
         case failure(URLError.Code)
@@ -43,11 +45,20 @@ final class StubURLProtocol: URLProtocol {
         recorded.httpBody = request.httpBody ?? request.httpBodyStream.map(Self.readAll)
         Self.requests.withLock { $0[host, default: []].append(recorded) }
 
-        guard let url = request.url, let answer = Self.answers.withLock({ $0[host] }) else {
+        guard var answer = Self.answers.withLock({ $0[host] }), let url = request.url else {
             client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
             return
         }
+        if case let .routes(routes) = answer {
+            guard let routed = routes[url.path()] else {
+                client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
+                return
+            }
+            answer = routed
+        }
         switch answer {
+        case .routes:
+            client?.urlProtocol(self, didFailWithError: URLError(.cannotFindHost))
         case let .response(status, json):
             respond(url: url, status: status, body: Data(json.utf8))
         case let .data(status, contentType, body):

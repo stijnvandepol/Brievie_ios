@@ -10,9 +10,24 @@ final class FakeBrievieServer: BrievieServer {
         case health(URL)
         case pair(URL, code: String, name: String)
         case revoke(URL, deviceID: UUID, token: String)
+        case challenge(URL)
+        case proof(URL, CodeProof, name: String)
 
         var isPair: Bool {
             if case .pair = self { true } else { false }
+        }
+
+        var isChallenge: Bool {
+            if case .challenge = self { true } else { false }
+        }
+
+        var isProof: Bool {
+            if case .proof = self { true } else { false }
+        }
+
+        /// The proof value of a `.proof` call.
+        var sentProof: String? {
+            if case let .proof(_, proof, _) = self { proof.proof } else { nil }
         }
 
         var isCACertificate: Bool {
@@ -33,7 +48,12 @@ final class FakeBrievieServer: BrievieServer {
         var health: @Sendable (URL) throws -> String = { _ in "1.0.0" }
         var pair: @Sendable (URL) throws -> PairedDevice = { _ in FakeBrievieServer.device }
         var revoke: @Sendable (URL) async throws -> Void = { _ in }
+        var challenge: @Sendable (URL) throws -> String = { _ in FakeBrievieServer.nonce }
+        var proof: @Sendable (URL) throws -> PairedDevice = { _ in FakeBrievieServer.device }
     }
+
+    /// A nonce as the host makes them (`secrets.token_urlsafe(32)`: 43 characters).
+    static let nonce = "q3Vb8xN2pL5sT9wE1yH4kM7rC0uZ6aJdFgQiXoWnYeK"
 
     private let state: Mutex<State>
 
@@ -66,6 +86,16 @@ final class FakeBrievieServer: BrievieServer {
         set { state.withLock { $0.revoke = newValue } }
     }
 
+    var challenge: @Sendable (URL) throws -> String {
+        get { state.withLock { $0.challenge } }
+        set { state.withLock { $0.challenge = newValue } }
+    }
+
+    var proof: @Sendable (URL) throws -> PairedDevice {
+        get { state.withLock { $0.proof } }
+        set { state.withLock { $0.proof = newValue } }
+    }
+
     var revokeCalls: [Call] { calls.filter { if case .revoke = $0 { true } else { false } } }
 
     func caCertificatePEM(at url: URL) async throws -> String {
@@ -90,6 +120,26 @@ final class FakeBrievieServer: BrievieServer {
             $0.calls.append(.pair(url, code: code, name: deviceName))
             $0.trusts.append(trust)
             return $0.pair
+        }
+        return try answer(url)
+    }
+
+    func pairingChallenge(at url: URL, trust: ServerTrust) async throws -> String {
+        let answer = state.withLock {
+            $0.calls.append(.challenge(url))
+            $0.trusts.append(trust)
+            return $0.challenge
+        }
+        return try answer(url)
+    }
+
+    func pairWithProof(
+        at url: URL, trust: ServerTrust, proof: CodeProof, deviceName: String
+    ) async throws -> PairedDevice {
+        let answer = state.withLock {
+            $0.calls.append(.proof(url, proof, name: deviceName))
+            $0.trusts.append(trust)
+            return $0.proof
         }
         return try answer(url)
     }

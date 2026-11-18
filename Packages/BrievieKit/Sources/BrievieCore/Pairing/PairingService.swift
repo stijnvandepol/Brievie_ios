@@ -58,6 +58,74 @@ public struct PairingService: Sendable {
         throw sawUnverifiableAnswer ? .serverNotVerified : .noServerReachable
     }
 
+    /// Pairs from a server link: tries the link's URLs as `pair(_:deviceName:)` does (CA pin and health first;
+    /// an unverifiable URL is skipped), then on the verified one fetches a nonce and sends a proof of the code.
+    ///
+    /// - The code is never sent: only `PairingProof` reads it, and the key and proof live only in this call.
+    /// - The proof is bound to what TLS validates for the connection: the pinned CA, or for a link without a pin
+    ///   the host name. A URL whose name no public authority certifies is not contacted without a pin.
+    /// - A server without the proof path (404 on the challenge) is `.incompatibleServer`: never a fallback that
+    ///   sends the code.
+    /// - Once the proof went out, any failure stops pairing. Nothing is stored unless pairing succeeds.
+    public func pair(
+        link: ServerLink, code: PairingCode, deviceName: String
+    ) async throws(PairingError) -> ServerConnection {
+        var sawUnverifiableAnswer = false
+        for url in link.urls {
+            if Task.isCancelled { throw .cancelled }
+            if link.caSHA256 == nil, PairingProof.publicHostBinding(of: url) == nil {
+                sawUnverifiableAnswer = true
+                continue
+            }
+            switch await verify(url, caSHA256: link.caSHA256) {
+            case let .verified(attempt):
+                return try await finish(attempt, url: url, link: link, code: code, deviceName: deviceName)
+            case .unreachable:
+                continue
+            case .unverifiable:
+                sawUnverifiableAnswer = true
+            case .incompatible:
+                throw .incompatibleServer
+            case .cancelled:
+                throw .cancelled
+            }
+        }
+        if Task.isCancelled { throw .cancelled }
+        throw sawUnverifiableAnswer ? .serverNotVerified : .noServerReachable
+    }
+
+    /// The link path after verification: challenge, key, proof, store.
+    private func finish(
+        _ attempt: Attempt, url: URL, link: ServerLink, code: PairingCode, deviceName: String
+    ) async throws(PairingError) -> ServerConnection {
+        let binding = PairingProof.trustBinding(caCertificateDER: attempt.caCertificateDER, connectedTo: url)
+        guard let binding else { throw .serverNotVerified }
+        let nonce: String
+        switch await call({ try await server.pairingChallenge(at: url, trust: attempt.trust) }) {
+        case let .success(value): nonce = value
+        case .failure(.cancelled): throw .cancelled
+        case let .failure(.server(error)): throw PairingError(challenge: error)
+        }
+        if Task.isCancelled { throw .cancelled }
+        guard let key = await PairingProof.derivedKey(code: code, pairingID: link.pairingID) else {
+            throw .failed("key_derivation")
+        }
+        if Task.isCancelled { throw .cancelled }
+        let proof = CodeProof(
+            pairingID: link.pairingID, nonce: nonce,
+            proof: PairingProof.proof(key: key, nonce: nonce, trustBinding: binding)
+        )
+        let device: PairedDevice
+        switch await call({
+            try await server.pairWithProof(at: url, trust: attempt.trust, proof: proof, deviceName: deviceName)
+        }) {
+        case let .success(value): device = value
+        case .failure(.cancelled): throw .cancelled
+        case let .failure(.server(error)): throw PairingError(pairing: error)
+        }
+        return try store(device, urls: link.urls, attempt: attempt)
+    }
+
     private struct Attempt {
         let caCertificateDER: Data?
         let trust: ServerTrust
@@ -123,11 +191,15 @@ public struct PairingService: Sendable {
         case .failure(.cancelled): throw .cancelled
         case let .failure(.server(error)): throw PairingError(pairing: error)
         }
+        return try store(device, urls: payload.urls, attempt: attempt)
+    }
+
+    /// Stores a pairing the server accepted. The code is spent; this finishes even if the task was cancelled
+    /// meanwhile, so the device the server now knows about is not lost.
+    private func store(_ device: PairedDevice, urls: [URL], attempt: Attempt) throws(PairingError) -> ServerConnection {
         guard !device.token.isEmpty else { throw .incompatibleServer }
-        // The code is spent; finish storing even if the task was cancelled meanwhile, so the device the
-        // server now knows about is not lost.
         let connection = ServerConnection(
-            urls: payload.urls,
+            urls: urls,
             caCertificateDER: attempt.caCertificateDER,
             deviceID: device.deviceID,
             userName: device.userName
@@ -165,6 +237,18 @@ public struct PairingService: Sendable {
 }
 
 extension PairingError {
+    /// The answer to the challenge request: nothing was sent yet, so a lost connection spent nothing.
+    init(challenge error: ServerError) {
+        switch error {
+        case .unreachable, .untrusted: self = .noServerReachable
+        // A 1c server has no proof path; the code is not sent there instead.
+        case .other("http_404"), .incompatible: self = .incompatibleServer
+        case .tooManyAttempts: self = .tooManyAttempts
+        case .invalidCode, .unauthorized: self = .failed("challenge_refused")
+        case .other(let reason): self = .failed(reason)
+        }
+    }
+
     /// The answer to the call that sends the code. Unlike the checks before it, a lost or untrusted connection
     /// here may have happened after the server accepted the code.
     init(pairing error: ServerError) {

@@ -9,6 +9,8 @@ filter:
     - getHealth
     - getCaCertificate
     - pairDevice
+    - createPairingChallenge
+    - pairDeviceWithProof
     - revokeDevice
     - listWorkspaces
     - listDocuments
