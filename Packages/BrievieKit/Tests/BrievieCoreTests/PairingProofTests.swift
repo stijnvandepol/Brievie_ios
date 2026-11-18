@@ -77,16 +77,42 @@ import Testing
         let pairingID = try #require(UUID(uuidString: vector.pairingId))
         let finished = Locked(false)
 
+        let item = try #require(vector.cases.first)
         let derivation = Task { @MainActor in
-            let key = await PairingProof.derivedKey(code: code, pairingID: pairingID)
+            let proof = await PairingProof.proof(
+                code: code, pairingID: pairingID, nonce: vector.nonce, trustBinding: item.trustBinding
+            )
             finished.value = true
-            return key
+            return proof
         }
         // Runs on the main actor; if the derivation held the main actor, this would only run after it.
         let mainWasFree = await Task { @MainActor in !finished.value }.value
 
         #expect(mainWasFree)
-        #expect(await derivation.value.map(Self.hex) == vector.key)
+        #expect(await derivation.value == item.proof)
+    }
+
+    /// The proof's input `context + nonce + binding` has no length prefixes: it is unambiguous only because the
+    /// nonce has a fixed length. With a shorter nonce a relay could move a character from the nonce into a
+    /// look-alike host name (`N[..<42]` + `"c" + host` == `N` + `host` when `N` ends in "c").
+    @Test func aNonceOfAnotherLengthOrAlphabetGetsNoProof() async throws {
+        let vector = try Self.vector()
+        let code = try #require(PairingCode(typed: vector.typedCode))
+        let pairingID = try #require(UUID(uuidString: vector.pairingId))
+        let key = try #require(PairingProof.key(code: code, pairingID: pairingID))
+        let nonce = vector.nonce
+        let illegal = String(nonce.dropLast()) + "+"
+
+        #expect(nonce.count == 43)
+        for bad in [String(nonce.dropLast()), nonce + "A", illegal, String(nonce.dropLast()) + "=", ""] {
+            #expect(PairingProof.proof(key: key, nonce: bad, trustBinding: "brievie.example.nl") == nil, "\(bad)")
+            #expect(await PairingProof.proof(
+                code: code, pairingID: pairingID, nonce: bad,
+                trustBinding: "brievie.example.nl"
+            ) == nil)
+        }
+        #expect(PairingProof.isNonce(nonce))
+        #expect(PairingProof.proof(key: key, nonce: nonce, trustBinding: "brievie.example.nl") != nil)
     }
 
     @Test func trustBindingIsThePinnedCertificate() throws {

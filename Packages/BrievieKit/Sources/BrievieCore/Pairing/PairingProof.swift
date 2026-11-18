@@ -19,40 +19,80 @@ public enum PairingProof {
     static let iterations: UInt32 = 600_000
     static let keyLength = 32
 
-    /// PBKDF2-HMAC-SHA256 of `code.normalised`, salted with the context and the pairing id in lower-case
-    /// hyphenated form. Slow on purpose (about half a second): call `derivedKey` from async code.
-    /// `nil` only if CommonCrypto fails.
-    static func key(code: PairingCode, pairingID: UUID) -> Data? {
-        let password = Array(code.normalised.utf8)
-        let salt = Array((context + pairingID.uuidString.lowercased()).utf8)
-        var key = [UInt8](repeating: 0, count: keyLength)
-        let status = password.withUnsafeBufferPointer { passwordBytes in
-            passwordBytes.withMemoryRebound(to: CChar.self) { passwordChars in
-                CCKeyDerivationPBKDF(
-                    CCPBKDFAlgorithm(kCCPBKDF2),
-                    passwordChars.baseAddress, passwordChars.count,
-                    salt, salt.count,
-                    CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),
-                    iterations,
-                    &key, key.count
-                )
-            }
+    /// The host's nonces are `secrets.token_urlsafe(32)`: exactly 43 characters of the base64url alphabet.
+    static let nonceLength = 43
+
+    /// Whether `nonce` is one the host makes. The proof's input `context + nonce + binding` has no length
+    /// prefixes; it is unambiguous only because the nonce has this fixed length. A shorter nonce would let a
+    /// relay move characters between the nonce and a look-alike host name, so no proof is made for one.
+    static func isNonce(_ nonce: String) -> Bool {
+        nonce.utf8.count == nonceLength && nonce.utf8.allSatisfy { byte in
+            PairingPayload.isASCIIAlphanumeric(byte) || byte == UInt8(ascii: "-") || byte == UInt8(ascii: "_")
         }
-        guard status == kCCSuccess else { return nil }
+    }
+
+    /// PBKDF2-HMAC-SHA256 of `code.normalised`, salted with the context and the pairing id in lower-case
+    /// hyphenated form, as `Data` (for the shared test vector). Pairing uses `proof(code:pairingID:nonce:trustBinding:)`,
+    /// which never lets the key out of its own buffer. `nil` only if CommonCrypto fails.
+    static func key(code: PairingCode, pairingID: UUID) -> Data? {
+        var key = [UInt8](repeating: 0, count: keyLength)
+        defer { wipe(&key) }
+        guard derive(code: code, pairingID: pairingID, into: &key) else { return nil }
         return Data(key)
     }
 
-    /// `key(code:pairingID:)` off the caller's actor: a nonisolated async function runs on the global
-    /// executor, so the main actor stays free while the key is derived.
-    static func derivedKey(code: PairingCode, pairingID: UUID) async -> Data? {
-        key(code: code, pairingID: pairingID)
+    /// The proof for `nonce` and `trustBinding`, the key derived (slow on purpose, about half a second) off the
+    /// caller's actor whatever the default isolation, and wiped before returning. `nil` for a nonce that is not
+    /// `isNonce` (nothing is derived then) or if CommonCrypto fails.
+    @concurrent
+    static func proof(code: PairingCode, pairingID: UUID, nonce: String, trustBinding: String) async -> String? {
+        guard isNonce(nonce) else { return nil }
+        var key = [UInt8](repeating: 0, count: keyLength)
+        defer { wipe(&key) }
+        guard derive(code: code, pairingID: pairingID, into: &key) else { return nil }
+        // `SymmetricKey` keeps its own copy in CryptoKit's secure storage, zeroed when it is released.
+        return mac(SymmetricKey(data: key), nonce: nonce, trustBinding: trustBinding)
     }
 
-    /// Lower-case hex of HMAC-SHA256(key, context + nonce + trust binding).
-    static func proof(key: Data, nonce: String, trustBinding: String) -> String {
+    /// Lower-case hex of HMAC-SHA256(key, context + nonce + trust binding); `nil` for a nonce that is not
+    /// `isNonce`, so the rule never depends on the caller.
+    static func proof(key: Data, nonce: String, trustBinding: String) -> String? {
+        guard isNonce(nonce) else { return nil }
+        return mac(SymmetricKey(data: key), nonce: nonce, trustBinding: trustBinding)
+    }
+
+    private static func mac(_ key: SymmetricKey, nonce: String, trustBinding: String) -> String {
         let message = Data((context + nonce + trustBinding).utf8)
-        let mac = HMAC<SHA256>.authenticationCode(for: message, using: SymmetricKey(data: key))
-        return mac.map { String(format: "%02x", $0) }.joined()
+        return HMAC<SHA256>.authenticationCode(for: message, using: key).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func derive(code: PairingCode, pairingID: UUID, into key: inout [UInt8]) -> Bool {
+        let password = Array(code.normalised.utf8)
+        let salt = Array((context + pairingID.uuidString.lowercased()).utf8)
+        let count = key.count
+        let status = password.withUnsafeBufferPointer { passwordBytes in
+            passwordBytes.withMemoryRebound(to: CChar.self) { passwordChars in
+                key.withUnsafeMutableBufferPointer { keyBytes in
+                    CCKeyDerivationPBKDF(
+                        CCPBKDFAlgorithm(kCCPBKDF2),
+                        passwordChars.baseAddress, passwordChars.count,
+                        salt, salt.count,
+                        CCPseudoRandomAlgorithm(kCCPRFHmacAlgSHA256),
+                        iterations,
+                        keyBytes.baseAddress, count
+                    )
+                }
+            }
+        }
+        return status == kCCSuccess
+    }
+
+    /// Overwrites `bytes` with zeros in a way the optimiser does not remove (`memset_s`).
+    private static func wipe(_ bytes: inout [UInt8]) {
+        bytes.withUnsafeMutableBytes { buffer in
+            guard let base = buffer.baseAddress else { return }
+            _ = memset_s(base, buffer.count, 0, buffer.count)
+        }
     }
 
     /// What TLS validated for a connection to `url`: the SHA-256 of `caCertificateDER` when the app pinned that

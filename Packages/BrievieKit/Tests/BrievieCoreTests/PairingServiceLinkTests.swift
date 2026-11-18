@@ -37,7 +37,7 @@ import Testing
     private func expectedProof(binding: String) throws -> String {
         let pairingID = try #require(UUID(uuidString: Self.pairingID))
         let key = try #require(PairingProof.key(code: code, pairingID: pairingID))
-        return PairingProof.proof(key: key, nonce: FakeBrievieServer.nonce, trustBinding: binding)
+        return try #require(PairingProof.proof(key: key, nonce: FakeBrievieServer.nonce, trustBinding: binding))
     }
 
     private func pairingError(
@@ -60,7 +60,7 @@ import Testing
         #expect(server.calls.filter(\.isPair).isEmpty)
         for call in server.calls {
             let text = String(describing: call)
-            #expect(!text.contains("ABCD2345") && !text.contains("ABCD-2345"))
+            for secret in ["ABCD2345", "ABCD-2345", "ABCD", "2345"] { #expect(!text.contains(secret), "\(secret)") }
         }
         #expect(server.calls.contains { $0.isProof })
     }
@@ -141,6 +141,16 @@ import Testing
 
         #expect(await pairingError(try pinnedLink()) == .noServerReachable)
         #expect(!server.calls.contains { $0.isProof })
+    }
+
+    /// A server (or relay) that hands out a shortened or lengthened nonce gets no proof at all.
+    @Test(arguments: [String(FakeBrievieServer.nonce.dropLast()), FakeBrievieServer.nonce + "c"])
+    func aNonceOfTheWrongLengthGetsNoProof(nonce: String) async throws {
+        server.challenge = { _ in nonce }
+
+        #expect(await pairingError(try pinnedLink()) == .incompatibleServer)
+        #expect(!server.calls.contains { $0.isProof })
+        try harness.expectNothingStored()
     }
 
     @Test func tooManyChallengesIsTooManyAttempts() async throws {

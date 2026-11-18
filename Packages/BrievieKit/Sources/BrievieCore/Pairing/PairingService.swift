@@ -106,15 +106,7 @@ public struct PairingService: Sendable {
         case .failure(.cancelled): throw .cancelled
         case let .failure(.server(error)): throw PairingError(challenge: error)
         }
-        if Task.isCancelled { throw .cancelled }
-        guard let key = await PairingProof.derivedKey(code: code, pairingID: link.pairingID) else {
-            throw .failed("key_derivation")
-        }
-        if Task.isCancelled { throw .cancelled }
-        let proof = CodeProof(
-            pairingID: link.pairingID, nonce: nonce,
-            proof: PairingProof.proof(key: key, nonce: nonce, trustBinding: binding)
-        )
+        let proof = try await Self.proof(code: code, pairingID: link.pairingID, nonce: nonce, binding: binding)
         let device: PairedDevice
         switch await call({
             try await server.pairWithProof(at: url, trust: attempt.trust, proof: proof, deviceName: deviceName)
@@ -124,6 +116,19 @@ public struct PairingService: Sendable {
         case let .failure(.server(error)): throw PairingError(pairing: error)
         }
         return try store(device, urls: link.urls, attempt: attempt)
+    }
+
+    /// The proof for `nonce`; cancellation is checked before and after the slow key derivation. A nonce of
+    /// another length or alphabet gets no proof (`PairingProof.isNonce`): nothing is derived or sent.
+    private static func proof(
+        code: PairingCode, pairingID: UUID, nonce: String, binding: String
+    ) async throws(PairingError) -> CodeProof {
+        if Task.isCancelled { throw .cancelled }
+        guard PairingProof.isNonce(nonce) else { throw .incompatibleServer }
+        let value = await PairingProof.proof(code: code, pairingID: pairingID, nonce: nonce, trustBinding: binding)
+        guard let value else { throw .failed("key_derivation") }
+        if Task.isCancelled { throw .cancelled }
+        return CodeProof(pairingID: pairingID, nonce: nonce, proof: value)
     }
 
     private struct Attempt {

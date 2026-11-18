@@ -39,7 +39,11 @@ import Testing
         ])
     }
 
-    @Test(arguments: ["", "has space", "slash/", String(repeating: "a", count: 65), "née"])
+    /// Exactly 43 characters of the base64url alphabet, as the host makes them (`secrets.token_urlsafe(32)`).
+    @Test(arguments: [
+        "", "has space", "slash/", String(repeating: "a", count: 65), "née",
+        String(nonce.dropLast()), nonce + "A", String(nonce.dropLast()) + "+", String(nonce.dropLast()) + "="
+    ])
     func aNonceThatIsNotOneIsIncompatible(nonce: String) async throws {
         let json = try #require(String(
             bytes: try JSONSerialization.data(withJSONObject: ["nonce": nonce, "expires_at": "2026-11-18T10:00:00Z"]),
@@ -50,6 +54,7 @@ import Testing
         await #expect(throws: ServerError.incompatible) {
             try await server.pairingChallenge(at: url, trust: trust)
         }
+        #expect(StubURLProtocol.requests(to: url).count == 1)
     }
 
     @Test(arguments: [
@@ -111,13 +116,32 @@ import Testing
             "/api/v1/devices/pair-with-proof"
         ])
         for request in requests {
-            let headers = (request.allHTTPHeaderFields ?? [:]).map { "\($0.key): \($0.value)" }.joined(separator: "\n")
-            let body = request.httpBody.flatMap { String(bytes: $0, encoding: .utf8) } ?? ""
-            let everything = [request.url?.absoluteString ?? "", headers, body].joined(separator: "\n").uppercased()
-            for secret in ["ABCD2345", "ABCD-2345", "ABCD 2345", "ZZZZ"] {
-                #expect(!everything.contains(secret), "\(request.url?.path() ?? "") carries \(secret)")
-            }
+            try Self.expectNoCode(in: request)
         }
         #expect(try store.load()?.token == "tok")
+    }
+
+    /// No part of the request holds the code or either half of it (`ABCD`, `2345`), in any case. The stub host
+    /// (a random UUID) is left out, and the two hex values the proof request must carry are checked for what they
+    /// are and then left out: hex can hold "abcd" by chance.
+    private static func expectNoCode(in request: URLRequest) throws {
+        let path = request.url?.path() ?? ""
+        var parts = [path, request.url?.query() ?? ""]
+        parts += (request.allHTTPHeaderFields ?? [:]).map { "\($0.key): \($0.value)" }
+        if let body = request.httpBody, !body.isEmpty {
+            var fields = try #require(try JSONSerialization.jsonObject(with: body) as? [String: String])
+            if path.hasSuffix("/pair-with-proof") {
+                let sentNonce = fields.removeValue(forKey: "nonce")
+                let sentProof = fields.removeValue(forKey: "proof")
+                #expect(sentNonce == nonce)
+                let proof = try #require(sentProof)
+                #expect(proof.count == 64 && proof.allSatisfy(\.isHexDigit))
+            }
+            parts += fields.map { "\($0.key)=\($0.value)" }
+        }
+        let everything = parts.joined(separator: "\n").uppercased()
+        for secret in ["ABCD2345", "ABCD-2345", "ABCD 2345", "ABCD", "2345", "ZZZZ"] {
+            #expect(!everything.contains(secret), "\(path) carries \(secret)")
+        }
     }
 }
