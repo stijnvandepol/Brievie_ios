@@ -180,6 +180,86 @@
         }
       }
     },
+    "pairing.link.address.check": {
+      "comment": "Under the server address: nothing is sent before the user taps Koppel.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Is dit niet het adres van jouw server? Sluit dan dit scherm. Er is dan niets verstuurd."
+          }
+        }
+      }
+    },
+    "pairing.link.address.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adres van de server"
+          }
+        }
+      }
+    },
+    "pairing.link.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sluit"
+          }
+        }
+      }
+    },
+    "pairing.link.code.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ de code die op de webpagina staat. Hoofdletters en het streepje maken niet uit. De code zelf gaat niet over het netwerk."
+          }
+        }
+      }
+    },
+    "pairing.link.code.hint": {
+      "comment": "VoiceOver hint of the pairing code field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ de acht tekens van de koppelcode."
+          }
+        }
+      }
+    },
+    "pairing.link.code.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppelcode"
+          }
+        }
+      }
+    },
+    "pairing.link.code.prompt": {
+      "comment": "Placeholder of the pairing code field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8 tekens"
+          }
+        }
+      }
+    },
     "pairing.link.error.alreadyPaired": {
       "extractionState": "manual",
       "localizations": {
@@ -221,6 +301,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deze link komt van een nieuwere versie van Brievie. Werk de app bij en probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.link.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt een link van je Brievie-server geopend. Hiermee koppel je deze telefoon."
+          }
+        }
+      }
+    },
+    "pairing.link.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppel"
+          }
+        }
+      }
+    },
+    "pairing.link.title": {
+      "comment": "Title of the sheet opened by a brievie://server link.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppelen met je server"
           }
         }
       }
