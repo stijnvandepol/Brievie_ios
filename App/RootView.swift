@@ -14,18 +14,8 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     /// The pairing whose screens are in the view tree (also while locked); `nil` until the first unlock.
     @State private var shownConnection: ServerConnection?
-    /// The sheet of a `brievie://server` link. Owns its pairing task, so it lives as long as the root view.
-    @State private var linkModel: ServerLinkModel
-
-    init(appModel: AppModel, environment: AppEnvironment) {
-        self.appModel = appModel
-        self.environment = environment
-        _linkModel = State(initialValue: ServerLinkModel(
-            service: PairingService(server: environment.server, store: environment.store),
-            deviceName: { UIDevice.current.name },
-            onPaired: { appModel.didPair($0) }
-        ))
-    }
+    /// The sheet of a `brievie://server` link. Made by `BrievieApp`, which also asks it for the privacy cover.
+    let linkModel: ServerLinkModel
 
     var body: some View {
         content
@@ -48,8 +38,8 @@ struct RootView: View {
             }
             // A deadline in the calendar links to `brievie://task/<id>`. That link (and any other that is not a
             // server link) only brings the app to the foreground: the lock and the screens follow from the
-            // activation, nothing is read from it. A `brievie://server` link opens the link sheet; receiving it
-            // contacts nothing.
+            // activation, nothing is read from it. A `brievie://server` link opens the link sheet, which first looks
+            // for the server it names (CA and health, nothing derived from a code).
             .onOpenURL { url in
                 guard ServerLink.isServerLink(url) else { return }
                 linkModel.receive(url, appState: appModel.state)

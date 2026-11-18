@@ -10,54 +10,64 @@ import Testing
 
     // MARK: - Receiving
 
-    @Test func receivingALinkSendsNothing() throws {
+    /// Receiving a link looks for the server (CA and health, as on the QR path) before the code can be typed;
+    /// nothing derived from a code exists yet, so nothing of it can go out, and nothing is stored.
+    @Test func receivingALinkFindsTheServerBeforeTheCodeIsAsked() async throws {
+        let gate = Gate()
+        fixture.server.healthGate = gate
         let model = fixture.makeModel()
 
         model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+        #expect(model.presentation == .searching)
+        #expect(!model.canSubmit)
+        model.code = "ABCD-2345"
+        #expect(!model.canSubmit)
+        await gate.waitForArrival()
+        gate.open()
+        await model.searchTask?.value
 
         #expect(model.presentation == .offer(address: "brievie.example.nl", failure: nil, isPairing: false))
-        #expect(fixture.server.healthCalls == 0)
+        #expect(fixture.server.healthURLs.map(\.absoluteString) == ["https://brievie.example.nl"])
         #expect(fixture.server.challengeCalls == 0)
         #expect(fixture.server.proofCalls == 0)
         fixture.expectNothingStored()
     }
 
-    @Test func offerShowsTheAddressNotTheLink() throws {
+    @Test func offerShowsTheAddressNotTheLink() async throws {
         let model = fixture.makeModel()
 
-        model.receive(try fixture.url(ServerLinkFixture.pinnedLink), appState: fixture.unpaired)
+        await fixture.receive(try fixture.url(ServerLinkFixture.publicLink), on: model)
 
-        #expect(model.presentation == .offer(address: "brievie.local", failure: nil, isPairing: false))
         let shown = String(describing: model.presentation)
-        for hidden in [ServerLinkFixture.pin, ServerLinkFixture.pairingID, "https"] {
+        for hidden in [ServerLinkFixture.pairingID, "https", "pairing"] {
             #expect(!shown.contains(hidden))
         }
     }
 
-    @Test func malformedAndNewerLinksAreOneSentenceEach() throws {
+    @Test func malformedAndNewerLinksAreOneSentenceEach() async throws {
         let model = fixture.makeModel()
 
         model.receive(try fixture.url("brievie://server#v=1&url=http%3A%2F%2Fx.nl&pairing=\(ServerLinkFixture.pairingID)"), appState: fixture.unpaired)
-        #expect(model.presentation == .notice(PairingStrings.linkInvalid))
+        #expect(model.presentation == .notice(PairingStrings.linkInvalid, kind: .error))
 
         model.receive(try fixture.url("brievie://server#v=2&url=https%3A%2F%2Fx.nl"), appState: fixture.unpaired)
-        #expect(model.presentation == .notice(PairingStrings.linkUnsupportedVersion))
-        #expect(fixture.server.healthCalls == 0)
+        #expect(model.presentation == .notice(PairingStrings.linkUnsupportedVersion, kind: .error))
+        #expect(fixture.server.challengeCalls == 0)
     }
 
-    @Test func anAlreadyPairedAppRefusesAndChangesNothing() throws {
+    @Test func anAlreadyPairedAppRefusesAndChangesNothing() async throws {
         let model = fixture.makeModel()
 
         model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.ready())
 
-        #expect(model.presentation == .notice(PairingStrings.linkAlreadyPaired))
+        #expect(model.presentation == .notice(PairingStrings.linkAlreadyPaired, kind: .warning))
         #expect(fixture.server.healthCalls == 0)
         fixture.expectNothingStored()
         #expect(fixture.paired.connections.isEmpty)
         #expect(!model.canSubmit)
     }
 
-    @Test func aLockedAppDropsTheLink() throws {
+    @Test func aLockedAppDropsTheLink() async throws {
         let model = fixture.makeModel()
 
         model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: .locked)
@@ -65,11 +75,11 @@ import Testing
 
         model.appStateChanged(fixture.ready())
         #expect(model.presentation == nil)
-        #expect(fixture.server.healthCalls == 0)
+        #expect(fixture.server.challengeCalls == 0)
     }
 
-    @Test func lockingClosesTheSheet() throws {
-        let model = try fixture.offered()
+    @Test func lockingClosesTheSheet() async throws {
+        let model = try await fixture.offered()
 
         model.appStateChanged(.locked)
 
@@ -77,44 +87,44 @@ import Testing
         #expect(model.code.isEmpty)
     }
 
-    @Test func pairingWithQRMeanwhileClosesTheOffer() throws {
-        let model = try fixture.offered()
+    @Test func pairingWithQRMeanwhileClosesTheOffer() async throws {
+        let model = try await fixture.offered()
 
         model.appStateChanged(fixture.ready())
 
         #expect(model.presentation == nil)
     }
 
-    @Test func aNewLinkReplacesTheOfferAndClearsTheCode() throws {
-        let model = try fixture.offered()
+    @Test func aNewLinkReplacesTheOfferAndClearsTheCode() async throws {
+        let model = try await fixture.offered()
 
-        model.receive(try fixture.url(ServerLinkFixture.pinnedLink), appState: fixture.unpaired)
+        await fixture.receive(try fixture.url(ServerLinkFixture.otherLink), on: model)
 
-        #expect(model.presentation == .offer(address: "brievie.local", failure: nil, isPairing: false))
+        #expect(model.presentation == .offer(address: "other.example.nl", failure: nil, isPairing: false))
         #expect(model.code.isEmpty)
     }
 
-    @Test func dismissClosesAndForgets() throws {
-        let model = try fixture.offered()
+    @Test func dismissClosesAndForgets() async throws {
+        let model = try await fixture.offered()
 
         model.dismiss()
 
         #expect(model.presentation == nil)
         #expect(model.code.isEmpty)
         model.submit()
-        #expect(fixture.server.healthCalls == 0)
+        #expect(fixture.server.challengeCalls == 0)
     }
 
     // MARK: - The typed code
 
     @Test(arguments: ["", "ABCD-23", "ABCD-23456", "ABCD-23!5"])
     func pairingNeedsAValidTypedCode(code: String) async throws {
-        let model = try fixture.offered(code: code)
+        let model = try await fixture.offered(code: code)
 
         #expect(!model.canSubmit)
         await fixture.submitAndWait(model)
 
-        #expect(fixture.server.healthCalls == 0)
+        #expect(fixture.server.challengeCalls == 0)
     }
 
     @Test func noOfferNoSubmit() {
@@ -125,7 +135,7 @@ import Testing
     }
 
     @Test func aTypedCodePairsByProof() async throws {
-        let model = try fixture.offered(code: "abcd 2345")
+        let model = try await fixture.offered(code: "abcd 2345")
         #expect(model.canSubmit)
 
         await fixture.submitAndWait(model)
@@ -143,7 +153,7 @@ import Testing
 
     @Test func anEmptyDeviceNameFallsBackToTheModelName() async throws {
         let model = fixture.makeModel(deviceName: "  ")
-        model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+        await fixture.receive(try fixture.url(ServerLinkFixture.publicLink), on: model)
         model.code = "ABCD-2345"
 
         await fixture.submitAndWait(model)
@@ -152,7 +162,7 @@ import Testing
     }
 
     @Test func theLinkPairingIsTheSameServerAsTheQrPairing() async throws {
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
         await fixture.submitAndWait(model)
         let byLink = try #require(fixture.paired.connections.first)
 
@@ -169,7 +179,7 @@ import Testing
             await gate.pass()
             return StubServer.device
         }
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
 
         model.submit()
         let first = model.pairingTask
@@ -189,7 +199,7 @@ import Testing
             await gate.pass()
             return StubServer.device
         }
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
         model.submit()
         await gate.waitForArrival()
 

@@ -90,11 +90,15 @@ public struct ServerLink: Equatable, Sendable {
         self.pairingID = pairingID
     }
 
-    /// The first address as the app will contact it: host (ASCII, lower case; an IPv6 address in brackets) and a
-    /// port other than 443. Never a decoded Unicode form, so a look-alike name cannot pass for another.
+    /// The first address as the app would contact it (see `displayAddress(of:)`).
     public var displayAddress: String {
+        urls.first.map(Self.displayAddress(of:)) ?? ""
+    }
+
+    /// `url` as the app contacts it: host (ASCII, lower case; an IPv6 address in brackets) and a port other than
+    /// 443. Never a decoded Unicode form, so a look-alike name cannot pass for another.
+    public static func displayAddress(of url: URL) -> String {
         guard
-            let url = urls.first,
             let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
             let host = components.encodedHost
         else {

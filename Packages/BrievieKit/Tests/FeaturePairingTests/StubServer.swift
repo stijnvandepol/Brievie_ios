@@ -13,6 +13,11 @@ final class StubServer: BrievieServer {
         var deviceNames: [String] = []
         var codes: [String] = []
         var proofs: [CodeProof] = []
+        var healthURLs: [URL] = []
+        var challengeURLs: [URL] = []
+        var proofURLs: [URL] = []
+        var unreachableHosts: Set<String> = []
+        var healthGate: Gate?
         var health: @Sendable () throws -> String = { "1.0.0" }
         var pair: @Sendable () throws -> PairedDevice = { StubServer.device }
         var challenge: @Sendable () throws -> String = { StubServer.nonce }
@@ -32,6 +37,25 @@ final class StubServer: BrievieServer {
     /// Every code received by `pair` (the QR path).
     var codes: [String] { state.withLock { $0.codes } }
     var proofs: [CodeProof] { state.withLock { $0.proofs } }
+    var healthURLs: [URL] { state.withLock { $0.healthURLs } }
+    var challengeURLs: [URL] { state.withLock { $0.challengeURLs } }
+    var proofURLs: [URL] { state.withLock { $0.proofURLs } }
+    /// Every contacted URL, in order.
+    var contactedHosts: Set<String> {
+        state.withLock { Set(($0.healthURLs + $0.challengeURLs + $0.proofURLs).compactMap { $0.host() }) }
+    }
+
+    /// Hosts whose health check fails as unreachable.
+    var unreachableHosts: Set<String> {
+        get { state.withLock { $0.unreachableHosts } }
+        set { state.withLock { $0.unreachableHosts = newValue } }
+    }
+
+    /// Holds every health check until the gate opens.
+    var healthGate: Gate? {
+        get { state.withLock { $0.healthGate } }
+        set { state.withLock { $0.healthGate = newValue } }
+    }
 
     var health: @Sendable () throws -> String {
         get { state.withLock { $0.health } }
@@ -55,10 +79,14 @@ final class StubServer: BrievieServer {
     }
 
     func health(at url: URL, trust: ServerTrust) async throws -> String {
-        let answer = state.withLock {
+        let (answer, unreachable, gate) = state.withLock {
             $0.healthCalls += 1
-            return $0.health
+            $0.healthURLs.append(url)
+            return ($0.health, $0.unreachableHosts.contains(url.host() ?? ""), $0.healthGate)
         }
+        await gate?.pass()
+        try Task.checkCancellation()
+        if unreachable { throw ServerError.unreachable }
         return try answer()
     }
 
@@ -79,6 +107,7 @@ final class StubServer: BrievieServer {
     func pairingChallenge(at url: URL, trust: ServerTrust) async throws -> String {
         let answer = state.withLock {
             $0.challengeCalls += 1
+            $0.challengeURLs.append(url)
             return $0.challenge
         }
         return try answer()
@@ -89,6 +118,7 @@ final class StubServer: BrievieServer {
     ) async throws -> PairedDevice {
         let answer = state.withLock {
             $0.proofCalls += 1
+            $0.proofURLs.append(url)
             $0.deviceNames.append(deviceName)
             $0.proofs.append(proof)
             return $0.proof

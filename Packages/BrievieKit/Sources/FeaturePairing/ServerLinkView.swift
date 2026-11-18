@@ -2,8 +2,8 @@
 import BrievieUI
 import SwiftUI
 
-/// The sheet behind a `brievie://server` link: the address the app will contact and a field for the pairing code,
-/// or one sentence when the link cannot be used. Renders `ServerLinkModel`; nothing is sent until "Koppel".
+/// The sheet behind a `brievie://server` link: "Server zoeken…", then the one address the proof will go to and a
+/// field for the pairing code, or one sentence when the link cannot be used. Renders `ServerLinkModel`.
 public struct ServerLinkView: View {
     @Bindable private var model: ServerLinkModel
     @FocusState private var codeIsFocused: Bool
@@ -25,8 +25,10 @@ public struct ServerLinkView: View {
             List {
                 header
                 switch model.presentation {
-                case let .notice(message):
-                    notice(message)
+                case let .notice(message, kind):
+                    notice(message, kind: kind)
+                case .searching:
+                    searching
                 case let .offer(address, failure, isPairing):
                     offer(address: address, failure: failure, isPairing: isPairing)
                 case nil:
@@ -67,9 +69,20 @@ public struct ServerLinkView: View {
         }
     }
 
-    @ViewBuilder private func notice(_ message: String) -> some View {
+    /// Looking for the server; the code is asked only once the address is fixed.
+    private var searching: some View {
         Section {
-            ErrorBanner(message, style: message == PairingStrings.linkAlreadyPaired ? .warning : .error)
+            HStack(spacing: 12) {
+                ProgressView()
+                Text("pairing.link.searching", bundle: .module)
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    @ViewBuilder private func notice(_ message: String, kind: ServerLinkModel.NoticeKind) -> some View {
+        Section {
+            ErrorBanner(message, style: kind == .warning ? .warning : .error)
         } footer: {
             PrimaryButton(String(localized: "pairing.link.close", bundle: .module)) {
                 model.dismiss()

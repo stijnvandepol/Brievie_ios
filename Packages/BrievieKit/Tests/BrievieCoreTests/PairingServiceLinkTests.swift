@@ -107,6 +107,35 @@ import Testing
         try harness.expectNothingStored()
     }
 
+    // MARK: - The address is fixed before the code exists
+
+    @Test func locatingFindsTheFirstVerifiedAddressWithoutAnythingFromTheCode() async throws {
+        let home = home
+        server.health = { url in
+            if url == home { throw ServerError.unreachable }
+            return "1.0.0"
+        }
+
+        let located = try await harness.service.locate(try pinnedLink())
+
+        #expect(located.url == away)
+        #expect(located.displayAddress == "brievie.example.nl")
+        #expect(!server.calls.contains { $0.isChallenge || $0.isProof || $0.isPair })
+    }
+
+    @Test func pairingAtALocatedServerNeverContactsAnotherAddress() async throws {
+        let link = try pinnedLink()
+        let located = try await harness.service.locate(link)
+        server.challenge = { _ in throw ServerError.unreachable }
+        let before = server.calls.count
+
+        await #expect(throws: PairingError.noServerReachable) {
+            try await harness.service.pair(link: link, at: located, code: code, deviceName: "iPhone")
+        }
+
+        #expect(server.calls.dropFirst(before).map { $0 } == [.challenge(home)])
+    }
+
     // MARK: - Verification first, as on the QR path
 
     @Test func theLinkPairingVerifiesThePinFirst() async throws {

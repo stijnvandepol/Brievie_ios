@@ -41,7 +41,8 @@ import Testing
                 + "niet uit. De code zelf gaat niet over het netwerk.",
             "pairing.link.code.hint": "Typ de acht tekens van de koppelcode.",
             "pairing.link.submit": "Koppel",
-            "pairing.link.close": "Sluit"
+            "pairing.link.close": "Sluit",
+            "pairing.link.searching": "Server zoeken…"
         ]
         for (key, value) in expected {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeaturePairing") == value, "\(key)")

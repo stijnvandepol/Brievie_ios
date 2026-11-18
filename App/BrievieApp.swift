@@ -1,12 +1,16 @@
 import BrievieCore
+import FeaturePairing
 import SwiftUI
 import UIKit
 
 @main
 struct BrievieApp: App {
     @State private var appModel: AppModel
+    /// The sheet of a `brievie://server` link. Owns its pairing task, so it lives as long as the app.
+    @State private var linkModel: ServerLinkModel
     private let environment: AppEnvironment
-    /// Hides the paired app while it is not active (the app switcher's snapshot); pairing shows no personal data.
+    /// Hides the paired app while it is not active (the app switcher's snapshot), and the link sheet while it asks
+    /// for the pairing code; the rest of pairing shows no personal data.
     private let privacyCover: PrivacyCoverWindow
 
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
@@ -29,8 +33,14 @@ struct BrievieApp: App {
         )
         model.start()
         _appModel = State(initialValue: model)
-        privacyCover = PrivacyCoverWindow { [model] in
-            if case .unpaired = model.state { return false }
+        let links = ServerLinkModel(
+            service: PairingService(server: server, store: store),
+            deviceName: { UIDevice.current.name },
+            onPaired: { model.didPair($0) }
+        )
+        _linkModel = State(initialValue: links)
+        privacyCover = PrivacyCoverWindow { [model, links] in
+            if case .unpaired = model.state { return links.asksForCode }
             return true
         }
         // An upload that gets a 401 sends the user back to pairing, like any other call.
@@ -41,7 +51,7 @@ struct BrievieApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(appModel: appModel, environment: environment)
+            RootView(appModel: appModel, environment: environment, linkModel: linkModel)
         }
     }
 }

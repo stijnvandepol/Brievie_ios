@@ -3,15 +3,27 @@ import Foundation
 import Observation
 
 /// Drives the sheet behind a `brievie://server` link: a refusal, or the server's address and a field for the
-/// pairing code. Receiving a link contacts nothing and stores nothing; only the user's "Koppel" starts pairing,
-/// and then the typed code never leaves the phone (`PairingService.pair(link:code:deviceName:)`).
+/// pairing code.
+///
+/// When a link arrives (unpaired), the model first finds the server (`PairingService.locate(_:)`: CA pin and health,
+/// as on the QR path; nothing derived from a code exists yet) and fixes that one address. Only then does the
+/// sheet show it and ask for the code, and the challenge and proof go to that address and nowhere else. The typed
+/// code never leaves the phone (`PairingService.pair(link:at:code:deviceName:)`).
 @MainActor
 @Observable
 public final class ServerLinkModel {
+    public enum NoticeKind: Equatable, Sendable {
+        case error
+        case warning
+    }
+
     public enum Presentation: Equatable {
-        /// A bad link, a newer link version, or an app that is already paired: one sentence and "Sluit".
-        case notice(String)
-        /// The address the app will contact, the last failure, and whether pairing runs.
+        /// A bad link, a newer link version, an app that is already paired, or a server that could not be found:
+        /// one sentence and "Sluit".
+        case notice(String, kind: NoticeKind)
+        /// Looking for the server the link names; no code field yet.
+        case searching
+        /// The address the proof will go to, the last failure, and whether pairing runs.
         case offer(address: String, failure: String?, isPairing: Bool)
     }
 
@@ -21,8 +33,13 @@ public final class ServerLinkModel {
     public var code = ""
 
     public var canSubmit: Bool {
-        guard case .offer(_, _, isPairing: false) = presentation, link != nil else { return false }
+        guard case .offer(_, _, isPairing: false) = presentation, link != nil, located != nil else { return false }
         return PairingCode(typed: code) != nil
+    }
+
+    /// The code field is on screen: the app switcher's snapshot must not show what is typed in it.
+    public var asksForCode: Bool {
+        if case .offer = presentation { true } else { false }
     }
 
     private var isPairing: Bool {
@@ -32,8 +49,13 @@ public final class ServerLinkModel {
     private let service: PairingService
     private let deviceName: @MainActor () -> String
     private let onPaired: @MainActor (ServerConnection) -> Void
-    /// The link of the open offer. Not secret, but never shown: the sheet shows `displayAddress` only.
+    /// The link of the open sheet. Not secret, but never shown: the sheet shows the located address only.
     private var link: ServerLink?
+    /// The one address this link pairs with, fixed before the code was asked.
+    private var located: LocatedServer?
+    /// Counts sheets; a search that ends after its sheet was closed or replaced changes nothing.
+    private var generation = 0
+    @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
     /// Owned by the model, so it survives the sheet going away: once the server accepted the proof, the pairing
     /// is stored and reported whatever the view does.
     @ObservationIgnored private(set) var pairingTask: Task<Void, Never>?
@@ -51,7 +73,7 @@ public final class ServerLinkModel {
         self.onPaired = onPaired
     }
 
-    /// A link the system handed to the app. Ignored while a pairing runs; the latest link replaces an open offer.
+    /// A link the system handed to the app. Ignored while a pairing runs; the latest link replaces an open sheet.
     public func receive(_ url: URL, appState: AppModel.State) {
         guard !isPairing else { return }
         close()
@@ -60,16 +82,18 @@ public final class ServerLinkModel {
             // Nothing shows above the lock and nothing is kept: the user taps the link again after unlocking.
             return
         case .ready:
-            presentation = .notice(PairingStrings.linkAlreadyPaired)
+            presentation = .notice(PairingStrings.linkAlreadyPaired, kind: .warning)
         case .unpaired:
             do throws(ServerLinkError) {
                 let parsed = try ServerLink.parse(url)
                 link = parsed
-                presentation = .offer(address: parsed.displayAddress, failure: nil, isPairing: false)
+                presentation = .searching
+                let current = generation
+                searchTask = Task { await search(parsed, generation: current) }
             } catch .unsupportedVersion {
-                presentation = .notice(PairingStrings.linkUnsupportedVersion)
+                presentation = .notice(PairingStrings.linkUnsupportedVersion, kind: .error)
             } catch {
-                presentation = .notice(PairingStrings.linkInvalid)
+                presentation = .notice(PairingStrings.linkInvalid, kind: .error)
             }
         }
     }
@@ -83,16 +107,17 @@ public final class ServerLinkModel {
         }
     }
 
-    /// Starts pairing with the typed code; ignored unless `canSubmit` (so a double tap pairs once).
+    /// Starts pairing with the typed code at the located address; ignored unless `canSubmit` (so a double tap
+    /// pairs once).
     public func submit() {
-        guard canSubmit, let link, let typed = PairingCode(typed: code), case let .offer(address, _, _) = presentation
-        else {
-            return
-        }
+        guard canSubmit, let link, let located, let typed = PairingCode(typed: code) else { return }
+        let address = located.displayAddress
         presentation = .offer(address: address, failure: nil, isPairing: true)
         let name = deviceName().trimmingCharacters(in: .whitespacesAndNewlines)
         let deviceName = name.isEmpty ? "iPhone" : name
-        pairingTask = Task { await pair(link, code: typed, address: address, deviceName: deviceName) }
+        pairingTask = Task {
+            await pair(link, at: located, code: typed, address: address, deviceName: deviceName)
+        }
     }
 
     /// The user closed the sheet; ignored while pairing.
@@ -102,14 +127,40 @@ public final class ServerLinkModel {
     }
 
     private func close() {
+        generation += 1
+        searchTask?.cancel()
+        searchTask = nil
         presentation = nil
         link = nil
+        located = nil
         code = ""
     }
 
-    private func pair(_ link: ServerLink, code: PairingCode, address: String, deviceName: String) async {
+    private func search(_ link: ServerLink, generation current: Int) async {
+        let result: Result<LocatedServer, PairingError>
         do {
-            let connection = try await service.pair(link: link, code: code, deviceName: deviceName)
+            result = .success(try await service.locate(link))
+        } catch {
+            result = .failure(error)
+        }
+        guard current == generation else { return }
+        switch result {
+        case let .success(server):
+            located = server
+            presentation = .offer(address: server.displayAddress, failure: nil, isPairing: false)
+        case .failure(.cancelled):
+            close()
+        case let .failure(error):
+            self.link = nil
+            presentation = .notice(PairingFailure.describe(error)?.message ?? PairingStrings.generic, kind: .error)
+        }
+    }
+
+    private func pair(
+        _ link: ServerLink, at located: LocatedServer, code: PairingCode, address: String, deviceName: String
+    ) async {
+        do {
+            let connection = try await service.pair(link: link, at: located, code: code, deviceName: deviceName)
             close()
             onPaired(connection)
         } catch {

@@ -316,6 +316,18 @@
         }
       }
     },
+    "pairing.link.searching": {
+      "comment": "Link sheet: the app looks for the server the link names before it asks for the code.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server zoeken…"
+          }
+        }
+      }
+    },
     "pairing.link.submit": {
       "extractionState": "manual",
       "localizations": {

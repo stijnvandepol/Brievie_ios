@@ -14,7 +14,7 @@ import Testing
     /// `.invalidCode` (`LiveBrievieServerProofTests`), so the user reads one sentence for each.
     @Test func aRefusedProofClearsTheFieldAndKeepsTheOffer() async throws {
         fixture.server.proof = { throw ServerError.invalidCode }
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
 
         await fixture.submitAndWait(model)
 
@@ -28,7 +28,7 @@ import Testing
     @Test(arguments: [ServerError.unreachable, .untrusted])
     func aConnectionLostAfterTheProofClearsTheField(error: ServerError) async throws {
         fixture.server.proof = { throw error }
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
 
         await fixture.submitAndWait(model)
 
@@ -39,8 +39,8 @@ import Testing
     }
 
     @Test func anUnreachableServerKeepsTheCode() async throws {
-        fixture.server.health = { throw ServerError.unreachable }
-        let model = try fixture.offered(code: "ABCD-2345")
+        let model = try await fixture.offered(code: "ABCD-2345")
+        fixture.server.challenge = { throw ServerError.unreachable }
         await fixture.submitAndWait(model)
         #expect(model.presentation == .offer(
             address: "brievie.example.nl", failure: PairingStrings.unreachable, isPairing: false
@@ -48,7 +48,6 @@ import Testing
         #expect(model.code == "ABCD-2345")
         #expect(model.canSubmit)
 
-        fixture.server.health = { "1.0.0" }
         fixture.server.challenge = { throw ServerError.tooManyAttempts }
         await fixture.submitAndWait(model)
         #expect(model.presentation == .offer(
@@ -67,7 +66,7 @@ import Testing
 
     @Test func diagnosticTextNeverReachesTheUser() async throws {
         fixture.server.proof = { throw ServerError.other("http_503_secret_detail") }
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
 
         await fixture.submitAndWait(model)
 
@@ -77,8 +76,8 @@ import Testing
     }
 
     @Test func aCancelledPairingReturnsToTheIdleOffer() async throws {
-        fixture.server.health = { throw CancellationError() }
-        let model = try fixture.offered()
+        fixture.server.challenge = { throw CancellationError() }
+        let model = try await fixture.offered()
 
         await fixture.submitAndWait(model)
 
@@ -91,7 +90,7 @@ import Testing
             withUnsafeCurrentTask { $0?.cancel() }
             return StubServer.device
         }
-        let model = try fixture.offered()
+        let model = try await fixture.offered()
 
         await fixture.submitAndWait(model)
 
@@ -102,7 +101,7 @@ import Testing
 
     // MARK: - Copy
 
-    @Test func catalogAndCodeAgree() throws {
+    @Test func catalogAndCodeAgree() async throws {
         for (key, resolved) in PairingStrings.all {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeaturePairing") == resolved, "\(key)")
         }
