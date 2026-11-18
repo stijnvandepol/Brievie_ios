@@ -49,7 +49,8 @@ public struct PairingPayload: Equatable, Sendable {
         self.caSHA256 = caSHA256
     }
 
-    private static func httpsURL(from string: String) -> URL? {
+    /// An `https` URL with a host and no user info; shared with `ServerLink`.
+    static func httpsURL(from string: String) -> URL? {
         guard
             let url = URL(string: string),
             url.scheme?.lowercased() == "https",
@@ -70,11 +71,11 @@ public struct PairingPayload: Equatable, Sendable {
         }
     }
 
-    private static func isSHA256Hex(_ hash: String) -> Bool {
+    static func isSHA256Hex(_ hash: String) -> Bool {
         hash.utf8.count == 64 && hash.utf8.allSatisfy(isASCIIHexDigit)
     }
 
-    private static func isASCIIAlphanumeric(_ byte: UInt8) -> Bool {
+    static func isASCIIAlphanumeric(_ byte: UInt8) -> Bool {
         switch byte {
         case UInt8(ascii: "0")...UInt8(ascii: "9"),
              UInt8(ascii: "a")...UInt8(ascii: "z"),
