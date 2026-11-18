@@ -180,6 +180,51 @@
         }
       }
     },
+    "pairing.link.error.alreadyPaired": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze telefoon is al gekoppeld met een Brievie-server. Wil je een andere server gebruiken? Tik dan in je werkruimtes op Ontkoppelen en open de link opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.link.error.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze link werkt niet. Maak op de webpagina een nieuwe koppelcode en open de link opnieuw."
+          }
+        }
+      }
+    },
+    "pairing.link.error.invalidCode": {
+      "comment": "Link sheet: a wrong or used code, or the attempt took too long. One sentence for all of them.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze koppelcode klopt niet of is verlopen. Typ de code opnieuw, of maak op de webpagina een nieuwe code."
+          }
+        }
+      }
+    },
+    "pairing.link.error.unsupportedVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze link komt van een nieuwere versie van Brievie. Werk de app bij en probeer het opnieuw."
+          }
+        }
+      }
+    },
     "pairing.manual.field": {
       "comment": "Label and placeholder of the manual code field.",
       "extractionState": "manual",
