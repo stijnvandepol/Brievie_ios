@@ -2,8 +2,9 @@
 import BrievieUI
 import SwiftUI
 
-/// The sheet behind a `brievie://server` link: "Server zoeken…", then the one address the proof will go to and a
-/// field for the pairing code, or one sentence when the link cannot be used. Renders `ServerLinkModel`.
+/// The sheet behind a `brievie://server` link: a question and "Server zoeken" (nothing contacted before that tap),
+/// "Server zoeken…", then the one address the proof will go to and a field for the pairing code; or one sentence
+/// when the link cannot be used. Renders `ServerLinkModel`.
 public struct ServerLinkView: View {
     @Bindable private var model: ServerLinkModel
     @FocusState private var codeIsFocused: Bool
@@ -27,6 +28,8 @@ public struct ServerLinkView: View {
                 switch model.presentation {
                 case let .notice(message, kind):
                     notice(message, kind: kind)
+                case .question:
+                    question
                 case .searching:
                     searching
                 case let .offer(address, failure, isPairing):
@@ -66,6 +69,20 @@ public struct ServerLinkView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: 8, leading: 4, bottom: 8, trailing: 4))
+        }
+    }
+
+    /// A link arrived and nothing has been contacted: one question, "Server zoeken" and the cancel in the toolbar.
+    private var question: some View {
+        Section {
+            Text("pairing.link.question", bundle: .module)
+                .fixedSize(horizontal: false, vertical: true)
+        } footer: {
+            PrimaryButton(String(localized: "pairing.link.search", bundle: .module)) {
+                model.findServer()
+            }
+            .padding(.horizontal, -16)
+            .padding(.top, 12)
         }
     }
 

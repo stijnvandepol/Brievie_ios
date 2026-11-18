@@ -5,10 +5,11 @@ import Observation
 /// Drives the sheet behind a `brievie://server` link: a refusal, or the server's address and a field for the
 /// pairing code.
 ///
-/// When a link arrives (unpaired), the model first finds the server (`PairingService.locate(_:)`: CA pin and health,
-/// as on the QR path; nothing derived from a code exists yet) and fixes that one address. Only then does the
-/// sheet show it and ask for the code, and the challenge and proof go to that address and nowhere else. The typed
-/// code never leaves the phone (`PairingService.pair(link:at:code:deviceName:)`).
+/// When a link arrives (unpaired), the sheet asks one question and contacts nothing. Only the user's "Server zoeken"
+/// finds the server (`PairingService.locate(_:)`: CA pin and health, as on the QR path; nothing derived from a code
+/// exists yet) and fixes that one address. Then the sheet shows it and asks for the code, and the challenge and
+/// proof go to that address and nowhere else. The typed code never leaves the phone
+/// (`PairingService.pair(link:at:code:deviceName:)`).
 @MainActor
 @Observable
 public final class ServerLinkModel {
@@ -21,6 +22,8 @@ public final class ServerLinkModel {
         /// A bad link, a newer link version, an app that is already paired, or a server that could not be found:
         /// one sentence and "Sluit".
         case notice(String, kind: NoticeKind)
+        /// A link arrived; nothing has been contacted. One question and "Server zoeken".
+        case question
         /// Looking for the server the link names; no code field yet.
         case searching
         /// The address the proof will go to, the last failure, and whether pairing runs.
@@ -85,17 +88,24 @@ public final class ServerLinkModel {
             presentation = .notice(PairingStrings.linkAlreadyPaired, kind: .warning)
         case .unpaired:
             do throws(ServerLinkError) {
-                let parsed = try ServerLink.parse(url)
-                link = parsed
-                presentation = .searching
-                let current = generation
-                searchTask = Task { await search(parsed, generation: current) }
+                link = try ServerLink.parse(url)
+                // Nothing is contacted until the user taps "Server zoeken" (`findServer()`).
+                presentation = .question
             } catch .unsupportedVersion {
                 presentation = .notice(PairingStrings.linkUnsupportedVersion, kind: .error)
             } catch {
                 presentation = .notice(PairingStrings.linkInvalid, kind: .error)
             }
         }
+    }
+
+    /// The user tapped "Server zoeken": only now does the app contact the addresses the link names (CA and health,
+    /// nothing derived from a code). Ignored unless the question is on screen.
+    public func findServer() {
+        guard presentation == .question, let link else { return }
+        presentation = .searching
+        let current = generation
+        searchTask = Task { await search(link, generation: current) }
     }
 
     /// The app locked, or got paired another way: everything that is not pairing closes.

@@ -10,14 +10,16 @@ import Testing
 
     // MARK: - Receiving
 
-    /// Receiving a link looks for the server (CA and health, as on the QR path) before the code can be typed;
+    /// "Server zoeken" looks for the server (CA and health, as on the QR path) before the code can be typed;
     /// nothing derived from a code exists yet, so nothing of it can go out, and nothing is stored.
-    @Test func receivingALinkFindsTheServerBeforeTheCodeIsAsked() async throws {
+    @Test func theTapFindsTheServerBeforeTheCodeIsAsked() async throws {
         let gate = Gate()
         fixture.server.healthGate = gate
         let model = fixture.makeModel()
 
         model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+        #expect(model.presentation == .question)
+        model.findServer()
         #expect(model.presentation == .searching)
         #expect(!model.canSubmit)
         model.code = "ABCD-2345"

@@ -48,9 +48,10 @@ final class ServerLinkFixture {
         return try url("brievie://server#v=1&\(urls)&pairing=\(Self.pairingID)")
     }
 
-    /// Receives `link` while unpaired and waits until the server search ended.
+    /// Receives `link` while unpaired, taps "Server zoeken" and waits until the server search ended.
     func receive(_ link: URL, on model: ServerLinkModel) async {
         model.receive(link, appState: unpaired)
+        model.findServer()
         await model.searchTask?.value
     }
 

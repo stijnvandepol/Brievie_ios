@@ -38,8 +38,8 @@ struct RootView: View {
             }
             // A deadline in the calendar links to `brievie://task/<id>`. That link (and any other that is not a
             // server link) only brings the app to the foreground: the lock and the screens follow from the
-            // activation, nothing is read from it. A `brievie://server` link opens the link sheet, which first looks
-            // for the server it names (CA and health, nothing derived from a code).
+            // activation, nothing is read from it. A `brievie://server` link opens the link sheet; nothing is
+            // contacted until the user taps "Server zoeken" there.
             .onOpenURL { url in
                 guard ServerLink.isServerLink(url) else { return }
                 linkModel.receive(url, appState: appModel.state)

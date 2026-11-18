@@ -316,6 +316,30 @@
         }
       }
     },
+    "pairing.link.question": {
+      "comment": "Link sheet: shown when a link opens; nothing has been contacted yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wil je deze telefoon koppelen aan een Brievie-server?"
+          }
+        }
+      }
+    },
+    "pairing.link.search": {
+      "comment": "Link sheet button: only this tap makes the app contact the addresses in the link.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server zoeken"
+          }
+        }
+      }
+    },
     "pairing.link.searching": {
       "comment": "Link sheet: the app looks for the server the link names before it asks for the code.",
       "extractionState": "manual",

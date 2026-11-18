@@ -42,7 +42,9 @@ import Testing
             "pairing.link.code.hint": "Typ de acht tekens van de koppelcode.",
             "pairing.link.submit": "Koppel",
             "pairing.link.close": "Sluit",
-            "pairing.link.searching": "Server zoeken…"
+            "pairing.link.searching": "Server zoeken…",
+            "pairing.link.question": "Wil je deze telefoon koppelen aan een Brievie-server?",
+            "pairing.link.search": "Server zoeken"
         ]
         for (key, value) in expected {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeaturePairing") == value, "\(key)")

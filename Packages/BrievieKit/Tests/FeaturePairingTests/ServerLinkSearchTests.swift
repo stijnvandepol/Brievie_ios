@@ -9,6 +9,68 @@ import Testing
 @Suite struct ServerLinkSearchTests {
     private let fixture = ServerLinkFixture()
 
+    // MARK: - Nothing is contacted before the user's tap
+
+    @Test func openingALinkContactsNothingUntilTheTap() async throws {
+        let model = fixture.makeModel()
+
+        model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+
+        #expect(model.presentation == .question)
+        #expect(model.searchTask == nil)
+        #expect(!model.canSubmit)
+        #expect(!model.asksForCode)
+        await Task.yield()
+        #expect(fixture.server.healthCalls == 0)
+        #expect(fixture.server.contactedHosts.isEmpty)
+
+        model.findServer()
+        await model.searchTask?.value
+
+        #expect(fixture.server.healthCalls == 1)
+    }
+
+    @Test func cancellingTheQuestionContactsNothing() async throws {
+        let model = fixture.makeModel()
+        model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+
+        model.dismiss()
+        model.findServer()
+        await Task.yield()
+
+        #expect(model.presentation == nil)
+        #expect(model.searchTask == nil)
+        #expect(fixture.server.healthCalls == 0)
+        fixture.expectNothingStored()
+    }
+
+    @Test func aSecondLinkBeforeTheTapReplacesTheFirstWithoutContact() async throws {
+        let model = fixture.makeModel()
+        model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+
+        model.receive(try fixture.url(ServerLinkFixture.otherLink), appState: fixture.unpaired)
+        #expect(model.presentation == .question)
+        #expect(fixture.server.healthCalls == 0)
+
+        model.findServer()
+        await model.searchTask?.value
+        #expect(fixture.server.contactedHosts == ["other.example.nl"])
+        #expect(model.presentation == .offer(address: "other.example.nl", failure: nil, isPairing: false))
+    }
+
+    @Test func theTapIsIgnoredWithoutAQuestion() async throws {
+        let model = fixture.makeModel()
+
+        model.findServer()
+        model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.ready())
+        model.findServer()
+
+        #expect(model.presentation == .notice(PairingStrings.linkAlreadyPaired, kind: .warning))
+        #expect(fixture.server.healthCalls == 0)
+    }
+
+    // MARK: - The address is fixed before the code
+
     @Test func anUnreachableFirstAddressShowsTheSecondBeforeTheCode() async throws {
         fixture.server.unreachableHosts = ["first.example.nl"]
         let model = fixture.makeModel()
@@ -88,6 +150,7 @@ import Testing
         fixture.server.healthGate = gate
         let model = fixture.makeModel()
         model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+        model.findServer()
         await gate.waitForArrival()
 
         model.appStateChanged(.locked)
@@ -102,6 +165,7 @@ import Testing
         fixture.server.healthGate = gate
         let model = fixture.makeModel()
         model.receive(try fixture.url(ServerLinkFixture.publicLink), appState: fixture.unpaired)
+        model.findServer()
         let first = model.searchTask
         await gate.waitForArrival()
         fixture.server.healthGate = nil
