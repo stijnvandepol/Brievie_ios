@@ -159,6 +159,15 @@ import Testing
         #expect(model.footer.hasPrefix("Je krijgt om 9:00 een melding, een dag voordat een termijn afloopt"))
     }
 
+    @Test func withTheCalendarOnTooTheFooterSaysItRingsAsWell() async {
+        let model = await model()
+        model.calendarIsOn = { true }
+
+        #expect(model.footer.hasSuffix(
+            "Staat 'Zet termijnen in mijn agenda' ook aan? Dan meldt de agenda de termijnen ook."
+        ))
+    }
+
     @Test func permissionTakenAwayInSettingsIsShownAndClearedWhenBack() async {
         let model = await model()
         model.toggle(true)

@@ -68,8 +68,6 @@ import Testing
 
     @Test func aReminderWhoseMomentHasPassedIsLeftOut() {
         let deadline = CalendarDate(year: 2026, month: 11, day: 20)
-        // Lead day long gone, the day itself still ahead: only the day.
-        #expect(plan([Self.task(deadline)], now: Self.time(2026, 11, 19, 8)).map(\.kind) == [.onTheDay])
         // On the day before nine: still that one; after nine: nothing.
         #expect(plan([Self.task(deadline)], now: Self.time(2026, 11, 20, 8, 59)).map(\.kind) == [.onTheDay])
         #expect(plan([Self.task(deadline)], now: Self.time(2026, 11, 20, 9)).isEmpty)
@@ -237,5 +235,101 @@ import Testing
         }
         #expect(ReminderPlanner.parse("something.else") == nil)
         #expect(ReminderPlanner.parse("deadline.not-a-uuid.\(task.id.uuidString).day") == nil)
+    }
+
+    // MARK: Catching up a first notice that came too late
+
+    @Test func confirmedTheEveningBeforeOnlyTheDayItself() {
+        let deadline = CalendarDate(year: 2026, month: 11, day: 20)
+
+        let reminders = plan([Self.task(deadline)], now: Self.time(2026, 11, 19, 20))
+
+        // The next nine o'clock is the deadline's own: never two notices on one day.
+        #expect(reminders.map(\.kind) == [.onTheDay])
+        #expect(reminders.map(\.fireDate) == [Self.time(2026, 11, 20, 9)])
+    }
+
+    @Test func confirmedOnTheDayAfterNineNothing() {
+        let deadline = CalendarDate(year: 2026, month: 11, day: 20)
+
+        #expect(plan([Self.task(deadline)], now: Self.time(2026, 11, 20, 9, 30)).isEmpty)
+    }
+
+    @Test func confirmedOnTheDayBeforeNineOnlyTheDayItself() {
+        let deadline = CalendarDate(year: 2026, month: 11, day: 20)
+
+        #expect(plan([Self.task(deadline)], now: Self.time(2026, 11, 20, 7)).map(\.kind) == [.onTheDay])
+    }
+
+    @Test func aLateFirstNoticeComesTomorrowAtNine() {
+        // Three days ahead was November 17; on the evening of the 18th it comes on the 19th, "morgen".
+        let deadline = CalendarDate(year: 2026, month: 11, day: 20)
+
+        let reminders = plan([Self.task(deadline)], now: Self.time(2026, 11, 18, 20))
+
+        #expect(reminders.map(\.fireDate) == [Self.time(2026, 11, 19, 9), Self.time(2026, 11, 20, 9)])
+        #expect(reminders.map(\.body) == ["Een termijn loopt morgen af.", "Een termijn loopt vandaag af."])
+    }
+
+    @Test func aLateFirstNoticeComesTodayWhenItIsBeforeNine() {
+        let deadline = CalendarDate(year: 2026, month: 11, day: 20)
+
+        let reminders = plan([Self.task(deadline)], now: Self.time(2026, 11, 15, 8), leadDays: 7)
+
+        #expect(reminders.map(\.fireDate) == [Self.time(2026, 11, 15, 9), Self.time(2026, 11, 20, 9)])
+        #expect(reminders.first?.body == "Een termijn loopt over 5 dagen af.")
+    }
+
+    @Test func aCatchUpIsMadeOnce() {
+        let task = Self.task(CalendarDate(year: 2026, month: 11, day: 20))
+        let first = ReminderPlanner.schedule(
+            [ReminderTask(workspaceID: home, task: task)], now: Self.time(2026, 11, 13, 20),
+            timeZone: Self.amsterdam, leadDays: 7, showsSender: false
+        )
+        #expect(first.reminders.map(\.day.day) == [14, 20])
+        #expect(first.catchUps.values.map(\.day.day) == [14])
+
+        // Refreshed before it went off: the same day. After it went off: no second one on the 15th.
+        let before = ReminderPlanner.schedule(
+            [ReminderTask(workspaceID: home, task: task)], now: Self.time(2026, 11, 13, 23),
+            timeZone: Self.amsterdam, leadDays: 7, showsSender: false, catchUps: first.catchUps
+        )
+        #expect(before.reminders.map(\.day.day) == [14, 20])
+        let after = ReminderPlanner.schedule(
+            [ReminderTask(workspaceID: home, task: task)], now: Self.time(2026, 11, 14, 12),
+            timeZone: Self.amsterdam, leadDays: 7, showsSender: false, catchUps: before.catchUps
+        )
+        #expect(after.reminders.map(\.kind) == [.onTheDay])
+        #expect(after.catchUps == first.catchUps)
+    }
+
+    @Test func aMovedDeadlineStartsAfresh() {
+        let id = UUID()
+        let old = Self.task(CalendarDate(year: 2026, month: 11, day: 20), id: id)
+        let first = ReminderPlanner.schedule(
+            [ReminderTask(workspaceID: home, task: old)], now: Self.time(2026, 11, 13, 20),
+            timeZone: Self.amsterdam, leadDays: 7, showsSender: false
+        )
+        let moved = Self.task(CalendarDate(year: 2026, month: 11, day: 25), id: id)
+
+        let again = ReminderPlanner.schedule(
+            [ReminderTask(workspaceID: home, task: moved)], now: Self.time(2026, 11, 14, 12),
+            timeZone: Self.amsterdam, leadDays: 7, showsSender: false, catchUps: first.catchUps
+        )
+
+        // Seven days before the 25th is the 18th, still ahead: the planned notice, no catch-up remembered.
+        #expect(again.reminders.map(\.day.day) == [18, 25])
+        #expect(again.catchUps.isEmpty)
+    }
+
+    @Test func aCatchUpLeftOutByTheLimitIsNotRemembered() {
+        let task = Self.task(CalendarDate(year: 2026, month: 11, day: 20))
+
+        let plan = ReminderPlanner.schedule(
+            [ReminderTask(workspaceID: home, task: task)], now: Self.time(2026, 11, 13, 20),
+            timeZone: Self.amsterdam, leadDays: 7, showsSender: false, limit: 0
+        )
+
+        #expect(plan.catchUps.isEmpty)
     }
 }

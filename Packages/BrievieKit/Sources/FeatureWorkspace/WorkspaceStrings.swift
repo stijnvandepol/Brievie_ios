@@ -85,7 +85,7 @@ enum WorkspaceStrings {
     static let calendarFooterFormat = String(
         localized: "workspaces.calendar.footer",
         defaultValue: """
-            Je taken met een deadline komen in een eigen agenda '%@' in iCloud of op deze iPhone. \
+            Je taken met een termijn komen in een eigen agenda '%@' in iCloud of op deze iPhone. \
             Een andere account gebruikt Brievie alleen als jij dat goedvindt.
             """,
         bundle: .module
@@ -95,7 +95,7 @@ enum WorkspaceStrings {
     static let calendarFooterICloudFormat = String(
         localized: "workspaces.calendar.footer.iCloud",
         defaultValue: """
-            Je taken met een deadline staan in een eigen agenda '%@' in iCloud. \
+            Je taken met een termijn staan in een eigen agenda '%@' in iCloud. \
             Die agenda staat ook op je andere apparaten met iCloud.
             """,
         bundle: .module
@@ -104,7 +104,7 @@ enum WorkspaceStrings {
     /// Under a calendar switch whose calendar is on this phone only; `%@` is the calendar's name.
     static let calendarFooterLocalFormat = String(
         localized: "workspaces.calendar.footer.local",
-        defaultValue: "Je taken met een deadline staan in een eigen agenda '%@' op deze iPhone.",
+        defaultValue: "Je taken met een termijn staan in een eigen agenda '%@' op deze iPhone.",
         bundle: .module
     )
 
@@ -113,7 +113,7 @@ enum WorkspaceStrings {
     static let calendarFooterOtherFormat = String(
         localized: "workspaces.calendar.footer.other",
         defaultValue: """
-            Je taken met een deadline staan in een eigen agenda '%1$@' in de account %2$@. \
+            Je taken met een termijn staan in een eigen agenda '%1$@' in de account %2$@. \
             Wie die account beheert, kan ze lezen.
             """,
         bundle: .module

@@ -13,8 +13,8 @@ public struct WorkspaceReminders {
     }
 }
 
-/// "Herinneringen voor termijnen": one switch for this phone, with the lead time and "Toon de afzender in
-/// herinneringen" under it while it is on.
+/// "Meldingen voor termijnen": one switch for this phone, with the lead time and "Toon de afzender in
+/// meldingen" under it while it is on.
 @MainActor
 @Observable
 public final class ReminderSettingModel {
@@ -28,6 +28,8 @@ public final class ReminderSettingModel {
 
     private let reminders: DeadlineReminders
     private let openSystemSettings: @MainActor () -> Void
+    /// Whether a calendar switch is on: its alarms come too, and the footer says so. Set by the settings' model.
+    @ObservationIgnored var calendarIsOn: @MainActor () -> Bool = { false }
     /// The work of the switch and its settings, in the order of the taps. Tests await it.
     @ObservationIgnored private(set) var pendingTask: Task<Void, Never>?
     /// The permission check after the workspaces loaded. Tests await it.
@@ -56,7 +58,9 @@ public final class ReminderSettingModel {
         default: String(format: WorkspaceStrings.remindersWhenDaysBeforeFormat, leadDays)
         }
         let shown = showsSender ? WorkspaceStrings.remindersShowSender : WorkspaceStrings.remindersShowNothing
-        return "\(when) \(shown) \(WorkspaceStrings.remindersKnownOnly)"
+        let parts = [when, shown, WorkspaceStrings.remindersKnownOnly]
+            + (calendarIsOn() ? [WorkspaceStrings.remindersAlsoCalendar] : [])
+        return parts.joined(separator: " ")
     }
 
     /// The switch was flipped. On: asks the system at this moment (only when it never asked), then schedules; a
@@ -91,7 +95,7 @@ public final class ReminderSettingModel {
         rescheduleIfOn()
     }
 
-    /// "Toon de afzender in herinneringen".
+    /// "Toon de afzender in meldingen".
     public func setShowsSender(_ shows: Bool) {
         guard shows != showsSender else { return }
         showsSender = shows

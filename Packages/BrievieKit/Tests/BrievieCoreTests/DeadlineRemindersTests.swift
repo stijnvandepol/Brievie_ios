@@ -247,6 +247,47 @@ import Testing
     }
 }
 
+/// A catch-up survives the end of the process: it is remembered in the settings, so it comes once.
+@Suite struct DeadlineReminderCatchUpTests {
+    private let center = InMemoryReminderCenter()
+    private let settings = InMemoryReminderSettings()
+    private let clock = TestClock()
+    private let home = UUID()
+
+    @Test func aCatchUpIsNotMadeAgainTheNextDay() async {
+        settings.setEnabled(true)
+        settings.setLeadDays(7)
+        let task = WorkspaceTask(
+            id: UUID(), type: "pay", description: "", deadline: CalendarDate(year: 2026, month: 11, day: 25),
+            isDone: false, documentID: nil, sender: ""
+        )
+        let make = { [center, settings, clock] in
+            DeadlineReminders(
+                center: center, settings: settings, tasks: { _ in [task] }, now: { clock.now },
+                timeZone: { TimeZone(identifier: "Europe/Amsterdam") ?? .gmt }
+            )
+        }
+        // 2026-11-19 20:00 in Amsterdam: seven days ahead (the 18th) has passed, so the 20th at nine.
+        clock.now = Date(timeIntervalSince1970: 1_795_114_800)
+        await make().reschedule(workspaces: [home])
+        #expect(center.pending.values.map(\.day.day).sorted() == [20, 25])
+
+        // It went off; the next day a new process refreshes: no second catch-up.
+        center.deliver(ReminderPlanner.identifier(workspace: home, task: task.id, kind: .ahead))
+        clock.now = clock.now.addingTimeInterval(86_400)
+        await make().reschedule(workspaces: [home])
+        #expect(center.pending.values.map(\.day.day) == [25])
+    }
+}
+
+private final class TestClock: Sendable {
+    private let value = Mutex(Date.distantPast)
+    var now: Date {
+        get { value.withLock { $0 } }
+        set { value.withLock { $0 = newValue } }
+    }
+}
+
 /// The open tasks per workspace the server would answer; a workspace can fail, and a read can be held.
 private final class TaskList: Sendable {
     private struct State {

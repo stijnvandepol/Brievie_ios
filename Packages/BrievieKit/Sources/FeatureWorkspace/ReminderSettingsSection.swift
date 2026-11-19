@@ -2,8 +2,8 @@
 import BrievieUI
 import SwiftUI
 
-/// "Herinneringen voor termijnen" in the settings: the switch, what a reminder shows and when, and while it is on
-/// the lead time and "Toon de afzender in herinneringen".
+/// "Meldingen voor termijnen" in the settings: the switch, what a reminder shows and when, and while it is on
+/// the lead time and "Toon de afzender in meldingen".
 struct ReminderSettingsSection: View {
     @Bindable var model: ReminderSettingModel
 

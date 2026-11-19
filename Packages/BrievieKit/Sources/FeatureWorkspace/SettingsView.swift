@@ -62,7 +62,7 @@ struct SettingsList: View {
     let retry: () -> Void
     /// The calendar switch under a workspace; `nil` shows none.
     let calendarModel: (WorkspacesModel.Row) -> CalendarSettingModel?
-    /// "Herinneringen voor termijnen"; `nil` shows no section.
+    /// "Meldingen voor termijnen"; `nil` shows no section.
     var reminders: ReminderSettingModel?
     /// The user tapped a workspace.
     let choose: (UUID) -> Void
@@ -195,7 +195,7 @@ extension SettingsList {
     }
 }
 
-/// "Zet deadlines in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
+/// "Zet termijnen in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
 /// question when it is turned off.
 private struct CalendarSwitchRow: View {
     @Bindable var model: CalendarSettingModel

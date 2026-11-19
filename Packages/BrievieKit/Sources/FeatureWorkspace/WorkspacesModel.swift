@@ -60,7 +60,7 @@ public final class WorkspacesModel {
 
     /// The settings are pushed on the root screen.
     public var isShowingSettings = false
-    /// "Herinneringen voor termijnen"; `nil` without reminder support.
+    /// "Meldingen voor termijnen"; `nil` without reminder support.
     public let reminderModel: ReminderSettingModel?
 
     /// The "Ontkoppelen" confirmation is on screen.
@@ -118,6 +118,9 @@ public final class WorkspacesModel {
         self.currentWorkspace = currentWorkspace
         self.reminders = reminders?.reminders
         reminderModel = reminders.map { ReminderSettingModel(reminders: $0.reminders, openSettings: $0.openSettings) }
+        reminderModel?.calendarIsOn = { [weak self] in
+            self?.calendarModels.values.contains { $0.isOn } ?? false
+        }
     }
 
     /// Shows the post of `workspace` (one of the loaded list) and remembers it for the next launch.
@@ -137,7 +140,7 @@ public final class WorkspacesModel {
         return true
     }
 
-    /// The "Zet deadlines in mijn agenda" switch of a loaded workspace; `nil` without calendar support.
+    /// The "Zet termijnen in mijn agenda" switch of a loaded workspace; `nil` without calendar support.
     public func calendarModel(for workspace: UUID) -> CalendarSettingModel? {
         calendarModels[workspace]
     }

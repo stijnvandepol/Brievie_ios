@@ -57,7 +57,7 @@ import Testing
         let id = try #require(settings.calendarID(for: workspace))
         #expect(await store.sourceID(ofCalendar: id) == Self.exchange.id)
         #expect(model.footer.hasPrefix(
-            "Je taken met een deadline staan in een eigen agenda 'Brievie – Thuis' in de account Werk. "
+            "Je taken met een termijn staan in een eigen agenda 'Brievie – Thuis' in de account Werk. "
                 + "Wie die account beheert, kan ze lezen."
         ))
     }
@@ -100,7 +100,7 @@ import Testing
         #expect(model.isOn)
         #expect(!model.isAskingConsent)
         #expect(model.footer.hasPrefix(
-            "Je taken met een deadline staan in een eigen agenda 'Brievie – Thuis' op deze iPhone."
+            "Je taken met een termijn staan in een eigen agenda 'Brievie – Thuis' op deze iPhone."
         ))
     }
 
@@ -108,7 +108,7 @@ import Testing
         let model = makeModel(FakeCalendarStore())
 
         #expect(model.footer.hasPrefix("""
-            Je taken met een deadline komen in een eigen agenda 'Brievie – Thuis' in iCloud of op deze iPhone. \
+            Je taken met een termijn komen in een eigen agenda 'Brievie – Thuis' in iCloud of op deze iPhone. \
             Een andere account gebruikt Brievie alleen als jij dat goedvindt.
             """))
     }

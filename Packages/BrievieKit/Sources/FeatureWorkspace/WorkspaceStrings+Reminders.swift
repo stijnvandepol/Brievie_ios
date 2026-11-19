@@ -1,12 +1,12 @@
 import Foundation
 
 extension WorkspaceStrings {
-    // "Herinneringen voor termijnen" in the settings
+    // "Meldingen voor termijnen" in the settings
 
     static let remindersHeader = String(localized: "reminders.header", defaultValue: "Meldingen", bundle: .module)
     static let remindersToggle = String(
         localized: "reminders.toggle",
-        defaultValue: "Herinneringen voor termijnen",
+        defaultValue: "Meldingen voor termijnen",
         bundle: .module
     )
     static let remindersWhenOnTheDay = String(
@@ -45,7 +45,7 @@ extension WorkspaceStrings {
     static let remindersLead = String(localized: "reminders.lead", defaultValue: "Eerste melding", bundle: .module)
     static let remindersSenderToggle = String(
         localized: "reminders.sender.toggle",
-        defaultValue: "Toon de afzender in herinneringen",
+        defaultValue: "Toon de afzender in meldingen",
         bundle: .module
     )
     static let remindersSenderFooter = String(
@@ -87,6 +87,13 @@ extension WorkspaceStrings {
         }
     }
 
+    /// Added to the footer while a calendar switch is on: its alarms come too.
+    static let remindersAlsoCalendar = String(
+        localized: "reminders.footer.calendar",
+        defaultValue: "Staat 'Zet termijnen in mijn agenda' ook aan? Dan meldt de agenda de termijnen ook.",
+        bundle: .module
+    )
+
     /// The strings of this part by catalog key, for the parity test (merged into `all`).
     static let reminders: [String: String] = [
         "reminders.header": remindersHeader,
@@ -106,6 +113,7 @@ extension WorkspaceStrings {
         "reminders.lead.1": reminderLeadOneDay,
         "reminders.lead.2": reminderLeadTwoDays,
         "reminders.lead.3": reminderLeadThreeDays,
-        "reminders.lead.7": reminderLeadWeek
+        "reminders.lead.7": reminderLeadWeek,
+        "reminders.footer.calendar": remindersAlsoCalendar
     ]
 }

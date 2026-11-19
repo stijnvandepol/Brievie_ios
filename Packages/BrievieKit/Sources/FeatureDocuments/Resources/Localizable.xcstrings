@@ -1202,13 +1202,13 @@
       }
     },
     "review.organise.noAddressee": {
-      "comment": "Review: no person chosen and none proposed.",
+      "comment": "In review: the letter is on nobody's name yet (the lists say Naam kiezen).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nog op niemands naam."
+            "value": "Kies op wiens naam deze brief staat."
           }
         }
       }
@@ -1322,13 +1322,13 @@
       }
     },
     "review.processing": {
-      "comment": "Shown while the server processes the document.",
+      "comment": "A letter still being read (the lists say Bezig…).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De server verwerkt deze brief. Dit duurt meestal minder dan een minuut."
+            "value": "Brievie leest deze brief nog. Je hoeft niets te doen."
           }
         }
       }
@@ -1454,13 +1454,25 @@
       }
     },
     "review.task.deadline": {
-      "comment": "Field label: the deadline.",
+      "comment": "Label of a task's date: the last day it has to be done. One word for this everywhere: termijn.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uiterste datum"
+            "value": "Termijn"
+          }
+        }
+      }
+    },
+    "review.task.deadline.hint": {
+      "comment": "VoiceOver hint of a task's Termijn.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De laatste dag waarop het moet gebeuren."
           }
         }
       }

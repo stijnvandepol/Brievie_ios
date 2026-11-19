@@ -63,23 +63,38 @@ public enum ReminderPlanner {
 
     private static let prefix = "deadline"
 
+    /// The reminders for `tasks`, without memory of earlier catch-ups (see `schedule`).
     public static func plan(
         _ tasks: [ReminderTask], now: Date, timeZone: TimeZone, leadDays: Int, showsSender: Bool,
         limit: Int = maxPending
     ) -> [DeadlineReminder] {
+        schedule(tasks, now: now, timeZone: timeZone, leadDays: leadDays, showsSender: showsSender, limit: limit)
+            .reminders
+    }
+
+    /// The reminders for `tasks` and the catch-ups to remember. A task whose first notice has passed while its
+    /// day has not gets one catch-up at the next 09:00 instead (`catchUp(for:)`), unless that is the day itself.
+    /// - Parameter catchUps: the catch-ups planned before; one whose moment has passed is not made again.
+    public static func schedule(
+        _ tasks: [ReminderTask], now: Date, timeZone: TimeZone, leadDays: Int, showsSender: Bool,
+        catchUps: [ReminderIdentity: CatchUp] = [:], limit: Int = maxPending
+    ) -> ReminderPlan {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
+        let context = CatchUpContext(now: now, calendar: calendar, leadDays: leadDays, earlier: catchUps)
         let candidates = tasks.flatMap { item -> [DeadlineReminder] in
             guard !item.task.isDone, let deadline = item.task.deadline else { return [] }
             let sender = showsSender ? shortSender(item.task.sender) : nil
-            let kinds: [(DeadlineReminder.Kind, daysLeft: Int)] = leadDays > 0
-                ? [(.ahead, leadDays), (.onTheDay, 0)] : [(.onTheDay, 0)]
-            return kinds.map { kind, daysLeft in
-                reminder(item, kind: kind, day: deadline.adding(days: -daysLeft), sender: sender, calendar: calendar)
+            var reminders = [reminder(item, kind: .onTheDay, day: deadline, sender: sender, calendar: calendar)]
+            if let first = firstNotice(for: item, deadline: deadline, context: context) {
+                reminders.insert(reminder(item, kind: .ahead, day: first, sender: sender, calendar: calendar), at: 0)
             }
-            .filter { $0.fireDate > now }
+            return reminders.filter { $0.fireDate > now }
         }
-        return Array(candidates.sorted(by: isSooner).prefix(max(limit, 0)))
+        let kept = Array(candidates.sorted(by: isSooner).prefix(max(limit, 0)))
+        return ReminderPlan(
+            reminders: kept, catchUps: remembered(catchUps, tasks: tasks, kept: kept, context: context)
+        )
     }
 
     /// The workspace and task of one of Brievie's reminder identifiers; `nil` for any other identifier.
@@ -96,7 +111,7 @@ public enum ReminderPlanner {
     }
 
     /// The reminder of `kind` going off on `day`; the days left until the deadline follow from the two.
-    private static func reminder(
+    static func reminder(
         _ item: ReminderTask, kind: DeadlineReminder.Kind, day: CalendarDate, sender: String?, calendar: Calendar
     ) -> DeadlineReminder {
         let daysLeft = kind == .onTheDay ? 0 : daysBetween(day, item.task.deadline ?? day)

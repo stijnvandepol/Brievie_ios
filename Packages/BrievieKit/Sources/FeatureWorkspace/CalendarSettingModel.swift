@@ -24,7 +24,7 @@ public struct WorkspaceCalendar {
     }
 }
 
-/// The "Zet deadlines in mijn agenda" switch of one workspace.
+/// The "Zet termijnen in mijn agenda" switch of one workspace.
 @MainActor
 @Observable
 public final class CalendarSettingModel {

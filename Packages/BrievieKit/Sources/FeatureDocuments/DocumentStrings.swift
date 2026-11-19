@@ -183,7 +183,7 @@ extension DocumentStrings {
         defaultValue: "Omschrijving",
         bundle: .module
     )
-    static let deadline = String(localized: "review.task.deadline", defaultValue: "Uiterste datum", bundle: .module)
+    static let deadline = String(localized: "review.task.deadline", defaultValue: "Termijn", bundle: .module)
     static let addTask = String(localized: "review.task.add", defaultValue: "Taak toevoegen", bundle: .module)
     static let removeTask = String(localized: "review.task.remove", defaultValue: "Taak verwijderen", bundle: .module)
     static let payInvoice = String(
@@ -195,7 +195,7 @@ extension DocumentStrings {
     static let saving = String(localized: "review.saving", defaultValue: "Opslaan…", bundle: .module)
     static let processingNote = String(
         localized: "review.processing",
-        defaultValue: "De server verwerkt deze brief. Dit duurt meestal minder dan een minuut.",
+        defaultValue: "Brievie leest deze brief nog. Je hoeft niets te doen.",
         bundle: .module
     )
     static let processingFailedNote = String(

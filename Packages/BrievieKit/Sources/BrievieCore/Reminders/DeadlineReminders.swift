@@ -118,9 +118,15 @@ public actor DeadlineReminders {
         guard settings.isEnabled() else { return }
         let pending = ours(await center.pendingIdentifiers())
         let kept = pending.filter { unreadable.contains($0.identity.workspaceID) }
-        let plan = ReminderPlanner.plan(
+        let earlier = settings.catchUps()
+        let schedule = ReminderPlanner.schedule(
             open, now: now(), timeZone: timeZone(), leadDays: settings.leadDays(), showsSender: settings.showsSender(),
-            limit: ReminderPlanner.maxPending - kept.count
+            catchUps: earlier, limit: ReminderPlanner.maxPending - kept.count
+        )
+        let plan = schedule.reminders
+        // A workspace that could not be read keeps its catch-ups, like its reminders.
+        settings.setCatchUps(
+            schedule.catchUps.merging(earlier.filter { unreadable.contains($0.key.workspaceID) }) { new, _ in new }
         )
         let planned = Set(plan.map(\.identifier))
         let stale = pending.filter { !planned.contains($0.identifier) && !unreadable.contains($0.identity.workspaceID) }

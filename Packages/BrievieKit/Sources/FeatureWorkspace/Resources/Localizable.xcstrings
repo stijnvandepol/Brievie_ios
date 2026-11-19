@@ -37,6 +37,18 @@
         }
       }
     },
+    "reminders.footer.calendar": {
+      "comment": "Footer sentence while a calendar switch is on: its alarms come too.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staat 'Zet termijnen in mijn agenda' ook aan? Dan meldt de agenda de termijnen ook."
+          }
+        }
+      }
+    },
     "reminders.footer.dayBefore": {
       "comment": "Footer, first sentence, lead time one day.",
       "extractionState": "manual",
@@ -218,25 +230,25 @@
       }
     },
     "reminders.sender.toggle": {
-      "comment": "Switch, off by default: the reminder names the sender.",
+      "comment": "Switch, off by default: the notification names the sender.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toon de afzender in herinneringen"
+            "value": "Toon de afzender in meldingen"
           }
         }
       }
     },
     "reminders.toggle": {
-      "comment": "Switch: local notifications for task deadlines on this phone. Off by default.",
+      "comment": "Switch: local notifications for task deadlines on this phone. Off by default. Not \"Herinneringen\" (Apple's Reminders app, the letter type).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Herinneringen voor termijnen"
+            "value": "Meldingen voor termijnen"
           }
         }
       }
@@ -332,7 +344,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je taken met een deadline komen in een eigen agenda '%@' in iCloud of op deze iPhone. Een andere account gebruikt Brievie alleen als jij dat goedvindt."
+            "value": "Je taken met een termijn komen in een eigen agenda '%@' in iCloud of op deze iPhone. Een andere account gebruikt Brievie alleen als jij dat goedvindt."
           }
         }
       }
@@ -356,7 +368,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je taken met een deadline staan in een eigen agenda '%@' in iCloud. Die agenda staat ook op je andere apparaten met iCloud."
+            "value": "Je taken met een termijn staan in een eigen agenda '%@' in iCloud. Die agenda staat ook op je andere apparaten met iCloud."
           }
         }
       }
@@ -368,7 +380,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je taken met een deadline staan in een eigen agenda '%@' op deze iPhone."
+            "value": "Je taken met een termijn staan in een eigen agenda '%@' op deze iPhone."
           }
         }
       }
@@ -392,7 +404,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je taken met een deadline staan in een eigen agenda '%1$@' in de account %2$@. Wie die account beheert, kan ze lezen."
+            "value": "Je taken met een termijn staan in een eigen agenda '%1$@' in de account %2$@. Wie die account beheert, kan ze lezen."
           }
         }
       }
@@ -506,13 +518,13 @@
       }
     },
     "workspaces.calendar.toggle": {
-      "comment": "Switch under a workspace: put its tasks with a deadline in a calendar on this phone.",
+      "comment": "Switch under a workspace: put its tasks with a termijn (deadline) in a calendar on this phone.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zet deadlines in mijn agenda"
+            "value": "Zet termijnen in mijn agenda"
           }
         }
       }

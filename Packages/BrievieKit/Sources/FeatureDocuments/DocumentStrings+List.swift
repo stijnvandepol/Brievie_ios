@@ -77,6 +77,13 @@ extension DocumentStrings {
         bundle: .module
     )
 
+    /// The VoiceOver hint of a task's "Termijn": what the word means here.
+    static let deadlineHint = String(
+        localized: "review.task.deadline.hint",
+        defaultValue: "De laatste dag waarop het moet gebeuren.",
+        bundle: .module
+    )
+
     /// The strings of this part by catalog key, for the parity test (merged into `all`).
     static let list: [String: String] = [
         "documents.unknownSender": unknownSender,
@@ -91,6 +98,7 @@ extension DocumentStrings {
         "documents.inbox.empty.hintScan": todoEmptyHintScan,
         "documents.inbox.empty.hint": todoEmptyHint,
         "documents.inbox.showAll": showAllPost,
-        "documents.persons.explained": personsExplained
+        "documents.persons.explained": personsExplained,
+        "review.task.deadline.hint": deadlineHint
     ]
 }

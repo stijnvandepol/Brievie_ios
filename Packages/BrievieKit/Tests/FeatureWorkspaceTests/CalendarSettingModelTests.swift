@@ -4,7 +4,7 @@ import Foundation
 import Synchronization
 import Testing
 
-/// The "Zet deadlines in mijn agenda" switch of one workspace.
+/// The "Zet termijnen in mijn agenda" switch of one workspace.
 @MainActor
 @Suite struct CalendarSettingModelTests {
     private let store = FakeCalendarStore()
@@ -239,7 +239,7 @@ import Testing
 
     @Test func theFooterNamesTheWorkspacesCalendar() {
         #expect(makeModel().footer == """
-            Je taken met een deadline komen in een eigen agenda 'Brievie – Thuis' in iCloud of op deze iPhone. \
+            Je taken met een termijn komen in een eigen agenda 'Brievie – Thuis' in iCloud of op deze iPhone. \
             Een andere account gebruikt Brievie alleen als jij dat goedvindt. In de agenda en bij meldingen op het \
             toegangsscherm staat alleen de soort taak, zoals 'Betalen (Brievie)'.
             """)
