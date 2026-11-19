@@ -113,6 +113,7 @@ import Testing
         #expect(PairingStrings.linkUnsupportedVersion
             == "Deze link komt van een nieuwere versie van Brievie. Werk de app bij en probeer het opnieuw.")
         #expect(PairingStrings.linkAlreadyPaired == "Deze telefoon is al gekoppeld met een Brievie-server. "
-            + "Wil je een andere server gebruiken? Tik dan in je werkruimtes op Ontkoppelen en open de link opnieuw.")
+            + "Wil je een andere server gebruiken? Tik in Brievie op het tandwiel en dan op Ontkoppelen. "
+            + "Open daarna de link opnieuw.")
     }
 }

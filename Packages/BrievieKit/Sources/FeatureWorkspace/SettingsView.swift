@@ -2,53 +2,39 @@
 import BrievieUI
 import SwiftUI
 
-/// The paired user's workspaces, and the server they come from.
-public struct WorkspacesView<Destination: View>: View {
-    private let model: WorkspacesModel
-    /// The device has no passcode, so the app cannot lock itself.
-    private let showsNoPasscodeWarning: Bool
-    /// What a workspace opens: supplied by the app, so this target does not know the documents feature.
-    private let destination: (WorkspacesModel.Row) -> Destination
-    @Environment(\.scenePhase) private var scenePhase
+/// The settings: the workspaces (which one the inbox shows, and the calendar switch of each), the server and
+/// "Ontkoppelen". Pushed from the root screen by `WorkspaceRootView`.
+struct SettingsView: View {
+    let model: WorkspacesModel
+    /// The user chose a workspace: back to the inbox, which now shows it.
+    let didChoose: () -> Void
 
-    public init(
-        model: WorkspacesModel,
-        showsNoPasscodeWarning: Bool,
-        @ViewBuilder destination: @escaping (WorkspacesModel.Row) -> Destination
-    ) {
-        self.model = model
-        self.showsNoPasscodeWarning = showsNoPasscodeWarning
-        self.destination = destination
-    }
-
-    public var body: some View {
+    var body: some View {
         @Bindable var model = model
-        NavigationStack {
-            WorkspacesList(
-                state: model.state,
-                serverAddress: model.serverAddress,
-                userName: model.userName,
-                showsNoPasscodeWarning: showsNoPasscodeWarning,
-                unpair: UnpairControl(
-                    isUnpairing: model.isUnpairing,
-                    isConfirming: $model.isConfirmingUnpair,
-                    message: model.unpairMessage,
-                    offersCalendarRemoval: model.offersCalendarRemoval,
-                    request: { model.requestUnpair() },
-                    confirm: { model.confirmUnpair() },
-                    confirmRemovingCalendars: { model.confirmUnpair(removingCalendars: true) }
-                ),
-                retry: { model.retry() },
-                calendarModel: { model.calendarModel(for: $0.id) },
-                destination: destination
-            )
-            .refreshable { await model.load() }
-            .task { await model.load() }
-            .onDisappear { model.stop() }
-            .onChange(of: scenePhase) { _, phase in
-                if phase != .active { model.sceneLeftForeground() }
+        SettingsList(
+            state: model.state,
+            currentWorkspaceID: model.currentWorkspaceID,
+            serverAddress: model.serverAddress,
+            userName: model.userName,
+            unpair: UnpairControl(
+                isUnpairing: model.isUnpairing,
+                isConfirming: $model.isConfirmingUnpair,
+                message: model.unpairMessage,
+                offersCalendarRemoval: model.offersCalendarRemoval,
+                request: { model.requestUnpair() },
+                confirm: { model.confirmUnpair() },
+                confirmRemovingCalendars: { model.confirmUnpair(removingCalendars: true) }
+            ),
+            retry: { model.retry() },
+            calendarModel: { model.calendarModel(for: $0.id) },
+            choose: { workspace in
+                model.select(workspace)
+                didChoose()
             }
-        }
+        )
+        .refreshable { await model.load() }
+        // Each visit loads the list again, and with it syncs the calendars and checks calendar access.
+        .task { await model.load() }
     }
 }
 
@@ -64,25 +50,22 @@ struct UnpairControl {
     let confirmRemovingCalendars: () -> Void
 }
 
-/// The rendering of `WorkspacesView`, free of the model so that previews can feed it plain values.
-struct WorkspacesList<Destination: View>: View {
+/// The rendering of `SettingsView`, free of the model so that previews can feed it plain values.
+struct SettingsList: View {
     let state: WorkspacesModel.State
+    /// The workspace the inbox shows: it carries the checkmark.
+    let currentWorkspaceID: UUID?
     let serverAddress: String?
     let userName: String
-    let showsNoPasscodeWarning: Bool
     let unpair: UnpairControl
     let retry: () -> Void
     /// The calendar switch under a workspace; `nil` shows none.
     let calendarModel: (WorkspacesModel.Row) -> CalendarSettingModel?
-    let destination: (WorkspacesModel.Row) -> Destination
+    /// The user tapped a workspace.
+    let choose: (UUID) -> Void
 
     var body: some View {
         List {
-            if showsNoPasscodeWarning {
-                Section {
-                    ErrorBanner(String(localized: "workspaces.noPasscode", bundle: .module), style: .warning)
-                }
-            }
             Section {
                 content
             } header: {
@@ -93,35 +76,47 @@ struct WorkspacesList<Destination: View>: View {
             unpairSection
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(Text("workspaces.title", bundle: .module))
+        .navigationTitle(Text("settings.title", bundle: .module))
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     @ViewBuilder private var content: some View {
         switch state {
         case .loading:
-            HStack(spacing: 12) {
-                ProgressView()
-                Text("workspaces.loading", bundle: .module)
-            }
-            .accessibilityElement(children: .combine)
+            WorkspacesLoadingRow()
         case .loaded(let rows):
             if rows.isEmpty {
-                Text("workspaces.empty", bundle: .module)
-                    .foregroundStyle(.secondary)
+                WorkspacesEmptyRow()
             }
             ForEach(rows) { row in
-                NavigationLink {
-                    destination(row)
-                } label: {
-                    WorkspaceRowView(row: row)
-                }
+                workspaceButton(row)
                 if let calendar = calendarModel(row) {
                     CalendarSwitchRow(model: calendar)
                 }
             }
         case .failed(let message):
-            ErrorBanner(message, actionTitle: String(localized: "workspaces.retry", bundle: .module), action: retry)
+            WorkspacesErrorRow(message: message, retry: retry)
         }
+    }
+
+    private func workspaceButton(_ row: WorkspacesModel.Row) -> some View {
+        let isCurrent = row.id == currentWorkspaceID
+        return Button {
+            choose(row.id)
+        } label: {
+            HStack(spacing: 12) {
+                WorkspaceRowView(row: row)
+                if isCurrent {
+                    Image(systemName: "checkmark")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                }
+            }
+            .foregroundStyle(.primary)
+        }
+        .accessibilityAddTraits(isCurrent ? .isSelected : [])
+        .accessibilityHint(isCurrent ? Text(verbatim: "") : Text("settings.workspace.hint", bundle: .module))
     }
 
     private var serverSection: some View {
@@ -158,7 +153,7 @@ struct WorkspacesList<Destination: View>: View {
     }
 }
 
-extension WorkspacesList {
+extension SettingsList {
     private var unpairSection: some View {
         Section {
             Button(role: .destructive, action: unpair.request) {
@@ -285,11 +280,17 @@ private struct WorkspaceRowView: View {
 private var previewRows: [WorkspacesModel.Row] {
     [
         WorkspacesModel.Row(
-            id: UUID(), name: "Thuis", kind: .home, kindLabel: WorkspaceStrings.kindHome,
+            id: previewCurrent, name: "Thuis", kind: .home, kindLabel: WorkspaceStrings.kindHome,
             roleLabel: WorkspaceStrings.roleAdmin
+        ),
+        WorkspacesModel.Row(
+            id: UUID(), name: "Bakkerij", kind: .business, kindLabel: WorkspaceStrings.kindBusiness,
+            roleLabel: WorkspaceStrings.roleMember
         )
     ]
 }
+
+private let previewCurrent = UUID()
 
 private var previewUnpair: UnpairControl {
     UnpairControl(
@@ -298,27 +299,28 @@ private var previewUnpair: UnpairControl {
     )
 }
 
-#Preview("Light") {
+@MainActor
+private func previewSettings(_ state: WorkspacesModel.State) -> some View {
     NavigationStack {
-        WorkspacesList(
-            state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, calendarModel: { _ in nil },
-            destination: { _ in EmptyView() }
+        SettingsList(
+            state: state, currentWorkspaceID: previewCurrent, serverAddress: "brievie.local", userName: "Beheerder",
+            unpair: previewUnpair, retry: {}, calendarModel: { _ in nil }, choose: { _ in }
         )
     }
     .tint(BrievieColor.brand)
 }
 
+#Preview("Light") {
+    previewSettings(.loaded(previewRows))
+}
+
 #Preview("Dark") {
-    NavigationStack {
-        WorkspacesList(
-            state: .loaded(previewRows), serverAddress: "brievie.local", userName: "Beheerder",
-            showsNoPasscodeWarning: false, unpair: previewUnpair, retry: {}, calendarModel: { _ in nil },
-            destination: { _ in EmptyView() }
-        )
-    }
-    .tint(BrievieColor.brand)
-    .preferredColorScheme(.dark)
+    previewSettings(.loaded(previewRows))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Failed") {
+    previewSettings(.failed(message: WorkspaceStrings.unreachable))
 }
 #endif
 #endif

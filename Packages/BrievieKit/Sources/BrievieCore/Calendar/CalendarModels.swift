@@ -68,7 +68,7 @@ public enum CalendarChange: Equatable, Sendable {
     case delete(eventID: String)
 }
 
-/// The outcome of a sync, for the switch on the Workspaces screen.
+/// The outcome of a sync, for the switch in the settings.
 public enum CalendarSyncResult: Equatable, Sendable {
     /// The switch is off for this workspace: nothing was read or written.
     case off

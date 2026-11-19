@@ -381,6 +381,7 @@ extension DocumentStrings {
         "scan.camera.openSettings": openSettings,
         "documents.scope.inbox": scopeInbox,
         "documents.scope.all": scopeAll,
+        "documents.title.inWorkspace": titleInWorkspaceFormat,
         "documents.inbox.review": inboxReview,
         "documents.inbox.unassigned": inboxUnassigned,
         "documents.inbox.underway": inboxUnderway,

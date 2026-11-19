@@ -35,7 +35,7 @@ import Testing
         Unpairing(server: server, uploads: uploads, timeout: timeout)
     }
 
-    /// Paired and unlocked: the only state in which the Workspaces screen (and its button) is usable.
+    /// Paired and unlocked: the only state in which the settings (and their button) are usable.
     private func readyModel(_ authenticator: FakeAuthenticator = FakeAuthenticator()) async -> AppModel {
         let model = AppModel(
             store: store,

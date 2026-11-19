@@ -275,3 +275,22 @@ import Testing
         #expect(model.rows.map(\.id) == [annesLetter.id])
     }
 }
+
+/// Where the inbox names its workspace: in the subtitle from iOS 26, in the title before it, and nowhere when
+/// the user has one workspace.
+@Suite struct DocumentsTitleTests {
+    @Test func withOneWorkspaceTheTitleIsTheScope() {
+        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: false) == "Inbox")
+        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: true) == "Inbox")
+    }
+
+    @Test func withASubtitleTheWorkspaceGoesThere() {
+        #expect(DocumentStrings.navigationTitle(scope: "Alle post", workspace: "Zaak", hasSubtitle: true)
+            == "Alle post")
+    }
+
+    @Test func withoutASubtitleTheTitleNamesTheWorkspace() {
+        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: "Thuis", hasSubtitle: false)
+            == "Inbox · Thuis")
+    }
+}

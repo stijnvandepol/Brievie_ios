@@ -2,7 +2,7 @@ import BrievieCore
 import Foundation
 import Observation
 
-/// What the Workspaces screen needs for the calendar switches. The app supplies it; without it there are none.
+/// What the settings need for the calendar switches. The app supplies it; without it there are none.
 public struct WorkspaceCalendar {
     let sync: CalendarSync
     let settings: any CalendarSettings
@@ -203,7 +203,7 @@ public final class CalendarSettingModel {
         if isAskingConsent { answerConsent(false) }
     }
 
-    /// After the Workspaces list loaded, while the switch is on: says so when calendar access was taken away in
+    /// After the workspaces loaded, while the switch is on: says so when calendar access was taken away in
     /// Settings (and drops that line once it is back; the switch stays on either way), then syncs. A sync (this
     /// one or an earlier one elsewhere) that found the calendar's account gone turned the setting off: the switch
     /// follows and says so.

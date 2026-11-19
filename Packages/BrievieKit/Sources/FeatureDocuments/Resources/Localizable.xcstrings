@@ -493,6 +493,18 @@
         }
       }
     },
+    "documents.title.inWorkspace": {
+      "comment": "Title of the post list before iOS 26 when the user has more than one workspace: %1$@ is the scope (\"Inbox\"), %2$@ the workspace (\"Thuis\").",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
     "documents.upload.failed": {
       "comment": "An upload the server refused.",
       "extractionState": "manual",

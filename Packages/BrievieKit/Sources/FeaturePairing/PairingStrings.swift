@@ -72,7 +72,7 @@ enum PairingStrings {
         localized: "pairing.link.error.alreadyPaired",
         defaultValue: """
             Deze telefoon is al gekoppeld met een Brievie-server. Wil je een andere server gebruiken? \
-            Tik dan in je werkruimtes op Ontkoppelen en open de link opnieuw.
+            Tik in Brievie op het tandwiel en dan op Ontkoppelen. Open daarna de link opnieuw.
             """,
         bundle: .module
     )
