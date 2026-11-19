@@ -31,12 +31,17 @@ public struct VisionTextRecognizer: PageTextRecognizer {
             request.automaticallyDetectsLanguage = true
         }
 
-        let observations: [RecognizedTextObservation]
+        // One recognition at a time in the process: many at once crashed inside Vision (EXC_BAD_ACCESS while
+        // TextRecognition released a request, macOS 26.6, about 1 run in 12 of the scan-quality tests).
+        await RecognitionQueue.shared.enter()
+        let outcome: [RecognizedTextObservation]?
         do {
-            observations = try await request.perform(on: image)
+            outcome = try await request.perform(on: image)
         } catch {
-            throw ScanError.recognitionFailed
+            outcome = nil
         }
+        await RecognitionQueue.shared.leave()
+        guard let observations = outcome else { throw ScanError.recognitionFailed }
         let width = Double(image.width)
         let height = Double(image.height)
         return Self.ordered(observations).compactMap { observation in
@@ -61,6 +66,29 @@ public struct VisionTextRecognizer: PageTextRecognizer {
                 return firstBox.origin.y > secondBox.origin.y
             }
             return firstBox.origin.x < secondBox.origin.x
+        }
+    }
+}
+
+/// Lets one text recognition run at a time; the others wait their turn, in order.
+actor RecognitionQueue {
+    static let shared = RecognitionQueue()
+    private var busy = false
+    private var waiting: [CheckedContinuation<Void, Never>] = []
+
+    func enter() async {
+        guard busy else {
+            busy = true
+            return
+        }
+        await withCheckedContinuation { waiting.append($0) }
+    }
+
+    func leave() {
+        if waiting.isEmpty {
+            busy = false
+        } else {
+            waiting.removeFirst().resume()
         }
     }
 }
