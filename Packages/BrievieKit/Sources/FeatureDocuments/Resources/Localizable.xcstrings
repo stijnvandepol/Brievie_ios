@@ -1525,6 +1525,18 @@
         }
       }
     },
+    "scan.cancel": {
+      "comment": "Leaves the scan preview.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
     "scan.close": {
       "comment": "Closes the scan sheet after an error.",
       "extractionState": "manual",
@@ -1533,6 +1545,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sluiten"
+          }
+        }
+      }
+    },
+    "scan.discard.confirm": {
+      "comment": "Throws the scan away.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weggooien"
+          }
+        }
+      }
+    },
+    "scan.discard.title": {
+      "comment": "Asked before a checked scan is thrown away.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze scan weggooien?"
           }
         }
       }
@@ -1597,6 +1633,18 @@
         }
       }
     },
+    "scan.preview.intro": {
+      "comment": "Above the pages of a new scan, before saving.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kijk of elke pagina rechtop staat. Staat een pagina scheef of op zijn kop? Tik dan op Draai."
+          }
+        }
+      }
+    },
     "scan.recognising": {
       "comment": "Progress of text recognition; page number and page count.",
       "extractionState": "manual",
@@ -1609,6 +1657,30 @@
         }
       }
     },
+    "scan.save": {
+      "comment": "Saves the checked scan to the upload queue.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bewaren"
+          }
+        }
+      }
+    },
+    "scan.saving": {
+      "comment": "While the scan is written to the upload queue.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan bewaren…"
+          }
+        }
+      }
+    },
     "scan.title": {
       "comment": "Title of the sheet shown while a scan is prepared.",
       "extractionState": "manual",
@@ -1617,6 +1689,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Scan bewaren"
+          }
+        }
+      }
+    },
+    "scan.turn": {
+      "comment": "Button under a scanned page: turns it a quarter clockwise.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draai"
+          }
+        }
+      }
+    },
+    "scan.turn.hint": {
+      "comment": "VoiceOver hint of the turn button.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draait de pagina een kwartslag met de klok mee en leest de tekst opnieuw."
+          }
+        }
+      }
+    },
+    "scan.turn.label": {
+      "comment": "VoiceOver label of the turn button; %1$d is the page number.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draai pagina %1$d"
+          }
+        }
+      }
+    },
+    "scan.turned.auto": {
+      "comment": "Under a page the app turned upright from its text.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De app heeft deze pagina rechtop gezet."
+          }
+        }
+      }
+    },
+    "scan.turning": {
+      "comment": "Shown on a page while it is turned and read again.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina draaien…"
           }
         }
       }

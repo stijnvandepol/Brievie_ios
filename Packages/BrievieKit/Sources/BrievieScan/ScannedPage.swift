@@ -15,9 +15,11 @@ public struct ScannedPage: Equatable, Sendable {
 
 /// One page as it comes from the scanner or the photo library, not yet decoded at full size.
 public enum PageSource: @unchecked Sendable {
-    /// From the document scanner: already cropped and upright. (`CGImage` is immutable.)
+    /// A decoded page (tests and previews). Not assumed upright: `PageProcessor` decides that from the text.
+    /// (`CGImage` is immutable.)
     case image(CGImage)
-    /// From the photo library: HEIC or JPEG bytes, with their EXIF orientation.
+    /// From the document scanner or the photo library: JPEG or HEIC bytes, with their EXIF orientation.
+    /// The scanner's pages are cropped, but they are upright only as far as the phone knew which way was up.
     case encodedData(Data)
 }
 

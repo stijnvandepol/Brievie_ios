@@ -394,4 +394,5 @@ extension DocumentStrings {
         "documents.labels": labelsFormat,
         "documents.suggestion": suggestion
     ].merging(organise) { current, _ in current }.merging(reader) { current, _ in current }
+        .merging(scanPreview) { current, _ in current }
 }

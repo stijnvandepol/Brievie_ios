@@ -22,7 +22,6 @@ public struct DocumentsView<Destination: View>: View {
     @State private var showsScanner = false
     @State private var showsPhotoPicker = false
     @State private var pickedPhotos: [PhotosPickerItem] = []
-    @State private var showsScanProgress = false
     @Environment(\.scenePhase) private var scenePhase
 
     public init(
@@ -102,13 +101,15 @@ public struct DocumentsView<Destination: View>: View {
             pickedPhotos = []
             Task { save(await PhotoPages.load(items)) }
         }
-        .sheet(isPresented: $showsScanProgress) {
-            ScanFlowView(phase: scanModel.phase) {
-                showsScanProgress = false
-                scanModel.reset()
-            }
-            .interactiveDismissDisabled()
-            .presentationDetents([.medium])
+        .navigationDestination(
+            isPresented: Binding(get: { scanModel.isPresented }, set: { if !$0 { scanModel.discard() } })
+        ) {
+            ScanFlowView(model: scanModel)
+        }
+        .onChange(of: scanModel.phase) { _, phase in
+            guard phase == .finished else { return }
+            scanModel.reset()
+            Task { await model.load() }
         }
     }
 
@@ -166,17 +167,10 @@ public struct DocumentsView<Destination: View>: View {
         }
     }
 
+    /// Opens the scan's preview, which reads and turns the pages first.
     private func save(_ pages: [PageSource?]) {
         guard !pages.isEmpty else { return }
-        showsScanProgress = true
-        Task {
-            await scanModel.process(loaded: pages)
-            if scanModel.phase == .finished {
-                showsScanProgress = false
-                scanModel.reset()
-            }
-            await model.load()
-        }
+        scanModel.start(loaded: pages)
     }
 }
 
