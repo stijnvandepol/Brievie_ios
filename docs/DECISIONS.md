@@ -7,6 +7,8 @@ One line per dependency or tooling choice, with the reason.
 - **XcodeGen** — the Xcode project is generated from `project.yml`, so `*.xcodeproj` never causes merge conflicts.
 - **SwiftLint** (`--strict`, `force_unwrapping` on) — the lint gate locally and in CI.
 - **Swift Testing** — the test framework for all targets; ships with the toolchain, no package dependency.
+- **CodeQL** (`.github/workflows/codeql.yml`, `security-extended`) — static analysis of the Swift code (manual build mode: `make build`, so the app and `BrievieKit` are compiled and analysed; CodeQL supports Swift 5.4 to 6.3 and needs macOS) and of the workflows themselves. Runs on pushes to `main`, pull requests and weekly; results go to GitHub code scanning. Third-party actions are pinned to commit SHAs; Dependabot moves them.
+- **Dependabot for Swift packages** — weekly, grouped, for `Packages/BrievieKit`. A pull request must be completed with `make generate` (the copy of `Package.resolved` in the Xcode project); CI fails until then. `swift-openapi-generator` is ignored (pinned on purpose, see below).
 - **Code coverage** — `make coverage` runs the same tests with `swift test --enable-code-coverage`; `scripts/coverage-summary.sh` prints line coverage per `BrievieKit` target and CI uploads the table and the JSON report as the `coverage` artifact. Tooling that ships with the toolchain and `python3`, no new dependency. There is no minimum yet; the place for one is marked in the script.
 
 ## Package dependencies
