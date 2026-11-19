@@ -76,16 +76,11 @@ import Testing
         #expect(listCalls.allSatisfy { $0.personID == nil && $0.inboxState != nil })
         #expect(Self.inboxFilters(listCalls) == [.review, .unassigned, .new])
         #expect(countCalls == 1)
-        #expect(model.groups.map(\.kind) == [.review, .unassigned])
-        #expect(model.groups.map(\.rows.count) == [200, 1])
-        #expect(model.groups.map(\.header) == [
-            String(format: DocumentStrings.groupPartialFormat, DocumentStrings.inboxReview, 212, 200),
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnassigned, 1)
-        ])
-        #expect(model.groups.first?.header == "Te controleren (212, de nieuwste 200)")
+        #expect(model.rows.count == 201)
+        #expect(model.summary == "Controleren: 212 (de nieuwste 200) · Naam kiezen: 1")
     }
 
-    @Test func withoutCountsTheHeaderCountsTheLettersShown() async throws {
+    @Test func withoutCountsTheSummaryCountsTheLettersShown() async throws {
         let reviews = (0..<200).map { _ in Self.document(.review, status: .needsReview) }
         server.onList { _, filter in filter.inboxState == .review ? reviews : [] }
         server.onInboxCounts { _ in throw ServerError.other("not_found") }
@@ -94,9 +89,7 @@ import Testing
         await model.load()
 
         #expect(model.state == .loaded)
-        #expect(model.groups.map(\.header) == [
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 200)
-        ])
+        #expect(model.summary == "Controleren: 200")
     }
 
     @Test func aCountAboveAShortListIsNotBelieved() async throws {
@@ -108,9 +101,7 @@ import Testing
 
         await model.load()
 
-        #expect(model.groups.map(\.header) == [
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 1)
-        ])
+        #expect(model.summary == "Controleren: 1")
     }
 
     @Test func aRefreshTickInTheInboxAsksForTheLettersOnTheirWayOnly() async throws {
@@ -131,7 +122,7 @@ import Testing
 
         #expect(server.calls.count == before + 1)
         #expect(listCalls.last == DocumentFilter(inboxState: .new))
-        #expect(model.groups.map { $0.rows.map(\.id) } == [[review.id], [moving.id]])
+        #expect(model.rows.map(\.id) == [review.id, moving.id])
     }
 
     @Test func aLetterThatLeftOnderwegReloadsTheWholeInboxOnce() async throws {
@@ -150,7 +141,7 @@ import Testing
 
         // The tick's one list, then the three of the whole inbox.
         #expect(listCalls.count == before + 4)
-        #expect(model.groups.map(\.kind) == [.review])
+        #expect(model.rows.map(\.status) == [.needsReview])
         #expect(model.rows.map(\.id) == [moving.id])
         #expect(!model.needsRefresh)
     }
@@ -213,7 +204,7 @@ import Testing
         await toStijn.value
         #expect(model.scope == .inbox)
         #expect(model.state == .loaded)
-        #expect(model.groups.map(\.kind) == [.review])
+        #expect(model.rows.map(\.status) == [.needsReview])
         #expect(model.rows.map(\.id) == [review.id])
     }
 }

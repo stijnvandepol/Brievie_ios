@@ -45,7 +45,7 @@ import Testing
         }
     }
 
-    @Test func inboxGroupsRowsByState() async throws {
+    @Test func teDoenIsOneListWithWhatIsOnItsWayLast() async throws {
         let review = Self.document(.review, status: .needsReview)
         let unassigned = Self.document(.unassigned)
         let new = Self.document(.new, status: .processing)
@@ -57,16 +57,13 @@ import Testing
         await model.load()
 
         #expect(model.scope == .inbox)
-        #expect(model.groups.map(\.kind) == [.review, .unassigned, .underway])
-        #expect(model.groups.map(\.title) == [
-            DocumentStrings.inboxReview, DocumentStrings.inboxUnassigned, DocumentStrings.inboxUnderway
+        // Same time everywhere: the two that need the person in either order, then the two on their way.
+        #expect(Set(model.rows.prefix(2).map(\.id)) == [review.id, unassigned.id])
+        #expect(Set(model.rows.suffix(2).map(\.id)) == [item.id, new.id])
+        #expect(model.rows.map(\.status.label).sorted() == [
+            "Bezig…", "Controleren", "Naam kiezen", "Wacht op verbinding"
         ])
-        #expect(model.groups.map { $0.rows.map(\.id) } == [[review.id], [unassigned.id], [item.id, new.id]])
-        #expect(model.groups.map(\.header) == [
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 1),
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnassigned, 1),
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnderway, 2)
-        ])
+        #expect(model.summary == "Controleren: 1 · Naam kiezen: 1 · Bezig: 2")
         // A 1b server ignores the filter and answers everything: each list keeps only its own state.
         #expect(Set(listCalls.compactMap(\.inboxState?.rawValue)) == ["review", "unassigned", "new"])
     }
@@ -82,16 +79,16 @@ import Testing
 
         await model.select(.all)
         #expect(Set(model.rows.map(\.id)) == [sorted.id, review.id])
-        #expect(model.groups.map(\.kind) == [.post])
+        #expect(model.summary == nil)
     }
 
-    @Test func emptyInboxHasNoGroups() async throws {
+    @Test func emptyTeDoenHasNoRows() async throws {
         server.onList { _ in [Self.document(.sorted)] }
         let model = try model()
 
         await model.load()
 
-        #expect(model.groups.isEmpty)
+        #expect(model.rows.isEmpty)
         #expect(model.emptyText == DocumentStrings.inboxEmpty)
     }
 
@@ -186,7 +183,7 @@ import Testing
         let model = try model()
 
         await model.load()
-        #expect(model.groups.isEmpty)
+        #expect(model.rows.isEmpty)
 
         await model.select(.all)
         #expect(model.rows.map(\.id) == [unknown.id])
@@ -280,8 +277,8 @@ import Testing
 /// the user has one workspace.
 @Suite struct DocumentsTitleTests {
     @Test func withOneWorkspaceTheTitleIsTheScope() {
-        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: false) == "Inbox")
-        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: true) == "Inbox")
+        #expect(DocumentStrings.navigationTitle(scope: "Te doen", workspace: nil, hasSubtitle: false) == "Te doen")
+        #expect(DocumentStrings.navigationTitle(scope: "Te doen", workspace: nil, hasSubtitle: true) == "Te doen")
     }
 
     @Test func withASubtitleTheWorkspaceGoesThere() {
@@ -290,7 +287,7 @@ import Testing
     }
 
     @Test func withoutASubtitleTheTitleNamesTheWorkspace() {
-        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: "Thuis", hasSubtitle: false)
-            == "Inbox · Thuis")
+        #expect(DocumentStrings.navigationTitle(scope: "Te doen", workspace: "Thuis", hasSubtitle: false)
+            == "Te doen · Thuis")
     }
 }

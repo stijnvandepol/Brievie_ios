@@ -7,21 +7,31 @@ import Observation
 @MainActor
 @Observable
 public final class DocumentsModel {
+    /// What a row needs, in the words of the web: "Controleren", "Naam kiezen", "Bezig…", "Klaar"; a scan still
+    /// on the phone says where its upload stands.
     public enum RowStatus: Equatable, Sendable {
         case waitingForUpload
         case uploading(progress: Double)
         /// `canRetry` is false for a scan that belongs to another server: it can only be deleted.
         case uploadFailed(message: String, canRetry: Bool = true)
+        /// "Bezig…": the server is reading the letter; nothing to do yet.
         case processing
+        /// "Controleren".
         case needsReview
-        case done
+        /// "Controleren" too: the server could not read the letter, so the person fills it in.
         case failed
+        /// "Naam kiezen": read, but on nobody's name.
+        case needsName
+        case done
 
-        /// Something will change by itself: keep refreshing.
-        var isMoving: Bool {
+        /// Something will change by itself: keep refreshing. The same rows close "Te doen".
+        var isMoving: Bool { isUnderway }
+
+        /// On its way, nothing for the person to do: an upload that is waiting or running, a letter being read.
+        var isUnderway: Bool {
             switch self {
             case .waitingForUpload, .uploading, .processing: true
-            case .uploadFailed, .needsReview, .done, .failed: false
+            case .uploadFailed, .needsReview, .failed, .needsName, .done: false
             }
         }
     }
@@ -42,9 +52,10 @@ public final class DocumentsModel {
 
     public private(set) var state: State = .loading
     public private(set) var scope: Scope = .inbox
-    /// The rows of the current scope, grouped. `rows` is the same rows in one list.
-    public private(set) var groups: [RowGroup] = []
+    /// The rows of the current scope, in one list (see `arrange(waiting:onServer:)` for the order).
     public private(set) var rows: [Row] = []
+    /// The line above "Te doen": how many rows need what. `nil` in the other scopes and without rows.
+    public private(set) var summary: String?
     /// The persons and labels of the workspace, to name a row's addressees and labels. Empty against a
     /// server without them (phase 1b answers 404); that does not fail the screen.
     public private(set) var persons: [Person] = []
@@ -121,10 +132,10 @@ public final class DocumentsModel {
         await load()
     }
 
-    /// The automatic refresh while something moves: one list, not the persons and labels. In a loaded inbox
-    /// only the letters on their way ("Onderweg"); the whole inbox once when a letter left that list or a scan
-    /// left the upload queue without showing up in it (read by the server within one tick), so it shows up in
-    /// its new group. An inbox that is not loaded (still loading, or failed) is loaded whole.
+    /// The automatic refresh while something moves: one list, not the persons and labels. In a loaded "Te doen"
+    /// only the letters on their way ("Bezig…"); the whole of it once when a letter left that list or a scan
+    /// left the upload queue without showing up in it (read by the server within one tick), so it shows up with
+    /// its new status. An inbox that is not loaded (still loading, or failed) is loaded whole.
     public func refreshIfNeeded() async {
         guard needsRefresh, wholeLoadsInFlight == 0 else { return }
         await load(organisation: false, movingOnly: state == .loaded)
@@ -242,22 +253,20 @@ public final class DocumentsModel {
         let arrived = Set(serverDocuments.map(\.clientID))
         // A scan on the phone has no addressee yet: it is not under a person.
         let waiting = scope.showsQueue ? waitingRows(arrived: arrived) : []
-        let onServer = serverDocuments
-            .sorted { $0.createdAt > $1.createdAt }
-            .map { document in (document.inboxState, row(for: document)) }
-        groups = makeGroups(waiting: waiting, onServer: onServer, totals: inboxTotals)
-        rows = groups.flatMap(\.rows)
+        rows = arrange(waiting: waiting, onServer: serverDocuments.map(row(for:)))
+        summary = scope == .inbox
+            ? Self.todoSummary(waiting: waiting, onServer: serverDocuments.map(\.inboxState), totals: inboxTotals)
+            : nil
     }
 
     private func waitingRows(arrived: Set<UUID>) -> [Row] {
         queued
             .filter { !arrived.contains($0.id) }
-            .sorted { $0.createdAt > $1.createdAt }
             .map { item in
                 Row(
                     id: item.id, documentID: nil, title: DocumentStrings.newDocument,
                     subtitle: Self.subtitle(date: item.createdAt, pages: item.pageCount),
-                    status: status(of: item)
+                    status: status(of: item), date: item.createdAt
                 )
             }
     }
@@ -265,14 +274,17 @@ public final class DocumentsModel {
     private func row(for document: DocumentSummary) -> Row {
         let addressees = Set(document.addresseeIDs)
         let labelIDs = Set(document.labelIDs)
+        let status = Self.status(of: document)
+        let untitled = status == .processing ? DocumentStrings.newDocument : DocumentStrings.unknownSender
         return Row(
             id: document.id, documentID: document.id,
-            title: document.sender.isEmpty ? DocumentStrings.newDocument : document.sender,
+            title: document.sender.isEmpty ? untitled : document.sender,
             subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
-            status: Self.status(of: document),
+            status: status,
             addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
             labels: labels.filter { labelIDs.contains($0.id) },
-            hasSuggestions: document.openSuggestionCount > 0
+            hasSuggestions: document.openSuggestionCount > 0,
+            date: document.createdAt
         )
     }
 
@@ -289,13 +301,15 @@ public final class DocumentsModel {
         }
     }
 
-    private static func status(of document: DocumentSummary) -> RowStatus {
+    /// What a letter on the server needs. A read letter on nobody's name says "Naam kiezen" in every scope, as
+    /// in the web: "Klaar" only when nothing waits.
+    static func status(of document: DocumentSummary) -> RowStatus {
         switch document.status {
         case .processing: .processing
         case .needsReview: .needsReview
         case .failed: .failed
         // A status this app does not know yet is at least a document that can be opened.
-        case .done, .unknown: .done
+        case .done, .unknown: document.inboxState == .unassigned ? .needsName : .done
         }
     }
 }

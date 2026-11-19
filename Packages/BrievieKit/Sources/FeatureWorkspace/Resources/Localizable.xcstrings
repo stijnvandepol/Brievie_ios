@@ -38,13 +38,13 @@
       }
     },
     "settings.workspace.hint": {
-      "comment": "VoiceOver hint on a workspace in the settings: tapping it shows that workspace in the inbox.",
+      "comment": "VoiceOver hint on a workspace in the settings that is not the one shown: tapping shows its post.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toont de post van deze werkruimte."
+            "value": "Toont de brieven van deze werkruimte."
           }
         }
       }

@@ -43,7 +43,7 @@ import Testing
         #expect(model.state == .loaded)
         #expect(model.rows.map(\.id) == [newer.id, older.id])
         #expect(model.rows.map(\.status) == [.needsReview, .done])
-        #expect(model.rows.map(\.title) == [DocumentStrings.newDocument, "CAK"])
+        #expect(model.rows.map(\.title) == [DocumentStrings.unknownSender, "CAK"])
         #expect(model.rows.map(\.documentID) == [newer.id, older.id])
     }
 

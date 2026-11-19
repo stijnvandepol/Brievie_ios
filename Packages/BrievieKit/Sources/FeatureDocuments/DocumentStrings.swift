@@ -6,10 +6,11 @@ import Foundation
 /// Generated from one table; the parts below are extensions to keep each body short.
 enum DocumentStrings {
     // Documents list, uploads and scanning
-    static let newDocument = String(localized: "documents.new", defaultValue: "Nieuw document", bundle: .module)
+    static let newDocument = String(localized: "documents.new", defaultValue: "Nieuwe brief", bundle: .module)
     static let pagesOne = String(localized: "documents.pages.one", defaultValue: "1 pagina", bundle: .module)
     static let pagesManyFormat = String(localized: "documents.pages.many", defaultValue: "%d pagina's", bundle: .module)
-    static let section = String(localized: "documents.section", defaultValue: "Post", bundle: .module)
+    /// The title of a person's post while that person is not known (yet).
+    static let section = String(localized: "documents.section", defaultValue: "Brieven", bundle: .module)
     static let loading = String(localized: "documents.loading", defaultValue: "Post laden…", bundle: .module)
     static let empty = String(
         localized: "documents.empty",
@@ -38,18 +39,18 @@ enum DocumentStrings {
     )
     static let statusProcessing = String(
         localized: "documents.status.processing",
-        defaultValue: "Wordt verwerkt",
+        defaultValue: "Bezig…",
         bundle: .module
     )
     static let statusNeedsReview = String(
         localized: "documents.status.needsReview",
-        defaultValue: "Controleer dit",
+        defaultValue: "Controleren",
         bundle: .module
     )
     static let statusDone = String(localized: "documents.status.done", defaultValue: "Klaar", bundle: .module)
     static let statusFailed = String(
         localized: "documents.status.failed",
-        defaultValue: "Verwerken mislukt",
+        defaultValue: "Controleren",
         bundle: .module
     )
     static let unreachable = String(
@@ -383,16 +384,11 @@ extension DocumentStrings {
         "documents.scope.inbox": scopeInbox,
         "documents.scope.all": scopeAll,
         "documents.title.inWorkspace": titleInWorkspaceFormat,
-        "documents.inbox.review": inboxReview,
-        "documents.inbox.unassigned": inboxUnassigned,
-        "documents.inbox.underway": inboxUnderway,
         "documents.inbox.empty": inboxEmpty,
         "documents.person.empty": personEmpty,
-        "documents.group.count": groupCountFormat,
-        "documents.group.partial": groupPartialFormat,
         "documents.addressees": addresseesFormat,
         "documents.labels": labelsFormat,
         "documents.suggestion": suggestion
     ].merging(organise) { current, _ in current }.merging(reader) { current, _ in current }
-        .merging(scanPreview) { current, _ in current }
+        .merging(scanPreview) { current, _ in current }.merging(list) { current, _ in current }
 }

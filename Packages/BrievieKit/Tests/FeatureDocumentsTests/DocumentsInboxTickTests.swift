@@ -59,7 +59,7 @@ import Testing
         await model.refreshIfNeeded()
 
         #expect(listCalls.count == before + 4)
-        #expect(model.groups.map(\.kind) == [.review])
+        #expect(model.rows.map(\.status) == [.needsReview])
         #expect(model.rows.map(\.id) == [arrived.id])
     }
 
@@ -79,7 +79,7 @@ import Testing
         await model.refreshIfNeeded()
 
         #expect(model.state == .loaded)
-        #expect(model.groups.map(\.kind) == [.review, .underway])
+        #expect(model.rows.map(\.status) == [.needsReview, .waitingForUpload])
         #expect(Set(listCalls.suffix(3).compactMap(\.inboxState?.rawValue)) == ["review", "unassigned", "new"])
     }
 
@@ -107,7 +107,7 @@ import Testing
         await first.value
         await tick.value
         #expect(model.state == .loaded)
-        #expect(model.groups.map(\.kind) == [.review, .underway])
+        #expect(model.rows.map(\.status) == [.needsReview, .waitingForUpload])
     }
 
     @Test func aNewerInboxLoadWinsOverAnOlderOne() async throws {
@@ -177,11 +177,9 @@ import Testing
 
         gated.open(gate: .inbox(.review))
         await pull.value
-        #expect(model.groups.map { Set($0.rows.map(\.id)) } == [[freshReview.id, secondReview.id], [moving.id]])
-        #expect(model.groups.map(\.header) == [
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxReview, 2),
-            String(format: DocumentStrings.groupCountFormat, DocumentStrings.inboxUnderway, 1)
-        ])
+        #expect(Set(model.rows.prefix(2).map(\.id)) == [freshReview.id, secondReview.id])
+        #expect(model.rows.last?.id == moving.id)
+        #expect(model.summary == "Controleren: 2 · Bezig: 1")
     }
 
     @Test func aScanThatAppearsAndIsReadWithinOneTickStillShowsUp() async throws {
@@ -206,7 +204,7 @@ import Testing
 
         await model.refreshIfNeeded()
 
-        #expect(model.groups.map { $0.rows.map(\.id) } == [[arrived.id], [moving.id]])
+        #expect(model.rows.map(\.id) == [arrived.id, moving.id])
     }
 }
 

@@ -43,8 +43,13 @@ public struct DocumentsView<Destination: View>: View {
     public var body: some View {
         DocumentsList(
             state: model.state,
-            groups: model.groups,
-            emptyText: model.emptyText,
+            rows: model.rows,
+            summary: model.summary,
+            footer: model.footer,
+            empty: DocumentsList.Empty(
+                text: model.emptyText, hint: model.emptyHint,
+                showAllPost: model.emptyOffersAllPost ? { Task { await model.select(.all) } } : nil
+            ),
             notices: DocumentsList.Notices(
                 warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
                 openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true }
@@ -121,7 +126,7 @@ public struct DocumentsView<Destination: View>: View {
         )
     }
 
-    /// Inbox, all post, or the post of one person; the current one is ticked.
+    /// "Te doen", "Alle post", or the post of one person; the current one is ticked.
     private var scopeMenu: some View {
         Section(title) {
             Picker(
@@ -173,221 +178,4 @@ public struct DocumentsView<Destination: View>: View {
         scanModel.start(loaded: pages)
     }
 }
-
-/// The rendering of `DocumentsView`, free of the models so that previews can feed it plain values.
-struct DocumentsList<Destination: View>: View {
-    /// Messages above the list: no passcode, no camera access, scans the queue could not read.
-    struct Notices {
-        var warning: String?
-        var camera: DocumentsModel.CameraNotice?
-        var removed: String?
-        var openSettings: () -> Void = {}
-        var importPhotos: () -> Void = {}
-    }
-
-    let state: DocumentsModel.State
-    let groups: [DocumentsModel.RowGroup]
-    /// What the list says without rows: depends on the scope.
-    let emptyText: String
-    var notices = Notices()
-    let retryLoad: () -> Void
-    let retryUpload: (UUID) -> Void
-    let deleteUpload: (UUID) -> Void
-    let destination: (UUID) -> Destination
-
-    var body: some View {
-        List {
-            noticeSection
-            if case let .failed(message) = state {
-                Section {
-                    ErrorBanner(message, actionTitle: DocumentStrings.retry, action: retryLoad)
-                }
-            }
-            if groups.allSatisfy(\.rows.isEmpty) {
-                Section {
-                    placeholder
-                }
-            }
-            ForEach(groups.filter { !$0.rows.isEmpty }) { group in
-                Section {
-                    ForEach(group.rows) { row in
-                        rowView(row)
-                    }
-                } header: {
-                    Text(group.header)
-                }
-            }
-        }
-        .listStyle(.insetGrouped)
-    }
-
-    @ViewBuilder private var noticeSection: some View {
-        if notices.warning != nil || notices.camera != nil || notices.removed != nil {
-            Section {
-                if let warning = notices.warning {
-                    ErrorBanner(warning, style: .warning)
-                }
-                switch notices.camera {
-                case .denied:
-                    ErrorBanner(
-                        DocumentStrings.cameraDenied, style: .warning, actionTitle: DocumentStrings.openSettings,
-                        action: notices.openSettings
-                    )
-                case .restricted:
-                    ErrorBanner(DocumentStrings.cameraRestricted, style: .warning)
-                case nil:
-                    EmptyView()
-                }
-                if notices.camera != nil {
-                    Button(action: notices.importPhotos) {
-                        Label(DocumentStrings.importPhotos, systemImage: "photo.on.rectangle")
-                    }
-                }
-                if let removed = notices.removed {
-                    ErrorBanner(removed, style: .warning)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder private var placeholder: some View {
-        switch state {
-        case .loading:
-            HStack(spacing: 12) {
-                ProgressView()
-                Text(DocumentStrings.loading)
-            }
-            .accessibilityElement(children: .combine)
-        case .loaded:
-            Text(emptyText)
-                .foregroundStyle(.secondary)
-        case .failed:
-            EmptyView()
-        }
-    }
-
-    @ViewBuilder
-    private func rowView(_ row: DocumentsModel.Row) -> some View {
-        if let documentID = row.documentID {
-            NavigationLink {
-                destination(documentID)
-            } label: {
-                DocumentRowView(row: row)
-            }
-        } else {
-            // Retry and delete as swipe actions, as a context menu, as VoiceOver and Switch Control actions,
-            // and as visible buttons once the upload failed.
-            VStack(alignment: .leading, spacing: 12) {
-                DocumentRowView(row: row)
-                    .accessibilityActions { uploadActions(row) }
-                if case .uploadFailed = row.status {
-                    failedRowButtons(row)
-                }
-            }
-            .contextMenu { uploadActions(row) }
-            .swipeActions(edge: .trailing) {
-                if row.status.canDelete {
-                    Button(DocumentStrings.delete, role: .destructive) { deleteUpload(row.id) }
-                }
-                if row.status.canRetryUpload {
-                    Button(DocumentStrings.retry) { retryUpload(row.id) }
-                        .tint(BrievieColor.brand)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func uploadActions(_ row: DocumentsModel.Row) -> some View {
-        if row.status.canRetryUpload {
-            Button {
-                retryUpload(row.id)
-            } label: {
-                Label(DocumentStrings.retry, systemImage: "arrow.clockwise")
-            }
-        }
-        if row.status.canDelete {
-            Button(role: .destructive) {
-                deleteUpload(row.id)
-            } label: {
-                Label(DocumentStrings.delete, systemImage: "trash")
-            }
-        }
-    }
-
-    /// Side by side, or stacked when the text is large.
-    private func failedRowButtons(_ row: DocumentsModel.Row) -> some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) { failedButtons(row) }
-            VStack(spacing: 8) { failedButtons(row) }
-        }
-    }
-
-    @ViewBuilder
-    private func failedButtons(_ row: DocumentsModel.Row) -> some View {
-        if row.status.canRetryUpload {
-            SecondaryButton(DocumentStrings.retry) { retryUpload(row.id) }
-        }
-        if row.status.canDelete {
-            SecondaryButton(DocumentStrings.delete) { deleteUpload(row.id) }
-        }
-    }
-}
-
-#if DEBUG
-private var previewRows: [DocumentsModel.Row] {
-    [
-        .init(
-            id: UUID(), documentID: nil, title: "Nieuw document", subtitle: "14 nov 2026 · 2 pagina's",
-            status: .uploading(progress: 0.4)
-        ),
-        .init(
-            id: UUID(), documentID: UUID(), title: "Belastingdienst", subtitle: "13 nov 2026 · 1 pagina",
-            status: .needsReview
-        ),
-        .init(
-            id: UUID(), documentID: UUID(), title: "CAK", subtitle: "10 nov 2026 · 3 pagina's", status: .done,
-            addressees: ["Papa", "Mama"],
-            labels: [
-                DocumentLabel(id: UUID(), name: "Zorg", colorKey: "green"),
-                DocumentLabel(id: UUID(), name: "Belasting en toeslagen", colorKey: "blue"),
-                DocumentLabel(id: UUID(), name: "Verzekering", colorKey: "purple")
-            ],
-            hasSuggestions: true
-        )
-    ]
-}
-
-private var previewGroups: [DocumentsModel.RowGroup] {
-    [DocumentsModel.RowGroup(kind: .post, title: "Post", header: "Post", rows: previewRows)]
-}
-
-#Preview("Light") {
-    NavigationStack {
-        DocumentsList(
-            state: .loaded, groups: previewGroups, emptyText: "", retryLoad: {}, retryUpload: { _ in },
-            deleteUpload: { _ in },
-            destination: { _ in EmptyView() }
-        )
-        .navigationTitle("Inbox")
-        .workspaceSubtitle("Thuis")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-    .tint(BrievieColor.brand)
-}
-
-#Preview("Dark, no passcode") {
-    NavigationStack {
-        DocumentsList(
-            state: .loaded, groups: previewGroups, emptyText: "",
-            notices: .init(warning: "Dit apparaat heeft geen toegangscode. Stel een toegangscode in."),
-            retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in }, destination: { _ in EmptyView() }
-        )
-        .navigationTitle("Inbox")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-    .tint(BrievieColor.brand)
-    .preferredColorScheme(.dark)
-}
-#endif
 #endif
