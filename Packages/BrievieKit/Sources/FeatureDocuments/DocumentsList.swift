@@ -101,16 +101,27 @@ struct DocumentsList<Destination: View>: View {
             }
             .accessibilityElement(children: .combine)
         case .loaded where empty.hint != nil:
-            // "Te doen" is empty: done, with what to do next and the way to the rest of the post.
-            ContentUnavailableView {
-                Label(empty.text, systemImage: "checkmark.circle")
-            } description: {
+            // "Te doen" is empty: done, with what to do next and the way to the rest of the post. Not
+            // `ContentUnavailableView`: it cuts its title to one line.
+            VStack(spacing: 12) {
+                Image(systemName: "checkmark.circle")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Text(empty.text)
+                    .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
                 Text(empty.hint ?? "")
-            } actions: {
+                    .foregroundStyle(.secondary)
                 if let showAllPost = empty.showAllPost {
                     Button(DocumentStrings.showAllPost, action: showAllPost)
+                        .buttonStyle(.borderless)
                 }
             }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
         case .loaded:
             Text(empty.text)
                 .foregroundStyle(.secondary)
