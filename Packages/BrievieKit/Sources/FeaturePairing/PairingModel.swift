@@ -147,16 +147,8 @@ public final class PairingModel {
     }
 
     private static func phase(for error: PairingError) -> Phase {
-        switch error {
-        case .noServerReachable: .failed(message: PairingStrings.unreachable, canRetry: true)
-        case .serverNotVerified: .failed(message: PairingStrings.notVerified, canRetry: false)
-        case .invalidCode: .failed(message: PairingStrings.invalidCode, canRetry: false)
-        case .connectionLostWhilePairing: .failed(message: PairingStrings.connectionLost, canRetry: false)
-        case .tooManyAttempts: .failed(message: PairingStrings.tooManyAttempts, canRetry: true)
-        case .incompatibleServer: .failed(message: PairingStrings.incompatible, canRetry: false)
-        case .cancelled: .scanning
-        case .failed: .failed(message: PairingStrings.generic, canRetry: false)
-        }
+        guard let failure = PairingFailure.describe(error) else { return .scanning }
+        return .failed(message: failure.message, canRetry: failure.canRetry)
     }
 
     private static func message(for error: PairingPayloadError) -> String {

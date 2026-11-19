@@ -14,6 +14,40 @@ public protocol BrievieServer: Sendable {
     /// Revokes the device `deviceID` on the server with its own token (unpairing). 401 and 404
     /// (`device_not_found`) mean the server no longer knows the device.
     func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws
+    /// A one-time nonce for pairing by proof (`POST /devices/pairing-challenges`). A 1c server answers 404.
+    func pairingChallenge(at url: URL, trust: ServerTrust) async throws -> String
+    /// Pairs from a server link (`POST /devices/pair-with-proof`). The code is not a parameter: on this path it
+    /// never leaves the phone.
+    func pairWithProof(
+        at url: URL, trust: ServerTrust, proof: CodeProof, deviceName: String
+    ) async throws -> PairedDevice
+}
+
+/// What the phone sends instead of the pairing code: the code's id, the server's nonce and the proof (64 lower-case
+/// hex, `PairingProof`). None of it reveals the code.
+public struct CodeProof: Equatable, Sendable {
+    public let pairingID: UUID
+    public let nonce: String
+    public let proof: String
+
+    public init(pairingID: UUID, nonce: String, proof: String) {
+        self.pairingID = pairingID
+        self.nonce = nonce
+        self.proof = proof
+    }
+}
+
+/// Defaults for conformers that predate pairing by proof (the test servers); `LiveBrievieServer` implements both.
+public extension BrievieServer {
+    func pairingChallenge(at url: URL, trust: ServerTrust) async throws -> String {
+        throw ServerError.other("not_implemented")
+    }
+
+    func pairWithProof(
+        at url: URL, trust: ServerTrust, proof: CodeProof, deviceName: String
+    ) async throws -> PairedDevice {
+        throw ServerError.other("not_implemented")
+    }
 }
 
 /// The result of a successful pairing.

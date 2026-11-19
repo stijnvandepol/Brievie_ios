@@ -1,0 +1,12 @@
+# Keeps the default rules and allows the made-up values the tests use. Matching on the value
+# (not on a commit) keeps this working after a squash or rebase.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Published test vectors"
+regexes = [
+  # The derived key of the pairing test vector shared with the host
+  # (Packages/BrievieKit/Tests/Fixtures/pairing_proof_v1.json): made from a made-up code.
+  '''^b0d30d4a0224e576656286cc732bc500d8b93217860fd69ca42cb95cf245105f$''',
+]

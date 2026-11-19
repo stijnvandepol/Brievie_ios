@@ -62,13 +62,13 @@
       }
     },
     "session.revoked": {
-      "comment": "Notice on the pairing screen after the server revoked this device.",
+      "comment": "Notice on the pairing screen after the server refused this device: revoked, or expired after a long time unused.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dit apparaat is ontkoppeld. Koppel het opnieuw om verder te gaan."
+            "value": "Deze koppeling werkt niet meer: ze is ingetrokken of je hebt Brievie lang niet gebruikt. Koppel dit toestel opnieuw om verder te gaan."
           }
         }
       }

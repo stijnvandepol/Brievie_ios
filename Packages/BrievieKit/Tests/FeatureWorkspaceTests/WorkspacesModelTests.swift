@@ -238,7 +238,8 @@ struct NoAuthentication: DeviceAuthenticator {
         await model.load()
 
         #expect(appModel.state == .unpaired(
-            notice: "Dit apparaat is ontkoppeld. Koppel het opnieuw om verder te gaan."
+            notice: "Deze koppeling werkt niet meer: ze is ingetrokken of je hebt Brievie lang niet gebruikt. "
+                + "Koppel dit toestel opnieuw om verder te gaan."
         ))
         #expect(server.urls.count == 1)
         #expect(secrets.read(.deviceToken) == nil)

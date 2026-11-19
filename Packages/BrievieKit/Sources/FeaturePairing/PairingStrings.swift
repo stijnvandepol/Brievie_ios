@@ -58,6 +58,35 @@ enum PairingStrings {
         bundle: .module
     )
 
+    static let linkInvalid = String(
+        localized: "pairing.link.error.invalid",
+        defaultValue: "Deze link werkt niet. Maak op de webpagina een nieuwe koppelcode en open de link opnieuw.",
+        bundle: .module
+    )
+    static let linkUnsupportedVersion = String(
+        localized: "pairing.link.error.unsupportedVersion",
+        defaultValue: "Deze link komt van een nieuwere versie van Brievie. Werk de app bij en probeer het opnieuw.",
+        bundle: .module
+    )
+    static let linkAlreadyPaired = String(
+        localized: "pairing.link.error.alreadyPaired",
+        defaultValue: """
+            Deze telefoon is al gekoppeld met een Brievie-server. Wil je een andere server gebruiken? \
+            Tik dan in je werkruimtes op Ontkoppelen en open de link opnieuw.
+            """,
+        bundle: .module
+    )
+    /// The link sheet's answer to a refused proof: a wrong or used code, an unknown pairing, or a challenge that
+    /// expired. Unlike the QR path the code was typed, so a typo is the likely cause.
+    static let linkInvalidCode = String(
+        localized: "pairing.link.error.invalidCode",
+        defaultValue: """
+            Deze koppelcode klopt niet of is verlopen. \
+            Typ de code opnieuw, of maak op de webpagina een nieuwe code.
+            """,
+        bundle: .module
+    )
+
     /// Every string above by catalog key, for the parity test.
     static let all: [String: String] = [
         "pairing.error.notBrievie": notBrievie,
@@ -69,6 +98,10 @@ enum PairingStrings {
         "pairing.error.connectionLost": connectionLost,
         "pairing.error.tooManyAttempts": tooManyAttempts,
         "pairing.error.incompatible": incompatible,
-        "error.generic": generic
+        "error.generic": generic,
+        "pairing.link.error.invalid": linkInvalid,
+        "pairing.link.error.unsupportedVersion": linkUnsupportedVersion,
+        "pairing.link.error.alreadyPaired": linkAlreadyPaired,
+        "pairing.link.error.invalidCode": linkInvalidCode
     ]
 }

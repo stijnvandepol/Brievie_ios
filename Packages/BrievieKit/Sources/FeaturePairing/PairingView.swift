@@ -9,15 +9,18 @@ public struct PairingView: View {
     private let model: PairingModel
     /// Why the user is here again, for example "this device was disconnected".
     private let notice: String?
+    /// The link sheet is (about to be) shown: the scanner sheet closes, two sheets must not compete.
+    private let closesScanner: Bool
 
     @Environment(\.scenePhase) private var scenePhase
     @State private var showsManualEntry = false
     @State private var showsScanner = false
     @State private var manualText = ""
 
-    public init(model: PairingModel, notice: String?) {
+    public init(model: PairingModel, notice: String?, closesScanner: Bool = false) {
         self.model = model
         self.notice = notice
+        self.closesScanner = closesScanner
     }
 
     private var cameraIsUsable: Bool { model.camera == .scanning }
@@ -64,6 +67,9 @@ public struct PairingView: View {
         // The camera can stop being usable while the sheet is open (permission revoked, scanner failed).
         .onChange(of: model.camera) { _, camera in
             if camera != .scanning { showsScanner = false }
+        }
+        .onChange(of: closesScanner, initial: true) { _, closes in
+            if closes { showsScanner = false }
         }
     }
 

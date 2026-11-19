@@ -13,7 +13,10 @@ public enum APIClient {
     /// - Parameters:
     ///   - token: the device token; when given, every request carries `Authorization: Bearer <token>`.
     ///   - maxJSONBytes: the largest JSON answer read; a longer one throws `ResponseTooLargeError`.
-    public static func make(baseURL: URL, session: URLSession, token: String?, maxJSONBytes: Int) -> Client {
+    ///   - appVersion: when given, every request carries it in `AppVersionHeader.name`.
+    public static func make(
+        baseURL: URL, session: URLSession, token: String?, maxJSONBytes: Int, appVersion: String? = nil
+    ) -> Client {
         let cap = ResponseSizeMiddleware(maxJSONBytes: maxJSONBytes)
         return Client(
             serverURL: baseURL,
@@ -21,6 +24,7 @@ public enum APIClient {
             transport: URLSessionTransport(configuration: .init(session: session)),
             middlewares: [ForeignUnauthorizedMiddleware(), cap]
                 + (token.map { [BearerTokenMiddleware(token: $0)] } ?? [])
+                + (appVersion.map { [AppVersionMiddleware(value: $0)] } ?? [])
         )
     }
 }
@@ -93,6 +97,25 @@ struct BearerTokenMiddleware: ClientMiddleware {
     ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
         request.headerFields[.authorization] = "Bearer \(token)"
+        return try await next(request, body, baseURL)
+    }
+}
+
+/// Adds `X-Brievie-App-Version` to every request. A header name the HTTP types refuse sends the request without it.
+struct AppVersionMiddleware: ClientMiddleware {
+    let value: String
+
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        var request = request
+        if let name = HTTPField.Name(AppVersionHeader.name) {
+            request.headerFields[name] = value
+        }
         return try await next(request, body, baseURL)
     }
 }

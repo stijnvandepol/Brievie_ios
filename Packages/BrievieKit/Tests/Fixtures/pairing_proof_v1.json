@@ -1,0 +1,15 @@
+{
+  "context": "brievie-pair-v1",
+  "iterations": 600000,
+  "typed_code": "abcd-2345",
+  "normalised_code": "ABCD2345",
+  "pairing_id": "0b7e2f4c-5d1a-4e8b-9c3f-6a2d8e1f4b70",
+  "nonce": "q3Vb8xN2pL5sT9wE1yH4kM7rC0uZ6aJdFgQiXoWnYeK",
+  "key": "b0d30d4a0224e576656286cc732bc500d8b93217860fd69ca42cb95cf245105f",
+  "cases": [
+    {"trust_binding": "abababababababababababababababababababababababababababababababab",
+     "proof": "f658f764994838ca7b728313d410619295065549d3ccf22a04746ec95c0f2805"},
+    {"trust_binding": "brievie.example.nl",
+     "proof": "f6a8154668ac8fcdcdb1d516278aed3ad86bba62f6d993fd590c64bc54e641ad"}
+  ]
+}

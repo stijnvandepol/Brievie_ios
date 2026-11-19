@@ -14,6 +14,8 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     /// The pairing whose screens are in the view tree (also while locked); `nil` until the first unlock.
     @State private var shownConnection: ServerConnection?
+    /// The sheet of a `brievie://server` link. Made by `BrievieApp`, which also asks it for the privacy cover.
+    let linkModel: ServerLinkModel
 
     var body: some View {
         content
@@ -34,9 +36,25 @@ struct RootView: View {
                     Task { await environment.uploads.resume() }
                 }
             }
-            // A deadline in the calendar links to `brievie://task/<id>`. The link only brings the app to the
-            // foreground: the lock and the screens follow from the activation, nothing is read from the link.
-            .onOpenURL { _ in }
+            // A deadline in the calendar links to `brievie://task/<id>`. That link (and any other that is not a
+            // server link) only brings the app to the foreground: the lock and the screens follow from the
+            // activation, nothing is read from it. A `brievie://server` link opens the link sheet; nothing is
+            // contacted until the user taps "Server zoeken" there.
+            .onOpenURL { url in
+                guard ServerLink.isServerLink(url) else { return }
+                linkModel.receive(url, appState: appModel.state)
+            }
+            .onChange(of: appModel.state) { _, state in
+                linkModel.appStateChanged(state)
+            }
+            .sheet(isPresented: Binding(
+                get: { linkModel.presentation != nil },
+                set: { isPresented in
+                    if !isPresented { linkModel.dismiss() }
+                }
+            )) {
+                ServerLinkView(model: linkModel)
+            }
             // The first-launch check waits for protected data; run it as soon as the device is unlocked.
             .onReceive(NotificationCenter.default.publisher(
                 for: UIApplication.protectedDataDidBecomeAvailableNotification
@@ -50,7 +68,10 @@ struct RootView: View {
     /// leaves the foreground, so nothing of it shows above the lock.)
     @ViewBuilder private var content: some View {
         if case .unpaired(let notice) = appModel.state {
-            PairingScreen(appModel: appModel, environment: environment, notice: notice)
+            PairingScreen(
+                appModel: appModel, environment: environment, notice: notice,
+                closesScanner: linkModel.presentation != nil
+            )
         } else {
             ZStack {
                 if let connection = shownConnection {
@@ -82,8 +103,9 @@ struct RootView: View {
 private struct PairingScreen: View {
     @State private var model: PairingModel
     private let notice: String?
+    private let closesScanner: Bool
 
-    init(appModel: AppModel, environment: AppEnvironment, notice: String?) {
+    init(appModel: AppModel, environment: AppEnvironment, notice: String?, closesScanner: Bool) {
         _model = State(initialValue: PairingModel(
             service: PairingService(server: environment.server, store: environment.store),
             camera: LiveCameraAccess(),
@@ -92,10 +114,11 @@ private struct PairingScreen: View {
             onPaired: { appModel.didPair($0) }
         ))
         self.notice = notice
+        self.closesScanner = closesScanner
     }
 
     var body: some View {
-        PairingView(model: model, notice: notice)
+        PairingView(model: model, notice: notice, closesScanner: closesScanner)
     }
 }
 

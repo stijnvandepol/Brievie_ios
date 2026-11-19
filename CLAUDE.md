@@ -3,7 +3,7 @@
 Native SwiftUI app that pairs with a self-hosted Brievie server.
 
 - Spec: `../Brievie_host/docs/SPEC.md` (sections 11, 13, 14, 16 step 1a, 18, 19)
-- Current plan: `docs/superpowers/plans/2026-11-16-ios-fase-1c.md` (earlier: `2026-11-14-ios-fase-1b.md`, `2026-11-13-ios-fundament.md`)
+- Current plan: `../Brievie_host/docs/superpowers/plans/2026-11-17-ios-1d-a-leden-apparaten.md` (phase 1d part A; earlier, here: `docs/superpowers/plans/2026-11-16-ios-fase-1c.md`, `2026-11-14-ios-fase-1b.md`, `2026-11-13-ios-fundament.md`)
 - Dependency and design decisions: `docs/DECISIONS.md`
 
 ## Make targets

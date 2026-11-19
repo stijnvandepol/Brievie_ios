@@ -1,3 +1,4 @@
+import BrievieAPI
 import Foundation
 import Synchronization
 
@@ -33,13 +34,22 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
     private let state = Mutex(State())
     private let session = Mutex<URLSession?>(nil)
     private let configuration: @Sendable () -> URLSessionConfiguration
+    private let appVersion: String?
 
-    public convenience init(trustProvider: any UploadTrustProvider) {
-        self.init(trustProvider: trustProvider) { Self.configuration(identifier: Self.sessionIdentifier) }
+    /// - Parameter appVersion: sent with every upload (`AppVersionHeader`); `nil` sends none.
+    public convenience init(trustProvider: any UploadTrustProvider, appVersion: String? = AppVersionHeader.current()) {
+        self.init(trustProvider: trustProvider, appVersion: appVersion) {
+            Self.configuration(identifier: Self.sessionIdentifier)
+        }
     }
 
-    init(trustProvider: any UploadTrustProvider, configuration: @escaping @Sendable () -> URLSessionConfiguration) {
+    init(
+        trustProvider: any UploadTrustProvider,
+        appVersion: String? = nil,
+        configuration: @escaping @Sendable () -> URLSessionConfiguration
+    ) {
         self.trustProvider = trustProvider
+        self.appVersion = appVersion
         self.configuration = configuration
         (events, continuation) = AsyncStream.makeStream(of: UploadEvent.self, bufferingPolicy: .unbounded)
         super.init()
@@ -77,13 +87,7 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
     // MARK: - UploadTransport
 
     public func start(_ upload: UploadRequest) async {
-        var request = URLRequest(url: upload.url)
-        request.httpMethod = "POST"
-        request.setValue(
-            MultipartBodyWriter.contentType(boundary: upload.boundary), forHTTPHeaderField: "Content-Type"
-        )
-        request.setValue("Bearer \(upload.token)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let request = Self.request(for: upload, appVersion: appVersion)
         // From a file: the system reads it while the app is not running, and sends a Content-Length.
         let task = urlSession().uploadTask(with: request, fromFile: upload.bodyFile)
         task.taskDescription = Self.description(
@@ -181,6 +185,19 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
     }
 
     // MARK: - Pure parts
+
+    /// The upload's POST: the multipart content type, the device token, and the app version when known.
+    static func request(for upload: UploadRequest, appVersion: String?) -> URLRequest {
+        var request = URLRequest(url: upload.url)
+        request.httpMethod = "POST"
+        request.setValue(
+            MultipartBodyWriter.contentType(boundary: upload.boundary), forHTTPHeaderField: "Content-Type"
+        )
+        request.setValue("Bearer \(upload.token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let appVersion { request.setValue(appVersion, forHTTPHeaderField: AppVersionHeader.name) }
+        return request
+    }
 
     /// Only server-trust challenges are decided here. Without a readable pairing the connection is
     /// refused: never a fallback to the system's trust for a server that should be pinned.

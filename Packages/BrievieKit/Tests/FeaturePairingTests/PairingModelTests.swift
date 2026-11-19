@@ -1,66 +1,7 @@
 import BrievieCore
 @testable import FeaturePairing
 import Foundation
-import Synchronization
 import Testing
-
-/// A `BrievieServer` for pairing tests: every URL answers as a public-certificate server unless set otherwise.
-final class StubServer: BrievieServer {
-    private struct State {
-        var healthCalls = 0
-        var pairCalls = 0
-        var deviceNames: [String] = []
-        var health: @Sendable () throws -> String = { "1.0.0" }
-        var pair: @Sendable () throws -> PairedDevice = { StubServer.device }
-    }
-
-    static let device = PairedDevice(deviceID: UUID(), token: "device-token", userName: "Beheerder")
-
-    private let state = Mutex(State())
-
-    var healthCalls: Int { state.withLock { $0.healthCalls } }
-    var pairCalls: Int { state.withLock { $0.pairCalls } }
-    var deviceNames: [String] { state.withLock { $0.deviceNames } }
-
-    var health: @Sendable () throws -> String {
-        get { state.withLock { $0.health } }
-        set { state.withLock { $0.health = newValue } }
-    }
-
-    var pair: @Sendable () throws -> PairedDevice {
-        get { state.withLock { $0.pair } }
-        set { state.withLock { $0.pair = newValue } }
-    }
-
-    func health(at url: URL, trust: ServerTrust) async throws -> String {
-        let answer = state.withLock {
-            $0.healthCalls += 1
-            return $0.health
-        }
-        return try answer()
-    }
-
-    func caCertificatePEM(at url: URL) async throws -> String {
-        throw ServerError.other("not expected: the payload has no CA")
-    }
-
-    func pair(at url: URL, trust: ServerTrust, code: String, deviceName: String) async throws -> PairedDevice {
-        let answer = state.withLock {
-            $0.pairCalls += 1
-            $0.deviceNames.append(deviceName)
-            return $0.pair
-        }
-        return try answer()
-    }
-
-    func workspaces(at url: URL, trust: ServerTrust, token: String) async throws -> [WorkspaceSummary] {
-        []
-    }
-
-    func revokeDevice(_ deviceID: UUID, at url: URL, trust: ServerTrust, token: String) async throws {
-        throw ServerError.other("not expected: pairing never revokes")
-    }
-}
 
 @MainActor
 @Suite struct PairingModelTests {

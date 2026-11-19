@@ -12,21 +12,27 @@ public struct LiveBrievieServer: BrievieServer {
 
     private let makeConfiguration: @Sendable () -> URLSessionConfiguration
     private let maxJSONBytes: Int
+    let appVersion: String?
 
-    public init() {
-        self.init { .ephemeral }
+    /// - Parameter appVersion: sent with every request (`AppVersionHeader`) and in the pairing body; `nil` sends
+    ///   none.
+    public init(appVersion: String? = AppVersionHeader.current()) {
+        self.init(configuration: { .ephemeral }, appVersion: appVersion)
     }
 
     /// - Parameters:
     ///   - configuration: the base session configuration (tests route it to a stub); it is always hardened with
     ///     `SessionConfiguration.hardened`.
     ///   - maxJSONBytes: a longer JSON answer fails with `ServerError.responseTooLarge`.
+    ///   - appVersion: as in the public initialiser; tests send none unless they ask.
     init(
         configuration: @escaping @Sendable () -> URLSessionConfiguration,
-        maxJSONBytes: Int = LiveBrievieServer.maxJSONResponseBytes
+        maxJSONBytes: Int = LiveBrievieServer.maxJSONResponseBytes,
+        appVersion: String? = nil
     ) {
         makeConfiguration = configuration
         self.maxJSONBytes = maxJSONBytes
+        self.appVersion = appVersion
     }
 
     public func health(at url: URL, trust: ServerTrust) async throws -> String {
@@ -49,11 +55,11 @@ public struct LiveBrievieServer: BrievieServer {
 
     public func pair(at url: URL, trust: ServerTrust, code: String, deviceName: String) async throws -> PairedDevice {
         try await withClient(url, trust: trust, token: nil) { client in
-            switch try await client.pairDevice(body: .json(.init(code: code, deviceName: deviceName))) {
+            switch try await client.pairDevice(
+                body: .json(.init(appVersion: appVersion, code: code, deviceName: deviceName))
+            ) {
             case let .created(response):
-                let paired = try response.body.json
-                guard let deviceID = UUID(uuidString: paired.deviceId) else { throw ServerError.incompatible }
-                return PairedDevice(deviceID: deviceID, token: paired.token, userName: paired.user.name)
+                return try PairedDevice(pairOut: try response.body.json)
             case let .badRequest(response):
                 throw ServerError(status: 400, code: try? response.body.json.code)
             case .contentTooLarge:
@@ -117,7 +123,9 @@ public struct LiveBrievieServer: BrievieServer {
         defer { session.finishTasksAndInvalidate() }
         do {
             return try await operation(
-                APIClient.make(baseURL: url, session: session, token: token, maxJSONBytes: maxJSONBytes)
+                APIClient.make(
+                    baseURL: url, session: session, token: token, maxJSONBytes: maxJSONBytes, appVersion: appVersion
+                )
             )
         } catch {
             throw ServerError.throwingCancellation(error)
