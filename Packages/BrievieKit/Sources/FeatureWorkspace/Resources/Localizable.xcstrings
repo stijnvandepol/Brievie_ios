@@ -25,6 +25,222 @@
         }
       }
     },
+    "reminders.denied": {
+      "comment": "Notifications were refused (in the prompt or in Settings).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie mag geen meldingen sturen. Zet meldingen voor Brievie aan in Instellingen."
+          }
+        }
+      }
+    },
+    "reminders.footer.dayBefore": {
+      "comment": "Footer, first sentence, lead time one day.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je krijgt om 9:00 een melding, een dag voordat een termijn afloopt en op de dag zelf."
+          }
+        }
+      }
+    },
+    "reminders.footer.daysBefore": {
+      "comment": "Footer, first sentence; %d is the lead time in days (at least 2).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je krijgt om 9:00 een melding, %d dagen voordat een termijn afloopt en op de dag zelf."
+          }
+        }
+      }
+    },
+    "reminders.footer.known": {
+      "comment": "Footer: reminders only know what the app last read (no background fetch).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie herinnert je aan termijnen die de app kent. Open de app af en toe, dan blijft dat bij."
+          }
+        }
+      }
+    },
+    "reminders.footer.neutral": {
+      "comment": "Footer: what a reminder shows by default (on the lock screen).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In de melding staat alleen dat er een termijn afloopt, niets uit de brief."
+          }
+        }
+      }
+    },
+    "reminders.footer.onTheDay": {
+      "comment": "Footer, first sentence, lead time 0 (on the day only).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je krijgt om 9:00 een melding op de dag dat een termijn afloopt."
+          }
+        }
+      }
+    },
+    "reminders.footer.sender": {
+      "comment": "Footer while the sender is shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In de melding staat ook de afzender. Die is dan te lezen op het toegangsscherm."
+          }
+        }
+      }
+    },
+    "reminders.header": {
+      "comment": "Header of the settings section with the deadline reminders.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meldingen"
+          }
+        }
+      }
+    },
+    "reminders.lead": {
+      "comment": "Picker: how long before the deadline the first reminder comes.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eerste melding"
+          }
+        }
+      }
+    },
+    "reminders.lead.0": {
+      "comment": "Lead time option: only on the day of the deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op de dag zelf"
+          }
+        }
+      }
+    },
+    "reminders.lead.1": {
+      "comment": "Lead time option.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 dag ervoor"
+          }
+        }
+      }
+    },
+    "reminders.lead.2": {
+      "comment": "Lead time option.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 dagen ervoor"
+          }
+        }
+      }
+    },
+    "reminders.lead.3": {
+      "comment": "Lead time option (the default).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 dagen ervoor"
+          }
+        }
+      }
+    },
+    "reminders.lead.7": {
+      "comment": "Lead time option.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 week ervoor"
+          }
+        }
+      }
+    },
+    "reminders.openSettings": {
+      "comment": "Button that opens the app's page in the Settings app.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Instellingen"
+          }
+        }
+      }
+    },
+    "reminders.sender.footer": {
+      "comment": "Under the sender switch: what never shows.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een bedrag of wat je moet doen staat nooit in de melding."
+          }
+        }
+      }
+    },
+    "reminders.sender.toggle": {
+      "comment": "Switch, off by default: the reminder names the sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toon de afzender in herinneringen"
+          }
+        }
+      }
+    },
+    "reminders.toggle": {
+      "comment": "Switch: local notifications for task deadlines on this phone. Off by default.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Herinneringen voor termijnen"
+          }
+        }
+      }
+    },
     "settings.title": {
       "comment": "Title of the settings screen, and the accessibility label of the gear that opens it.",
       "extractionState": "manual",

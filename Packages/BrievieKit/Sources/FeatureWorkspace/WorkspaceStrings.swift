@@ -204,5 +204,5 @@ enum WorkspaceStrings {
         "workspaces.calendar.noCalendarAccount": calendarNoCalendarAccount,
         "workspaces.calendar.keptForUserEvents": calendarKeptForUserEvents,
         "workspaces.calendar.remove.question": calendarRemoveQuestionFormat
-    ]
+    ].merging(reminders) { current, _ in current }
 }

@@ -217,11 +217,13 @@ private var previewRows: [DocumentsModel.Row] {
     ]
 }
 
-private let previewEmpty = DocumentsList<EmptyView>.Empty(
-    text: "Je bent klaar. Er is niets te doen.",
-    hint: "Een nieuwe brief scan je met de knop + bovenaan. Eerdere brieven vind je bij Alle post.",
-    showAllPost: {}
-)
+private var previewEmpty: DocumentsList<EmptyView>.Empty {
+    .init(
+        text: "Je bent klaar. Er is niets te doen.",
+        hint: "Een nieuwe brief scan je met de knop + bovenaan. Eerdere brieven vind je bij Alle post.",
+        showAllPost: {}
+    )
+}
 
 #Preview("Te doen") {
     NavigationStack {

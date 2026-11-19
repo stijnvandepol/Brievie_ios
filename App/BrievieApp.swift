@@ -21,6 +21,13 @@ struct BrievieApp: App {
         let server = LiveBrievieServer()
         let calendar = AppCalendar(store: store, server: server, settings: UserDefaultsCalendarSettings())
         let currentWorkspace = UserDefaultsCurrentWorkspaceStore()
+        // Local notifications for deadlines, made on the phone from the tasks the app read; nothing goes to a server.
+        let reminders = DeadlineReminders(
+            center: UserNotificationsReminderCenter(), settings: UserDefaultsReminderSettings(),
+            tasks: AppCalendar.openTasks(store: store, server: server)
+        )
+        let reminderRouter = ReminderRouter()
+        AppDelegate.reminderRouter = reminderRouter
         let model = AppModel(
             store: store,
             authenticator: LocalAuthenticator(),
@@ -32,7 +39,9 @@ struct BrievieApp: App {
             calendarSettings: calendar.settings,
             calendarSync: calendar.sync,
             // Forgotten with the pairing, like the calendar switches.
-            currentWorkspace: currentWorkspace
+            currentWorkspace: currentWorkspace,
+            // Switched off and removed with the pairing.
+            reminders: reminders
         )
         model.start()
         _appModel = State(initialValue: model)
@@ -47,9 +56,10 @@ struct BrievieApp: App {
             return true
         }
         // An upload that gets a 401 sends the user back to pairing, like any other call.
-        environment = AppEnvironment.live(
-            store: store, server: server, calendar: calendar, currentWorkspace: currentWorkspace
-        ) { [model] deviceID in
+        let shared = AppShared(
+            calendar: calendar, currentWorkspace: currentWorkspace, reminders: reminders, reminderRouter: reminderRouter
+        )
+        environment = AppEnvironment.live(store: store, server: server, shared: shared) { [model] deviceID in
             await model.sessionRevoked(deviceID: deviceID)
         }
     }

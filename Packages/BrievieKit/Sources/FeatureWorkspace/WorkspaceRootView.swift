@@ -12,7 +12,6 @@ public struct WorkspaceRootView<Inbox: View>: View {
     private let warning: String?
     /// The post of a workspace: supplied by the app, so this target does not know the documents feature.
     private let inbox: (WorkspacesModel.Row) -> Inbox
-    @State private var showsSettings = false
     @Environment(\.scenePhase) private var scenePhase
 
     public init(
@@ -26,13 +25,14 @@ public struct WorkspaceRootView<Inbox: View>: View {
     }
 
     public var body: some View {
+        @Bindable var model = model
         NavigationStack {
             root
                 // Outside the root's states: whatever the root shows, the gear is there.
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
-                            showsSettings = true
+                            model.isShowingSettings = true
                         } label: {
                             Label {
                                 Text("settings.title", bundle: .module)
@@ -42,8 +42,9 @@ public struct WorkspaceRootView<Inbox: View>: View {
                         }
                     }
                 }
-                .navigationDestination(isPresented: $showsSettings) {
-                    SettingsView(model: model) { showsSettings = false }
+                // In the model: a tapped reminder closes the settings to show its letter.
+                .navigationDestination(isPresented: $model.isShowingSettings) {
+                    SettingsView(model: model) { model.isShowingSettings = false }
                 }
         }
         .task { await model.load() }

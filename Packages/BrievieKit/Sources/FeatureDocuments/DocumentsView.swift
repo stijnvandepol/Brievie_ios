@@ -41,6 +41,7 @@ public struct DocumentsView<Destination: View>: View {
     }
 
     public var body: some View {
+        @Bindable var model = model
         DocumentsList(
             state: model.state,
             rows: model.rows,
@@ -110,6 +111,10 @@ public struct DocumentsView<Destination: View>: View {
             isPresented: Binding(get: { scanModel.isPresented }, set: { if !$0 { scanModel.discard() } })
         ) {
             ScanFlowView(model: scanModel)
+        }
+        // A letter opened by a tapped reminder.
+        .navigationDestination(item: $model.openedDocument) { documentID in
+            destination(documentID)
         }
         .onChange(of: scanModel.phase) { _, phase in
             guard phase == .finished else { return }

@@ -66,6 +66,8 @@ public final class DocumentsModel {
     public private(set) var cameraNotice: CameraNotice?
     /// Scans the queue removed because they could not be read; shown while this screen is open.
     public private(set) var removedNotice: String?
+    /// A letter opened from outside the list (a tapped reminder): the screen pushes it.
+    public var openedDocument: UUID?
 
     private let documents: WorkspaceDocuments
     private let uploads: any UploadQueue

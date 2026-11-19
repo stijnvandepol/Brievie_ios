@@ -58,6 +58,11 @@ public final class WorkspacesModel {
     /// More than one workspace: the inbox says which one it shows. With one the user never sees the word.
     public var showsWorkspaceName: Bool { rows.count > 1 }
 
+    /// The settings are pushed on the root screen.
+    public var isShowingSettings = false
+    /// "Herinneringen voor termijnen"; `nil` without reminder support.
+    public let reminderModel: ReminderSettingModel?
+
     /// The "Ontkoppelen" confirmation is on screen.
     public var isConfirmingUnpair = false
     /// Scans waiting in the upload queue when the user asked to unpair; the confirmation says they go.
@@ -85,19 +90,24 @@ public final class WorkspacesModel {
     private let unpairing: Unpairing
     private let calendar: WorkspaceCalendar?
     private let currentWorkspace: any CurrentWorkspaceStore
+    private let reminders: DeadlineReminders?
     /// The calendar switch per workspace of the last load; kept across reloads.
     private var calendarModels: [UUID: CalendarSettingModel] = [:]
     /// The load started by `retry()`; `stop()` cancels it when the screen goes away. Tests await it.
     @ObservationIgnored private(set) var retryTask: Task<Void, Never>?
     /// Counts the queue before the confirmation opens. Tests await it.
     @ObservationIgnored private(set) var unpairCountTask: Task<Void, Never>?
+    /// The reminders' refresh after a load. Tests await it.
+    @ObservationIgnored private(set) var reminderTask: Task<Void, Never>?
 
     /// - Parameter calendar: the calendar switches; `nil` shows none.
     /// - Parameter currentWorkspace: where the workspace the inbox shows is remembered across launches.
+    /// - Parameter reminders: the deadline reminders, refreshed after every load; `nil` shows no switch.
     public init(
         connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel,
         unpairing: Unpairing, calendar: WorkspaceCalendar? = nil,
-        currentWorkspace: any CurrentWorkspaceStore = InMemoryCurrentWorkspaceStore()
+        currentWorkspace: any CurrentWorkspaceStore = InMemoryCurrentWorkspaceStore(),
+        reminders: WorkspaceReminders? = nil
     ) {
         self.connection = connection
         self.store = store
@@ -106,6 +116,8 @@ public final class WorkspacesModel {
         self.unpairing = unpairing
         self.calendar = calendar
         self.currentWorkspace = currentWorkspace
+        self.reminders = reminders?.reminders
+        reminderModel = reminders.map { ReminderSettingModel(reminders: $0.reminders, openSettings: $0.openSettings) }
     }
 
     /// Shows the post of `workspace` (one of the loaded list) and remembers it for the next launch.
@@ -113,6 +125,16 @@ public final class WorkspacesModel {
         guard rows.contains(where: { $0.id == workspace }) else { return }
         currentWorkspaceID = workspace
         currentWorkspace.remember(workspace, forDevice: connection.deviceID)
+    }
+
+    /// A tapped reminder: shows its workspace (closing the settings) when this phone still has it. `false` when the
+    /// workspaces are not loaded or no longer list it: then nothing changes.
+    @discardableResult
+    public func show(_ target: ReminderTarget) -> Bool {
+        guard rows.contains(where: { $0.id == target.workspaceID }) else { return false }
+        isShowingSettings = false
+        select(target.workspaceID)
+        return true
     }
 
     /// The "Zet deadlines in mijn agenda" switch of a loaded workspace; `nil` without calendar support.
@@ -178,6 +200,7 @@ public final class WorkspacesModel {
             // The app learns the names first: a sync names the calendar after its workspace.
             calendar?.didLoad(rows)
             for model in calendarModels.values { model.refresh() }
+            refreshReminders(workspaces: rows.map(\.id))
         case .revoked:
             appModel.sessionRevoked(deviceID: connection.deviceID)
         case .cancelled:
@@ -200,6 +223,17 @@ public final class WorkspacesModel {
         currentWorkspaceID = chosen
         if currentWorkspace.workspace(forDevice: connection.deviceID) != chosen {
             currentWorkspace.remember(chosen, forDevice: connection.deviceID)
+        }
+    }
+
+    /// The workspaces this phone is paired to now: their reminders follow, those of a workspace that is gone go.
+    private func refreshReminders(workspaces: [UUID]) {
+        guard let reminders else { return }
+        reminderModel?.refresh()
+        let previous = reminderTask
+        reminderTask = Task {
+            await previous?.value
+            await reminders.reschedule(workspaces: workspaces)
         }
     }
 
