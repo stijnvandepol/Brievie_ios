@@ -43,6 +43,8 @@ public final class ReviewModel {
     public var picker: OrganisePicker?
     /// The letter text with a quote marked (a sheet).
     public var shownQuote: SourceQuote?
+    /// The letter on the whole screen (pushed, so it stays under the lock screen); `nil` when closed.
+    public var reader: LetterReaderModel?
     /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
     /// on to `confirmed` itself, so a tick that is answered after this screen closed still reaches it.
     public var onTasksChanged: (@MainActor () -> Void)? {
@@ -54,6 +56,7 @@ public final class ReviewModel {
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
+    private let clock: TodayClock
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     /// The draft as it was pre-filled, to tell whether the user changed anything.
     @ObservationIgnored private var pristineDraft = Draft()
@@ -67,7 +70,8 @@ public final class ReviewModel {
         canEdit: Bool,
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void,
-        refreshInterval: Duration = .seconds(3)
+        refreshInterval: Duration = .seconds(3),
+        clock: TodayClock = .system
     ) {
         self.documentID = documentID
         self.documents = documents
@@ -75,6 +79,7 @@ public final class ReviewModel {
         self.onRevoked = onRevoked
         self.onMissingPairing = onMissingPairing
         self.refreshInterval = refreshInterval
+        self.clock = clock
     }
 
     /// The most pages the review shows of one letter. The host refuses more than 30 per letter by default
@@ -295,7 +300,7 @@ public final class ReviewModel {
         case .needsReview, .failed:
             // A refresh must not throw away what the user typed.
             if !wasReviewing {
-                draft = Self.draft(from: detail)
+                draft = Self.draft(from: detail, today: clock.today)
                 pristineDraft = draft
             }
             state = .review
@@ -385,16 +390,4 @@ extension ReviewModel {
     private static func sorted(_ ids: Set<UUID>) -> [UUID] {
         ids.sorted { $0.uuidString < $1.uuidString }
     }
-}
-
-/// The list a sheet shows to choose persons or labels from.
-public enum OrganisePicker: Identifiable, Sendable {
-    case persons, labels
-    public var id: Self { self }
-}
-
-/// The quote whose place in the letter is being shown.
-public struct SourceQuote: Identifiable, Equatable, Sendable {
-    public let text: String
-    public var id: String { text }
 }

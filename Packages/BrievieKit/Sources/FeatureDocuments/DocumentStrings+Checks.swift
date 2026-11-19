@@ -7,6 +7,11 @@ extension DocumentStrings {
         defaultValue: "Niet gecontroleerd",
         bundle: .module
     )
+    static let letterDateToday = String(
+        localized: "review.letterDate.today",
+        defaultValue: "Dit is de datum van vandaag. Staat er een andere datum op de brief? Pas hem dan aan.",
+        bundle: .module
+    )
     static let confirmConflict = String(
         localized: "review.error.conflict",
         defaultValue: "Dat lukte nu niet. Wat je hebt ingevuld, staat er nog. Probeer het zo nog eens.",

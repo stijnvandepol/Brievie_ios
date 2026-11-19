@@ -370,6 +370,7 @@ extension DocumentStrings {
         "documents.upload.otherServer": otherServer,
         "review.ai.note": aiProposalsNote,
         "review.unchecked": unchecked,
+        "review.letterDate.today": letterDateToday,
         "review.error.conflict": confirmConflict,
         "review.discard.title": discardEditsTitle,
         "review.discard.message": discardEditsMessage,
@@ -392,5 +393,5 @@ extension DocumentStrings {
         "documents.addressees": addresseesFormat,
         "documents.labels": labelsFormat,
         "documents.suggestion": suggestion
-    ].merging(organise) { current, _ in current }
+    ].merging(organise) { current, _ in current }.merging(reader) { current, _ in current }
 }

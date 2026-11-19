@@ -31,6 +31,24 @@ public struct ValueOrigin: Equatable, Sendable {
     public let needsAttention: Bool
     /// Filled in by the app itself, not read from the letter: there is no confidence or quote to show.
     public let isUnchecked: Bool
+    /// Today's date, filled in by the app because nothing else was there: a starting value, not a reading.
+    public var isToday = false
+}
+
+/// What "today" is for a letter date that starts empty: the day it is now in the user's time zone.
+public struct TodayClock: Sendable {
+    let now: @Sendable () -> Date
+    let timeZone: @Sendable () -> TimeZone
+
+    public init(now: @escaping @Sendable () -> Date, timeZone: @escaping @Sendable () -> TimeZone) {
+        self.now = now
+        self.timeZone = timeZone
+    }
+
+    /// The device's clock and time zone, read at the moment the draft is made.
+    public static let system = TodayClock(now: { Date() }, timeZone: { .current })
+
+    var today: CalendarDate { CalendarDate(now(), in: timeZone()) }
 }
 
 extension ReviewModel {
@@ -72,6 +90,8 @@ extension ReviewModel {
         public func quote(for field: ReviewField) -> String { origin(of: field)?.quote ?? "" }
         public func needsAttention(_ field: ReviewField) -> Bool { origin(of: field)?.needsAttention ?? false }
         public func isUnchecked(_ field: ReviewField) -> Bool { origin(of: field)?.isUnchecked ?? false }
+        /// The field still holds the date of today the app filled in.
+        public func isToday(_ field: ReviewField) -> Bool { origin(of: field)?.isToday ?? false }
 
         public var senderQuote: String { quote(for: .sender) }
         public var letterDateQuote: String { quote(for: .letterDate) }
@@ -119,7 +139,10 @@ extension ReviewModel {
         }
     }
 
-    static func draft(from detail: DocumentDetail) -> Draft {
+    /// The draft for `detail`. An empty letter date starts as `today`, unless the AI proposed one (also one it
+    /// could not find in the letter: that stays a hint) or the server stored one; nothing is sent before the
+    /// user confirms.
+    static func draft(from detail: DocumentDetail, today: CalendarDate) -> Draft {
         let proposals = detail.proposals
         var draft = Draft()
         draft.organise = OrganiseDraft(detail: detail)
@@ -141,6 +164,16 @@ extension ReviewModel {
             draft.markUnchecked(.taskType(pay.id), value: pay.type)
             draft.markUnchecked(.taskDescription(pay.id), value: pay.description)
             apply(deadline: due, toTaskAt: draft.tasks.count - 1, in: &draft)
+        }
+        if draft.letterDate == nil, draft.unverified[.letterDate] == nil {
+            if let stored = detail.summary.letterDate {
+                draft.letterDate = stored
+            } else {
+                draft.letterDate = today
+                draft.origins[.letterDate] = ValueOrigin(
+                    value: today.iso, quote: "", needsAttention: false, isUnchecked: false, isToday: true
+                )
+            }
         }
         return draft
     }
