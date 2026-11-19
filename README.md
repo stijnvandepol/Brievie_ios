@@ -150,4 +150,13 @@ Een beveiligingsprobleem melden: zie [SECURITY.md](SECURITY.md). Open daarvoor g
 
 ## Licentie
 
-Licentie nog niet gekozen: er is geen `LICENSE`-bestand, dus er is geen toestemming om de code te hergebruiken.
+Copyright © 2026 Stijn van de Pol.
+
+Brievie voor iOS is vrije software: je mag de code gebruiken, aanpassen en verder verspreiden onder de
+GNU Affero General Public License, versie 3 of (naar jouw keuze) een latere versie. Er is geen garantie.
+De volledige tekst staat in [`LICENSE`](LICENSE). De server gebruikt dezelfde licentie.
+
+Let op bij verspreiden via de App Store: de voorwaarden van de App Store en die van de AGPL gaan niet samen
+voor wie het auteursrecht niet heeft. De versie in de App Store wordt daarom alleen door de auteur
+uitgebracht. Bijdragen van anderen worden pas samengevoegd onder een bijdragersovereenkomst; zie
+[CONTRIBUTING.md](CONTRIBUTING.md).

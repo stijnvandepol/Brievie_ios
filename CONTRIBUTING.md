@@ -50,3 +50,12 @@ The short form is in [CLAUDE.md](CLAUDE.md); the reasons are in [docs/DECISIONS.
 - Open the pull request against `main`. Fill in the template, in particular what you did **not** check: it is fine to say "not tried on a real device".
 - CI must be green. `.github/CODEOWNERS` asks the maintainer for review; changes to pairing, trust, the Keychain or uploads get a closer look.
 - Do not commit secrets, real letters or real server addresses. Test values must be made up.
+
+## Licence and contributions
+
+The code is licensed under AGPL-3.0-or-later (`LICENSE`). The author also publishes the app in
+the App Store, whose terms are not compatible with the AGPL for anyone who does not hold the
+copyright. For that reason a code contribution is merged only after its author has signed a
+contributor agreement that lets the project distribute the contribution through the App Store
+and under other licences. That agreement does not exist yet. Until it does, pull requests with
+code from outside are not merged; bug reports, ideas and security reports are welcome.
