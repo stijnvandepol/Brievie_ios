@@ -8,6 +8,8 @@ import SwiftUI
 public struct ReviewView: View {
     @Bindable private var model: ReviewModel
     @Environment(\.scenePhase) private var scenePhase
+    /// The page the small page view shows, where "Brief lezen" opens the reader.
+    @State private var shownPage = 1
 
     public init(model: ReviewModel) {
         self.model = model
@@ -48,6 +50,16 @@ public struct ReviewView: View {
         .onDisappear { model.stopPolling() }
         // Closes every sheet when the app leaves the foreground (they would sit above the lock screen).
         .onChange(of: scenePhase) { _, phase in model.sceneDidChange(isActive: phase == .active) }
+        // Pushed rather than a sheet or full-screen cover: it stays under the lock screen and needs no closing
+        // when the app leaves the foreground.
+        .navigationDestination(isPresented: Binding(
+            get: { model.reader != nil },
+            set: { if !$0 { model.closeReader() } }
+        )) {
+            if let reader = model.reader {
+                LetterReaderView(review: model, reader: reader)
+            }
+        }
         .sheet(item: $model.shownQuote) { quote in
             SourceView(quote: quote.text, pageTexts: model.pageTexts, missingPagesNote: model.missingPagesNote) {
                 model.shownQuote = nil
@@ -104,12 +116,19 @@ public struct ReviewView: View {
                 if let note = model.missingPagesNote {
                     ErrorBanner(note, style: .warning)
                 }
-                TabView {
+                TabView(selection: $shownPage) {
                     ForEach(1...model.pageCount, id: \.self) { index in
-                        PageImageView(
-                            data: model.pages[index],
-                            label: String(format: DocumentStrings.pageFormat, index, model.pageCount)
-                        )
+                        Button {
+                            model.openReader(at: index)
+                        } label: {
+                            PageImageView(
+                                data: model.pages[index],
+                                label: String(format: DocumentStrings.pageFormat, index, model.pageCount)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(DocumentStrings.readerOpenHint)
+                        .tag(index)
                         .task { await model.loadPage(index) }
                     }
                 }
@@ -117,6 +136,12 @@ public struct ReviewView: View {
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
                 .frame(height: 360)
                 .listRowInsets(EdgeInsets())
+                Button {
+                    model.openReader(at: shownPage)
+                } label: {
+                    Label(DocumentStrings.readerOpen, systemImage: "arrow.up.left.and.arrow.down.right")
+                }
+                .accessibilityHint(DocumentStrings.readerOpenHint)
             }
         }
     }

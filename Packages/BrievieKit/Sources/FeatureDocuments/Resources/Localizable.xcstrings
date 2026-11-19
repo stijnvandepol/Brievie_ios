@@ -589,6 +589,126 @@
         }
       }
     },
+    "reader.mode": {
+      "comment": "Label of the switch between the page image and the recognised text in the reader.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weergave"
+          }
+        }
+      }
+    },
+    "reader.mode.page": {
+      "comment": "Reader mode: the image of the page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina"
+          }
+        }
+      }
+    },
+    "reader.mode.text": {
+      "comment": "Reader mode: the recognised text of the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tekst"
+          }
+        }
+      }
+    },
+    "reader.next": {
+      "comment": "Reader button: go to the next page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volgende pagina"
+          }
+        }
+      }
+    },
+    "reader.open": {
+      "comment": "Button under the pages of a letter: open the letter on the whole screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief lezen"
+          }
+        }
+      }
+    },
+    "reader.open.hint": {
+      "comment": "VoiceOver hint of the button and the pages that open the full-screen reader.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toont de brief op het hele scherm. Je kunt inzoomen of de tekst lezen."
+          }
+        }
+      }
+    },
+    "reader.page.hint": {
+      "comment": "VoiceOver hint on a page image in the reader.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies bovenaan Tekst om de tekst van de brief te laten voorlezen."
+          }
+        }
+      }
+    },
+    "reader.previous": {
+      "comment": "Reader button: go to the previous page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorige pagina"
+          }
+        }
+      }
+    },
+    "reader.text.missing": {
+      "comment": "Reader text mode: the app has no recognised text for this page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Van deze pagina heeft de app geen tekst."
+          }
+        }
+      }
+    },
+    "reader.title": {
+      "comment": "Title of the full-screen reader (read by VoiceOver; the bar shows the mode switch).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief"
+          }
+        }
+      }
+    },
     "review.ai.note": {
       "comment": "Shown above a review that was pre-filled by AI (EU AI Act transparency).",
       "extractionState": "manual",

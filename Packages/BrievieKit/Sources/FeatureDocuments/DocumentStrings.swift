@@ -393,5 +393,5 @@ extension DocumentStrings {
         "documents.addressees": addresseesFormat,
         "documents.labels": labelsFormat,
         "documents.suggestion": suggestion
-    ].merging(organise) { current, _ in current }
+    ].merging(organise) { current, _ in current }.merging(reader) { current, _ in current }
 }

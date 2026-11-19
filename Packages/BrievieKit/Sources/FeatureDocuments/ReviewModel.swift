@@ -43,6 +43,8 @@ public final class ReviewModel {
     public var picker: OrganisePicker?
     /// The letter text with a quote marked (a sheet).
     public var shownQuote: SourceQuote?
+    /// The letter on the whole screen (pushed, so it stays under the lock screen); `nil` when closed.
+    public var reader: LetterReaderModel?
     /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
     /// on to `confirmed` itself, so a tick that is answered after this screen closed still reaches it.
     public var onTasksChanged: (@MainActor () -> Void)? {
