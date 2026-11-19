@@ -12,11 +12,11 @@ import Testing
         var failing: Set<Int> = []
         let counter = LockedList()
 
-        func text(in image: CGImage) async throws -> String {
+        func lines(in image: CGImage) async throws -> [RecognizedLine] {
             counter.append("call")
             let number = counter.values.count
             if failing.contains(number) { throw ScanError.recognitionFailed }
-            return "tekst van pagina \(number)"
+            return [RecognizedLine(text: "tekst van pagina \(number)", confidence: 1, baselineX: 1, baselineY: 0)]
         }
     }
 
