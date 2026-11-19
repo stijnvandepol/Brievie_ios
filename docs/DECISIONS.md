@@ -7,6 +7,7 @@ One line per dependency or tooling choice, with the reason.
 - **XcodeGen** — the Xcode project is generated from `project.yml`, so `*.xcodeproj` never causes merge conflicts.
 - **SwiftLint** (`--strict`, `force_unwrapping` on) — the lint gate locally and in CI.
 - **Swift Testing** — the test framework for all targets; ships with the toolchain, no package dependency.
+- **Code coverage** — `make coverage` runs the same tests with `swift test --enable-code-coverage`; `scripts/coverage-summary.sh` prints line coverage per `BrievieKit` target and CI uploads the table and the JSON report as the `coverage` artifact. Tooling that ships with the toolchain and `python3`, no new dependency. There is no minimum yet; the place for one is marked in the script.
 
 ## Package dependencies
 

@@ -5,7 +5,7 @@ SIMULATOR ?= iPhone 17
 SIMULATOR_ID ?=
 HOST ?= ../Brievie_host
 
-.PHONY: generate check-project test lint build test-keychain sync-api archive
+.PHONY: generate check-project test coverage lint build test-keychain sync-api archive
 
 generate:
 	xcodegen generate
@@ -18,6 +18,11 @@ check-project: generate
 
 test:
 	swift test --package-path $(PACKAGE)
+
+# `make test` with code coverage: prints line coverage per target, writes build/coverage/{summary.txt,codecov.json}.
+coverage:
+	swift test --package-path $(PACKAGE) --enable-code-coverage
+	scripts/coverage-summary.sh "$$(swift test --package-path $(PACKAGE) --show-codecov-path)" build/coverage
 
 lint:
 	swiftlint --strict
