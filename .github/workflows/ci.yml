@@ -8,19 +8,32 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same branch makes the older run pointless.
+# A newer push to the same pull request makes the older run pointless. Runs on main always finish.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 45
+    env:
+      # Xcode 26.6 is the default on the macos-26 image; pinned so an image update cannot change the toolchain
+      # unnoticed. Move it deliberately, in one commit.
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
       - name: Install tools
-        run: brew install xcodegen swiftlint
+        run: |
+          brew install xcodegen swiftlint
+          echo "xcodegen $(xcodegen --version)"
+          echo "swiftlint $(swiftlint version)"
       - name: Lint
         run: make lint
       - name: Test
@@ -38,14 +51,16 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # gitleaks-action lists the pull request's commits.
     permissions:
       contents: read
       pull-requests: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v3
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
