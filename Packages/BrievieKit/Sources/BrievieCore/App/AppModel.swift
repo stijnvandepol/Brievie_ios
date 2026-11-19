@@ -16,6 +16,10 @@ public final class AppModel {
     /// `true` when the device has no passcode, so the app cannot lock itself. The app opens with a warning
     /// instead of locking the user out.
     public private(set) var showsNoPasscodeWarning = false
+    /// The warning for `showsNoPasscodeWarning`, on the root screen; `nil` while it does not show.
+    public var noPasscodeWarning: String? {
+        showsNoPasscodeWarning ? AppStrings.noPasscode : nil
+    }
     /// "Ontkoppelen" is running (telling the server takes up to a few seconds); the button waits for it.
     public private(set) var isUnpairing = false
 
@@ -27,6 +31,8 @@ public final class AppModel {
     private let calendarSettings: (any CalendarSettings)?
     /// Removes the calendars after a revocation by the server.
     private let calendarSync: CalendarSync?
+    /// The workspace the inbox showed last; forgotten with the pairing.
+    private let currentWorkspace: (any CurrentWorkspaceStore)?
     /// The first-launch check has completed (or a pairing made it moot) in this process. Until then nothing
     /// unlocks: a stored connection may be a leftover of a previous install.
     private var launchCheckDone = false
@@ -63,13 +69,16 @@ public final class AppModel {
     /// - Parameter calendarSettings: the calendar switches, cleared whenever the pairing is forgotten.
     /// - Parameter calendarSync: removes the calendars those switches named when the server revoked the device;
     ///   on "Ontkoppelen" the user chooses (`Unpairing`).
+    /// - Parameter currentWorkspace: which workspace the inbox showed last, cleared whenever the pairing is
+    ///   forgotten.
     public init(
         store: ConnectionStore,
         authenticator: any DeviceAuthenticator,
         launchFlag: any LaunchFlag,
         isProtectedDataAvailable: @escaping @MainActor () -> Bool,
         calendarSettings: (any CalendarSettings)? = nil,
-        calendarSync: CalendarSync? = nil
+        calendarSync: CalendarSync? = nil,
+        currentWorkspace: (any CurrentWorkspaceStore)? = nil
     ) {
         self.store = store
         self.authenticator = authenticator
@@ -77,6 +86,7 @@ public final class AppModel {
         self.isProtectedDataAvailable = isProtectedDataAvailable
         self.calendarSettings = calendarSettings
         self.calendarSync = calendarSync
+        self.currentWorkspace = currentWorkspace
     }
 
     /// Unpaired when nothing is stored, locked otherwise. A store that cannot be read does not unpair the
@@ -281,6 +291,7 @@ public final class AppModel {
             calendarSettings.markForRemoval(Dictionary(calendars, uniquingKeysWith: { first, _ in first }))
         }
         calendarSettings?.removeAll()
+        currentWorkspace?.removeAll()
         pendingForget = nil
         state = .unpaired(notice: pending.notice)
         removePendingCalendars()

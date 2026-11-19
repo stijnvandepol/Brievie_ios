@@ -2,7 +2,8 @@ import BrievieCore
 import Foundation
 import Observation
 
-/// Loads the workspaces of the paired user and notices when the server no longer knows this device.
+/// Loads the workspaces of the paired user, decides which one the inbox shows, and notices when the server no
+/// longer knows this device.
 @MainActor
 @Observable
 public final class WorkspacesModel {
@@ -23,7 +24,39 @@ public final class WorkspacesModel {
         case failed(message: String)
     }
 
+    /// What the app's root screen shows.
+    public enum Root: Equatable {
+        case loading
+        /// The first load failed: the error with "Opnieuw proberen".
+        case failed(message: String)
+        /// The user has no workspace.
+        case empty
+        /// The post of this workspace.
+        case inbox(Row)
+    }
+
     public private(set) var state: State = .loading
+
+    /// The workspace the inbox shows: the one shown last under this pairing while the server still lists it,
+    /// else the first the server lists. `nil` until the list loaded, and when it is empty.
+    public private(set) var currentWorkspaceID: UUID?
+
+    public var root: Root {
+        switch state {
+        case .loading: .loading
+        case .failed(let message): .failed(message: message)
+        case .loaded(let rows): rows.first { $0.id == currentWorkspaceID }.map(Root.inbox) ?? .empty
+        }
+    }
+
+    /// The loaded workspaces; empty while loading or after a failed first load.
+    public var rows: [Row] {
+        if case .loaded(let rows) = state { return rows }
+        return []
+    }
+
+    /// More than one workspace: the inbox says which one it shows. With one the user never sees the word.
+    public var showsWorkspaceName: Bool { rows.count > 1 }
 
     /// The "Ontkoppelen" confirmation is on screen.
     public var isConfirmingUnpair = false
@@ -51,6 +84,7 @@ public final class WorkspacesModel {
     private let appModel: AppModel
     private let unpairing: Unpairing
     private let calendar: WorkspaceCalendar?
+    private let currentWorkspace: any CurrentWorkspaceStore
     /// The calendar switch per workspace of the last load; kept across reloads.
     private var calendarModels: [UUID: CalendarSettingModel] = [:]
     /// The load started by `retry()`; `stop()` cancels it when the screen goes away. Tests await it.
@@ -59,9 +93,11 @@ public final class WorkspacesModel {
     @ObservationIgnored private(set) var unpairCountTask: Task<Void, Never>?
 
     /// - Parameter calendar: the calendar switches; `nil` shows none.
+    /// - Parameter currentWorkspace: where the workspace the inbox shows is remembered across launches.
     public init(
         connection: ServerConnection, store: ConnectionStore, server: any BrievieServer, appModel: AppModel,
-        unpairing: Unpairing, calendar: WorkspaceCalendar? = nil
+        unpairing: Unpairing, calendar: WorkspaceCalendar? = nil,
+        currentWorkspace: any CurrentWorkspaceStore = InMemoryCurrentWorkspaceStore()
     ) {
         self.connection = connection
         self.store = store
@@ -69,6 +105,14 @@ public final class WorkspacesModel {
         self.appModel = appModel
         self.unpairing = unpairing
         self.calendar = calendar
+        self.currentWorkspace = currentWorkspace
+    }
+
+    /// Shows the post of `workspace` (one of the loaded list) and remembers it for the next launch.
+    public func select(_ workspace: UUID) {
+        guard rows.contains(where: { $0.id == workspace }) else { return }
+        currentWorkspaceID = workspace
+        currentWorkspace.remember(workspace, forDevice: connection.deviceID)
     }
 
     /// The "Zet deadlines in mijn agenda" switch of a loaded workspace; `nil` without calendar support.
@@ -129,6 +173,7 @@ public final class WorkspacesModel {
         case .workspaces(let workspaces):
             let rows = workspaces.map(Row.init(workspace:))
             updateCalendarModels(rows)
+            chooseCurrent(in: rows)
             state = .loaded(rows)
             // The app learns the names first: a sync names the calendar after its workspace.
             calendar?.didLoad(rows)
@@ -141,6 +186,20 @@ public final class WorkspacesModel {
             // A list that is already on screen stays; only the first load turns into an error.
             if case .loaded = state { return }
             state = .failed(message: message)
+        }
+    }
+
+    /// Keeps the current workspace while the list still has it; otherwise the one remembered for this pairing,
+    /// else the first. A list without workspaces chooses none and leaves the remembered one alone.
+    private func chooseCurrent(in rows: [Row]) {
+        let wanted = currentWorkspaceID ?? currentWorkspace.workspace(forDevice: connection.deviceID)
+        guard let chosen = rows.first(where: { $0.id == wanted })?.id ?? rows.first?.id else {
+            currentWorkspaceID = nil
+            return
+        }
+        currentWorkspaceID = chosen
+        if currentWorkspace.workspace(forDevice: connection.deviceID) != chosen {
+            currentWorkspace.remember(chosen, forDevice: connection.deviceID)
         }
     }
 

@@ -257,7 +257,7 @@ import Testing
     }
 }
 
-/// The calendar switches on the Workspaces screen.
+/// The calendar switches in the settings.
 @MainActor
 @Suite struct WorkspacesCalendarTests {
     private let server = WorkspaceServer()

@@ -13,6 +13,42 @@
         }
       }
     },
+    "home.title": {
+      "comment": "Title of the start screen while the workspaces load, could not be loaded, or there are none.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie"
+          }
+        }
+      }
+    },
+    "settings.title": {
+      "comment": "Title of the settings screen, and the accessibility label of the gear that opens it.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellingen"
+          }
+        }
+      }
+    },
+    "settings.workspace.hint": {
+      "comment": "VoiceOver hint on a workspace in the settings: tapping it shows that workspace in the inbox.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toont de post van deze werkruimte."
+          }
+        }
+      }
+    },
     "workspaces.calendar.consent.no": {
       "comment": "Answer to the account question: leave the switch off.",
       "extractionState": "manual",
@@ -349,18 +385,6 @@
         }
       }
     },
-    "workspaces.noPasscode": {
-      "comment": "Warning shown when the device cannot lock the app.",
-      "extractionState": "manual",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dit apparaat heeft geen toegangscode. Stel een toegangscode in om je post te beschermen."
-          }
-        }
-      }
-    },
     "workspaces.retry": {
       "comment": "Retry button after a failed load.",
       "extractionState": "manual",
@@ -486,20 +510,8 @@
         }
       }
     },
-    "workspaces.title": {
-      "comment": "Workspaces screen title.",
-      "extractionState": "manual",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Werkruimtes"
-          }
-        }
-      }
-    },
     "workspaces.unpair.button": {
-      "comment": "Destructive button at the bottom of the Workspaces screen: forget the pairing with the server.",
+      "comment": "Destructive button at the bottom of the settings: forget the pairing with the server.",
       "extractionState": "manual",
       "localizations": {
         "nl": {

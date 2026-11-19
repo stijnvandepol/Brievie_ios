@@ -1,6 +1,18 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "app.noPasscode": {
+      "comment": "Warning on the root screen when the device has no passcode, so the app cannot lock itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit apparaat heeft geen toegangscode. Stel een toegangscode in om je post te beschermen."
+          }
+        }
+      }
+    },
     "calendar.event.neutralTitle": {
       "comment": "Title of a calendar event without details, shown on the lock screen; %@ is the task type (\"Betalen\").",
       "extractionState": "manual",

@@ -45,6 +45,15 @@ enum AppStrings {
         String(localized: "calendar.name", defaultValue: "Brievie – %@", bundle: .module)
     }
 
+    /// On the root screen when the device has no passcode, so the app cannot lock itself.
+    static var noPasscode: String {
+        String(
+            localized: "app.noPasscode",
+            defaultValue: "Dit apparaat heeft geen toegangscode. Stel een toegangscode in om je post te beschermen.",
+            bundle: .module
+        )
+    }
+
     static var genericError: String {
         String(localized: "error.generic", defaultValue: "Er ging iets mis. Probeer het opnieuw.", bundle: .module)
     }

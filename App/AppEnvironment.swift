@@ -15,8 +15,10 @@ struct AppEnvironment {
     let calendarSettings: any CalendarSettings
     /// Deadlines in a calendar per workspace, on this phone.
     let calendarSync: CalendarSync
-    /// The names of the workspaces the Workspaces screen loaded last: the calendars are named after them.
+    /// The names of the workspaces loaded last: the calendars are named after them.
     let workspaceNames: WorkspaceNames
+    /// Which workspace the inbox showed last, per pairing; shared with `AppModel`, which forgets it with the pairing.
+    let currentWorkspace: any CurrentWorkspaceStore
 
     /// - Parameters:
     ///   - calendar: the calendar switches, sync and workspace names, shared with `AppModel` (which clears the
@@ -25,6 +27,7 @@ struct AppEnvironment {
     @MainActor
     static func live(
         store: ConnectionStore, server: LiveBrievieServer, calendar: AppCalendar,
+        currentWorkspace: any CurrentWorkspaceStore,
         onRevoked: @escaping @Sendable (UUID) async -> Void
     ) -> AppEnvironment {
         let transport = BackgroundUploadTransport(trustProvider: StoredConnectionTrustProvider(store: store))
@@ -43,7 +46,8 @@ struct AppEnvironment {
             unpairing: Unpairing(
                 server: server, uploads: uploads, calendarSettings: calendar.settings, calendarSync: calendar.sync
             ),
-            calendarSettings: calendar.settings, calendarSync: calendar.sync, workspaceNames: calendar.workspaceNames
+            calendarSettings: calendar.settings, calendarSync: calendar.sync, workspaceNames: calendar.workspaceNames,
+            currentWorkspace: currentWorkspace
         )
     }
 

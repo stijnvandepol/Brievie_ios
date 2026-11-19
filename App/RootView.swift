@@ -75,7 +75,7 @@ struct RootView: View {
         } else {
             ZStack {
                 if let connection = shownConnection {
-                    WorkspacesScreen(appModel: appModel, environment: environment, connection: connection)
+                    PairedScreen(appModel: appModel, environment: environment, connection: connection)
                         // A new pairing is a new app: nothing of the old one is kept.
                         .id(connection.deviceID)
                         .accessibilityHidden(isLocked)
@@ -122,7 +122,8 @@ private struct PairingScreen: View {
     }
 }
 
-private struct WorkspacesScreen: View {
+/// The paired app: the inbox of the current workspace, with the settings behind it.
+private struct PairedScreen: View {
     @State private var model: WorkspacesModel
     private let appModel: AppModel
     private let environment: AppEnvironment
@@ -145,7 +146,8 @@ private struct WorkspacesScreen: View {
                         with: Dictionary(rows.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
                     )
                 }
-            )
+            ),
+            currentWorkspace: environment.currentWorkspace
         ))
         self.appModel = appModel
         self.environment = environment
@@ -153,10 +155,14 @@ private struct WorkspacesScreen: View {
     }
 
     var body: some View {
-        WorkspacesView(model: model, showsNoPasscodeWarning: appModel.showsNoPasscodeWarning) { workspace in
+        WorkspaceRootView(model: model, warning: appModel.noPasscodeWarning) { workspace in
             DocumentsScreen(
-                appModel: appModel, environment: environment, connection: connection, workspace: workspace
+                appModel: appModel, environment: environment, connection: connection, workspace: workspace,
+                workspaceName: model.showsWorkspaceName ? workspace.name : nil,
+                warning: appModel.noPasscodeWarning
             )
+            // Another workspace (or another role in it) is another post: new models, nothing of the old one kept.
+            .id(InboxIdentity(workspace: workspace.id, canEdit: DocumentsScreen.canEdit(workspace)))
         }
         // This screen stays in the view tree while locked: every unlock after the first loads the list again, and
         // that load syncs the calendars and checks calendar access (the first unlock loads when the screen
@@ -167,27 +173,38 @@ private struct WorkspacesScreen: View {
     }
 }
 
-/// The post of one workspace. Owns its models for as long as the screen is on the navigation stack.
+private struct InboxIdentity: Hashable {
+    let workspace: UUID
+    let canEdit: Bool
+}
+
+/// The post of one workspace: the root of the paired app. Owns its models for as long as it shows this workspace.
 private struct DocumentsScreen: View {
     @State private var model: DocumentsModel
     @State private var scanModel: ScanFlowModel
     private let title: String
+    private let workspaceName: String?
+    private let warning: String?
     private let documents: WorkspaceDocuments
     private let canEdit: Bool
     private let appModel: AppModel
     private let deviceID: UUID
     private let onTasksChanged: @MainActor () -> Void
 
+    /// A role this app does not know may only look.
+    static func canEdit(_ workspace: WorkspacesModel.Row) -> Bool {
+        workspace.role == .admin || workspace.role == .member
+    }
+
     init(
         appModel: AppModel, environment: AppEnvironment, connection: ServerConnection,
-        workspace: WorkspacesModel.Row
+        workspace: WorkspacesModel.Row, workspaceName: String?, warning: String?
     ) {
         let documents = WorkspaceDocuments(
             workspaceID: workspace.id, connection: connection, store: environment.store,
             server: environment.documents
         )
-        // A role this app does not know may only look.
-        let canEdit = workspace.role == .admin || workspace.role == .member
+        let canEdit = Self.canEdit(workspace)
         _model = State(initialValue: DocumentsModel(
             documents: documents,
             uploads: environment.uploads,
@@ -199,6 +216,8 @@ private struct DocumentsScreen: View {
         ))
         _scanModel = State(initialValue: ScanFlowModel(workspaceID: workspace.id, uploads: environment.uploads))
         title = workspace.name
+        self.workspaceName = workspaceName
+        self.warning = warning
         self.documents = documents
         self.canEdit = canEdit
         self.appModel = appModel
@@ -208,7 +227,9 @@ private struct DocumentsScreen: View {
     }
 
     var body: some View {
-        DocumentsView(model: model, scanModel: scanModel, title: title) { documentID in
+        DocumentsView(
+            model: model, scanModel: scanModel, title: title, workspaceName: workspaceName, warning: warning
+        ) { documentID in
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
                 deviceID: deviceID, onTasksChanged: onTasksChanged

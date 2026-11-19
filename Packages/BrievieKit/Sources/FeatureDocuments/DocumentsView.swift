@@ -5,12 +5,17 @@ import BrievieUI
 import PhotosUI
 import SwiftUI
 
-/// The post of one workspace, with a button to scan a new letter.
+/// The post of one workspace, with a button to scan a new letter. The app's root screen: the app adds the
+/// settings button to its navigation bar.
 public struct DocumentsView<Destination: View>: View {
     private let model: DocumentsModel
     private let scanModel: ScanFlowModel
     /// The workspace's name: the header of the scope menu.
     private let title: String
+    /// The workspace's name when the user has more than one, so the screen says which post this is; `nil` with one.
+    private let workspaceName: String?
+    /// A warning above the post (the device has no passcode); `nil` for none.
+    private let warning: String?
     /// What a document on the server opens (the review screen).
     private let destination: (UUID) -> Destination
 
@@ -24,11 +29,15 @@ public struct DocumentsView<Destination: View>: View {
         model: DocumentsModel,
         scanModel: ScanFlowModel,
         title: String,
+        workspaceName: String? = nil,
+        warning: String? = nil,
         @ViewBuilder destination: @escaping (UUID) -> Destination
     ) {
         self.model = model
         self.scanModel = scanModel
         self.title = title
+        self.workspaceName = workspaceName
+        self.warning = warning
         self.destination = destination
     }
 
@@ -38,7 +47,7 @@ public struct DocumentsView<Destination: View>: View {
             groups: model.groups,
             emptyText: model.emptyText,
             notices: DocumentsList.Notices(
-                camera: model.cameraNotice, removed: model.removedNotice,
+                warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
                 openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true }
             ),
             retryLoad: { Task { await model.load() } },
@@ -46,7 +55,8 @@ public struct DocumentsView<Destination: View>: View {
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
             destination: destination
         )
-        .navigationTitle(model.scopeTitle)
+        .navigationTitle(navigationTitle)
+        .workspaceSubtitle(workspaceName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarTitleMenu { scopeMenu }
         .toolbar {
@@ -100,6 +110,14 @@ public struct DocumentsView<Destination: View>: View {
             .interactiveDismissDisabled()
             .presentationDetents([.medium])
         }
+    }
+
+    private var navigationTitle: String {
+        var hasSubtitle = false
+        if #available(iOS 26, *) { hasSubtitle = true }
+        return DocumentStrings.navigationTitle(
+            scope: model.scopeTitle, workspace: workspaceName, hasSubtitle: hasSubtitle
+        )
     }
 
     /// Inbox, all post, or the post of one person; the current one is ticked.
@@ -164,8 +182,9 @@ public struct DocumentsView<Destination: View>: View {
 
 /// The rendering of `DocumentsView`, free of the models so that previews can feed it plain values.
 struct DocumentsList<Destination: View>: View {
-    /// Messages above the list: no camera access, scans the queue could not read.
+    /// Messages above the list: no passcode, no camera access, scans the queue could not read.
     struct Notices {
+        var warning: String?
         var camera: DocumentsModel.CameraNotice?
         var removed: String?
         var openSettings: () -> Void = {}
@@ -209,8 +228,11 @@ struct DocumentsList<Destination: View>: View {
     }
 
     @ViewBuilder private var noticeSection: some View {
-        if notices.camera != nil || notices.removed != nil {
+        if notices.warning != nil || notices.camera != nil || notices.removed != nil {
             Section {
+                if let warning = notices.warning {
+                    ErrorBanner(warning, style: .warning)
+                }
                 switch notices.camera {
                 case .denied:
                     ErrorBanner(
@@ -353,19 +375,22 @@ private var previewGroups: [DocumentsModel.RowGroup] {
             deleteUpload: { _ in },
             destination: { _ in EmptyView() }
         )
-        .navigationTitle("Thuis")
+        .navigationTitle("Inbox")
+        .workspaceSubtitle("Thuis")
+        .navigationBarTitleDisplayMode(.inline)
     }
     .tint(BrievieColor.brand)
 }
 
-#Preview("Dark") {
+#Preview("Dark, no passcode") {
     NavigationStack {
         DocumentsList(
-            state: .loaded, groups: previewGroups, emptyText: "", retryLoad: {}, retryUpload: { _ in },
-            deleteUpload: { _ in },
-            destination: { _ in EmptyView() }
+            state: .loaded, groups: previewGroups, emptyText: "",
+            notices: .init(warning: "Dit apparaat heeft geen toegangscode. Stel een toegangscode in."),
+            retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in }, destination: { _ in EmptyView() }
         )
-        .navigationTitle("Thuis")
+        .navigationTitle("Inbox")
+        .navigationBarTitleDisplayMode(.inline)
     }
     .tint(BrievieColor.brand)
     .preferredColorScheme(.dark)

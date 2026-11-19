@@ -266,7 +266,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deze telefoon is al gekoppeld met een Brievie-server. Wil je een andere server gebruiken? Tik dan in je werkruimtes op Ontkoppelen en open de link opnieuw."
+            "value": "Deze telefoon is al gekoppeld met een Brievie-server. Wil je een andere server gebruiken? Tik in Brievie op het tandwiel en dan op Ontkoppelen. Open daarna de link opnieuw."
           }
         }
       }

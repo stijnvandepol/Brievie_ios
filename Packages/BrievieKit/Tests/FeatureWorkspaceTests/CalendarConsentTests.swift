@@ -143,7 +143,7 @@ import Testing
 }
 
 /// A sync elsewhere (after a confirm or a ticked task) found the calendar's account gone and turned the setting
-/// off; the switch on the reused Workspaces screen must follow on the next refresh.
+/// off; the switch in the reused settings must follow on the next refresh.
 @MainActor
 @Suite struct CalendarSwitchFollowsOtherSyncsTests {
     private static let exchange = CalendarSource(id: "exchange", title: "Werk", kind: .other)
