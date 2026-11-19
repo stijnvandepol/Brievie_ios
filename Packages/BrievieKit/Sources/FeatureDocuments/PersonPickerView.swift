@@ -25,6 +25,9 @@ struct PersonPickerView: View {
                             selection.formSymmetricDifference([person.id])
                         }
                     }
+                } footer: {
+                    // A person is not a member: the same sentence as the web's Personen page.
+                    Text(DocumentStrings.personsExplained)
                 }
                 Section {
                     TextField(DocumentStrings.newPersonName, text: $newName)

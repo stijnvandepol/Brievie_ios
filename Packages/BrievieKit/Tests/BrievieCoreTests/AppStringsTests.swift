@@ -10,7 +10,7 @@ import Testing
             ("unpair.serverStillKnowsDevice", AppStrings.serverStillKnowsDevice),
             ("app.noPasscode", AppStrings.noPasscode)
         ]
-        for (key, resolved) in expected {
+        for (key, resolved) in expected + AppStrings.reminderTexts.map({ ($0.key, $0.value) }) {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "BrievieCore") == resolved, "\(key)")
         }
     }

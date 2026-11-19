@@ -25,7 +25,7 @@ extension DocumentStrings {
     )
     static let noAddressee = String(
         localized: "review.organise.noAddressee",
-        defaultValue: "Nog op niemands naam.",
+        defaultValue: "Kies op wiens naam deze brief staat.",
         bundle: .module
     )
     static let pickPersons = String(

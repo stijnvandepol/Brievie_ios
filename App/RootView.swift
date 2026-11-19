@@ -147,7 +147,8 @@ private struct PairedScreen: View {
                     )
                 }
             ),
-            currentWorkspace: environment.currentWorkspace
+            currentWorkspace: environment.currentWorkspace,
+            reminders: WorkspaceReminders(reminders: environment.reminders, openSettings: openSystemSettings)
         ))
         self.appModel = appModel
         self.environment = environment
@@ -169,7 +170,19 @@ private struct PairedScreen: View {
         // appears). So each unlock syncs every workspace once.
         .onChange(of: appModel.state) { old, new in
             if old == .locked, case .ready = new { model.retry() }
+            showTappedReminder()
         }
+        // A tapped reminder shows its workspace once the app is open and the workspaces are known; its letter is
+        // opened by that workspace's post (`DocumentsScreen`).
+        .onChange(of: environment.reminderRouter.target, initial: true) { showTappedReminder() }
+        .onChange(of: model.state) { showTappedReminder() }
+    }
+
+    private func showTappedReminder() {
+        let router = environment.reminderRouter
+        guard case .ready = appModel.state, let target = router.target, !model.rows.isEmpty else { return }
+        // A workspace this phone no longer has, or a task without a letter: the app just opens.
+        if !model.show(target) || target.documentID == nil { router.finish() }
     }
 }
 
@@ -190,6 +203,8 @@ private struct DocumentsScreen: View {
     private let appModel: AppModel
     private let deviceID: UUID
     private let onTasksChanged: @MainActor () -> Void
+    private let reminderRouter: ReminderRouter
+    private let workspaceID: UUID
 
     /// A role this app does not know may only look.
     static func canEdit(_ workspace: WorkspacesModel.Row) -> Bool {
@@ -223,7 +238,9 @@ private struct DocumentsScreen: View {
         self.appModel = appModel
         deviceID = connection.deviceID
         let workspaceID = workspace.id
-        onTasksChanged = { environment.syncCalendar(of: workspaceID) }
+        onTasksChanged = { environment.tasksChanged(in: workspaceID) }
+        reminderRouter = environment.reminderRouter
+        self.workspaceID = workspaceID
     }
 
     var body: some View {
@@ -235,6 +252,17 @@ private struct DocumentsScreen: View {
                 deviceID: deviceID, onTasksChanged: onTasksChanged
             )
         }
+        // A tapped reminder of this workspace opens its letter, once the app is open (never behind the lock).
+        .onChange(of: reminderRouter.target, initial: true) { openTappedLetter() }
+        .onChange(of: appModel.state) { openTappedLetter() }
+    }
+
+    private func openTappedLetter() {
+        guard case .ready = appModel.state, let target = reminderRouter.target, target.workspaceID == workspaceID,
+              let documentID = target.documentID
+        else { return }
+        model.openedDocument = documentID
+        reminderRouter.finish()
     }
 }
 

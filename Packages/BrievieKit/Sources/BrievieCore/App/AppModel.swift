@@ -33,6 +33,8 @@ public final class AppModel {
     private let calendarSync: CalendarSync?
     /// The workspace the inbox showed last; forgotten with the pairing.
     private let currentWorkspace: (any CurrentWorkspaceStore)?
+    /// Deadline reminders: forgotten with the pairing (switched off, every reminder removed).
+    private let reminders: DeadlineReminders?
     /// The first-launch check has completed (or a pairing made it moot) in this process. Until then nothing
     /// unlocks: a stored connection may be a leftover of a previous install.
     private var launchCheckDone = false
@@ -50,6 +52,8 @@ public final class AppModel {
     @ObservationIgnored private(set) var unpairTask: Task<Void, Never>?
     /// The removal of the calendars after a revocation; tests await it.
     @ObservationIgnored private(set) var calendarRemovalTask: Task<Void, Never>?
+    /// The removal of the reminders after the pairing was forgotten; tests await it.
+    @ObservationIgnored private(set) var reminderRemovalTask: Task<Void, Never>?
 
     /// A pairing that must be forgotten but is not yet: emptying the queue or clearing the store failed.
     /// Until it succeeds the app stays locked (never "unpaired" with a token left in the Keychain) and every
@@ -71,6 +75,7 @@ public final class AppModel {
     ///   on "Ontkoppelen" the user chooses (`Unpairing`).
     /// - Parameter currentWorkspace: which workspace the inbox showed last, cleared whenever the pairing is
     ///   forgotten.
+    /// - Parameter reminders: the deadline reminders, switched off and removed whenever the pairing is forgotten.
     public init(
         store: ConnectionStore,
         authenticator: any DeviceAuthenticator,
@@ -78,7 +83,8 @@ public final class AppModel {
         isProtectedDataAvailable: @escaping @MainActor () -> Bool,
         calendarSettings: (any CalendarSettings)? = nil,
         calendarSync: CalendarSync? = nil,
-        currentWorkspace: (any CurrentWorkspaceStore)? = nil
+        currentWorkspace: (any CurrentWorkspaceStore)? = nil,
+        reminders: DeadlineReminders? = nil
     ) {
         self.store = store
         self.authenticator = authenticator
@@ -87,6 +93,7 @@ public final class AppModel {
         self.calendarSettings = calendarSettings
         self.calendarSync = calendarSync
         self.currentWorkspace = currentWorkspace
+        self.reminders = reminders
     }
 
     /// Unpaired when nothing is stored, locked otherwise. A store that cannot be read does not unpair the
@@ -292,10 +299,23 @@ public final class AppModel {
         }
         calendarSettings?.removeAll()
         currentWorkspace?.removeAll()
+        forgetReminders()
         pendingForget = nil
         state = .unpaired(notice: pending.notice)
         removePendingCalendars()
         return true
+    }
+
+    /// Reminders are about this pairing's tasks: the switch goes off now, the reminders (pending and shown) go
+    /// after any removal already running.
+    private func forgetReminders() {
+        guard let reminders else { return }
+        reminders.settings.removeAll()
+        let previous = reminderRemovalTask
+        reminderRemovalTask = Task {
+            await previous?.value
+            await reminders.forget()
+        }
     }
 
     /// Removes the calendars still marked after a revocation, after any removal already running.

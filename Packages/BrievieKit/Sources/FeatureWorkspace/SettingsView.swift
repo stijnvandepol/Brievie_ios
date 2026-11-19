@@ -2,8 +2,8 @@
 import BrievieUI
 import SwiftUI
 
-/// The settings: the workspaces (which one the inbox shows, and the calendar switch of each), the server and
-/// "Ontkoppelen". Pushed from the root screen by `WorkspaceRootView`.
+/// The settings: the workspaces (which one the inbox shows, and the calendar switch of each), the reminders, the
+/// server and "Ontkoppelen". Pushed from the root screen by `WorkspaceRootView`.
 struct SettingsView: View {
     let model: WorkspacesModel
     /// The user chose a workspace: back to the inbox, which now shows it.
@@ -27,6 +27,7 @@ struct SettingsView: View {
             ),
             retry: { model.retry() },
             calendarModel: { model.calendarModel(for: $0.id) },
+            reminders: model.reminderModel,
             choose: { workspace in
                 model.select(workspace)
                 didChoose()
@@ -61,6 +62,8 @@ struct SettingsList: View {
     let retry: () -> Void
     /// The calendar switch under a workspace; `nil` shows none.
     let calendarModel: (WorkspacesModel.Row) -> CalendarSettingModel?
+    /// "Meldingen voor termijnen"; `nil` shows no section.
+    var reminders: ReminderSettingModel?
     /// The user tapped a workspace.
     let choose: (UUID) -> Void
 
@@ -70,6 +73,9 @@ struct SettingsList: View {
                 content
             } header: {
                 Text("workspaces.section.workspaces", bundle: .module)
+            }
+            if let reminders {
+                ReminderSettingsSection(model: reminders)
             }
             serverSection
             // Its own section, last, away from everything else on the screen.
@@ -189,7 +195,7 @@ extension SettingsList {
     }
 }
 
-/// "Zet deadlines in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
+/// "Zet termijnen in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
 /// question when it is turned off.
 private struct CalendarSwitchRow: View {
     @Bindable var model: CalendarSettingModel

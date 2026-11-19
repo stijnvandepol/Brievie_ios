@@ -248,6 +248,7 @@ public struct ReviewView: View {
                     set: { model.setDeadline($0, for: id) }
                 )
             )
+            .accessibilityHint(DocumentStrings.deadlineHint)
             notes(for: .taskDeadline(id), title: DocumentStrings.deadline)
             Button(DocumentStrings.removeTask, role: .destructive) {
                 model.removeTask(id)

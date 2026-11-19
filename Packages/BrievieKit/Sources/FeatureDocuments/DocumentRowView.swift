@@ -34,7 +34,7 @@ struct DocumentRowView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        // One element, read in a fixed order: sender, date, status, names, labels, proposal.
+        // One element, read in a fixed order: sender, date, status and its note, names, labels, proposal.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(progressValue)
@@ -45,6 +45,7 @@ struct DocumentRowView: View {
         return progress.formatted(.percent.precision(.fractionLength(0)))
     }
 
+    /// The status in words with its symbol, and its note under it (why, or that there is nothing to do).
     @ViewBuilder private var status: some View {
         switch row.status {
         case let .uploading(progress):
@@ -52,20 +53,20 @@ struct DocumentRowView: View {
                 Text(row.status.label)
                     .font(.subheadline)
             }
-        case let .uploadFailed(message, _):
+        case .uploadFailed, .failed:
             statusLabel(color: .red)
-            Text(message)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        case .failed:
-            statusLabel(color: .red)
-        case .needsReview:
+        case .needsReview, .needsName:
             statusLabel(color: .orange)
         case .done:
             statusLabel(color: .green)
         case .waitingForUpload, .processing:
             statusLabel(color: .secondary)
+        }
+        if let note = row.status.note {
+            Text(note)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

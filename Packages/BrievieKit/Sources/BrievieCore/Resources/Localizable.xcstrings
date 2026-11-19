@@ -73,6 +73,78 @@
         }
       }
     },
+    "reminders.body.days": {
+      "comment": "Text of a deadline reminder %d days before (at least 2). On the lock screen: nothing from the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een termijn loopt over %d dagen af."
+          }
+        }
+      }
+    },
+    "reminders.body.sender.days": {
+      "comment": "As reminders.body.days, with the sender: %1$@ the sender, %2$d the days.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een termijn van %1$@ loopt over %2$d dagen af."
+          }
+        }
+      }
+    },
+    "reminders.body.sender.today": {
+      "comment": "As reminders.body.today, with the sender (only when the user chose to show it); %@ is the sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een termijn van %@ loopt vandaag af."
+          }
+        }
+      }
+    },
+    "reminders.body.sender.tomorrow": {
+      "comment": "As reminders.body.tomorrow, with the sender; %@ is the sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een termijn van %@ loopt morgen af."
+          }
+        }
+      }
+    },
+    "reminders.body.today": {
+      "comment": "Text of a deadline reminder on its day. On the lock screen: nothing from the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een termijn loopt vandaag af."
+          }
+        }
+      }
+    },
+    "reminders.body.tomorrow": {
+      "comment": "Text of a deadline reminder one day before. On the lock screen: nothing from the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een termijn loopt morgen af."
+          }
+        }
+      }
+    },
     "session.revoked": {
       "comment": "Notice on the pairing screen after the server refused this device: revoked, or expired after a long time unused.",
       "extractionState": "manual",

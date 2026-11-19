@@ -121,6 +121,18 @@
         }
       }
     },
+    "documents.all.footer": {
+      "comment": "Under the list of Alle post: what the place is for.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat bij Te doen."
+          }
+        }
+      }
+    },
     "documents.delete": {
       "comment": "Deletes a scan that is still on the phone.",
       "extractionState": "manual",
@@ -181,30 +193,6 @@
         }
       }
     },
-    "documents.group.count": {
-      "comment": "Group header with its number of letters: title, count.",
-      "extractionState": "manual",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ (%2$d)"
-          }
-        }
-      }
-    },
-    "documents.group.partial": {
-      "comment": "Group header when the list shows only the newest letters: title, total count, number shown.",
-      "extractionState": "manual",
-      "localizations": {
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ (%2$d, de nieuwste %3$d)"
-          }
-        }
-      }
-    },
     "documents.import": {
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",
@@ -218,49 +206,61 @@
       }
     },
     "documents.inbox.empty": {
-      "comment": "Shown when the inbox has nothing in it.",
+      "comment": "Te doen without letters.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je inbox is leeg. Alles staat op naam."
+            "value": "Je bent klaar. Er is niets te doen."
           }
         }
       }
     },
-    "documents.inbox.review": {
-      "comment": "Inbox group header: letters waiting for a review.",
+    "documents.inbox.empty.hint": {
+      "comment": "Under the empty Te doen, for a viewer (no scan button).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te controleren"
+            "value": "Eerdere brieven vind je bij Alle post."
           }
         }
       }
     },
-    "documents.inbox.unassigned": {
-      "comment": "Inbox group header: reviewed letters without an addressee.",
+    "documents.inbox.empty.hintScan": {
+      "comment": "Under the empty Te doen, for someone who may scan.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Op niemands naam"
+            "value": "Een nieuwe brief scan je met de knop + bovenaan. Eerdere brieven vind je bij Alle post."
           }
         }
       }
     },
-    "documents.inbox.underway": {
-      "comment": "Inbox group header: scans being uploaded or processed.",
+    "documents.inbox.footer": {
+      "comment": "Under the list of Te doen: what the place is for. Same sentence as the web.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Onderweg"
+            "value": "Brieven waar jij nog iets mee moet doen. Al je brieven, ook de afgehandelde, staan bij Alle post."
+          }
+        }
+      }
+    },
+    "documents.inbox.showAll": {
+      "comment": "Button under the empty Te doen: shows Alle post.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekijk Alle post"
           }
         }
       }
@@ -290,13 +290,13 @@
       }
     },
     "documents.new": {
-      "comment": "Title of a document whose sender is not known yet.",
+      "comment": "Title of a scan still on the phone, or of a letter the server is still reading (no sender yet).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nieuw document"
+            "value": "Nieuwe brief"
           }
         }
       }
@@ -333,6 +333,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Er staat nog geen post op deze naam."
+          }
+        }
+      }
+    },
+    "documents.persons.explained": {
+      "comment": "Footer under the persons to choose from: a person is not a member. Same sentence as the web's Personen page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op wiens naam brieven binnenkomen, ook iemand zonder account, zoals een kind."
           }
         }
       }
@@ -374,25 +386,25 @@
       }
     },
     "documents.scope.inbox": {
-      "comment": "Scope menu in the post list: the letters that still need something.",
+      "comment": "The place with the letters that still need the person (route and API: inbox). Same name as the web.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inbox"
+            "value": "Te doen"
           }
         }
       }
     },
     "documents.section": {
-      "comment": "Header of the document list.",
+      "comment": "Title of a person's post while that person is not known (yet).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Post"
+            "value": "Brieven"
           }
         }
       }
@@ -410,37 +422,73 @@
       }
     },
     "documents.status.failed": {
-      "comment": "Processing on the server failed.",
+      "comment": "Row status of a letter the server could not read: it is checked like any other (the note says why).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verwerken mislukt"
+            "value": "Controleren"
+          }
+        }
+      }
+    },
+    "documents.status.needsName": {
+      "comment": "Row status (inbox_state unassigned, or a read letter on nobody's name): choose on whose name it is.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naam kiezen"
           }
         }
       }
     },
     "documents.status.needsReview": {
-      "comment": "The document waits for the user's review.",
+      "comment": "Row status (inbox_state review): the person checks the letter. Same word as the web.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Controleer dit"
+            "value": "Controleren"
+          }
+        }
+      }
+    },
+    "documents.status.note.failed": {
+      "comment": "Under the row status Controleren for a letter the server could not read.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie kon deze brief niet goed lezen."
+          }
+        }
+      }
+    },
+    "documents.status.note.processing": {
+      "comment": "Under the row status Bezig….",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hoeft niets te doen."
           }
         }
       }
     },
     "documents.status.processing": {
-      "comment": "The server is processing the document.",
+      "comment": "Row status: the server is reading the letter; nothing to do. Same word as the web.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wordt verwerkt"
+            "value": "Bezig…"
           }
         }
       }
@@ -493,6 +541,42 @@
         }
       }
     },
+    "documents.summary.count": {
+      "comment": "One part of the line above Te doen: the row word, then how many.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$d"
+          }
+        }
+      }
+    },
+    "documents.summary.partial": {
+      "comment": "One part of the line above Te doen when only the newest are listed: word, total, number shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$d (de nieuwste %3$d)"
+          }
+        }
+      }
+    },
+    "documents.summary.underway": {
+      "comment": "Word for letters and scans on their way in the line above Te doen, as in 'Bezig: 3'.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezig"
+          }
+        }
+      }
+    },
     "documents.title.inWorkspace": {
       "comment": "Title of the post list before iOS 26 when the user has more than one workspace: %1$@ is the scope (\"Inbox\"), %2$@ the workspace (\"Thuis\").",
       "extractionState": "manual",
@@ -501,6 +585,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "documents.unknownSender": {
+      "comment": "Title of a letter that was read without a sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onbekende afzender"
           }
         }
       }
@@ -1106,13 +1202,13 @@
       }
     },
     "review.organise.noAddressee": {
-      "comment": "Review: no person chosen and none proposed.",
+      "comment": "In review: the letter is on nobody's name yet (the lists say Naam kiezen).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nog op niemands naam."
+            "value": "Kies op wiens naam deze brief staat."
           }
         }
       }
@@ -1226,13 +1322,13 @@
       }
     },
     "review.processing": {
-      "comment": "Shown while the server processes the document.",
+      "comment": "A letter still being read (the lists say Bezig…).",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De server verwerkt deze brief. Dit duurt meestal minder dan een minuut."
+            "value": "Brievie leest deze brief nog. Je hoeft niets te doen."
           }
         }
       }
@@ -1358,13 +1454,25 @@
       }
     },
     "review.task.deadline": {
-      "comment": "Field label: the deadline.",
+      "comment": "Label of a task's date: the last day it has to be done. One word for this everywhere: termijn.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uiterste datum"
+            "value": "Termijn"
+          }
+        }
+      }
+    },
+    "review.task.deadline.hint": {
+      "comment": "VoiceOver hint of a task's Termijn.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De laatste dag waarop het moet gebeuren."
           }
         }
       }

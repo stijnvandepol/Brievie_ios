@@ -16,10 +16,13 @@ extension DocumentsModel {
         public let labels: [DocumentLabel]
         /// The server has open proposals for addressees or labels.
         public let hasSuggestions: Bool
+        /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
+        let date: Date
 
         init(
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
-            addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false
+            addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
+            date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -29,34 +32,17 @@ extension DocumentsModel {
             self.addressees = addressees
             self.labels = labels
             self.hasSuggestions = hasSuggestions
+            self.date = date
         }
     }
 
     /// Which post the list shows.
     public enum Scope: Hashable, Sendable {
-        /// What still needs something: to review, on nobody's name, on its way.
+        /// "Te doen": what still needs the person (to check, a name to choose), and what is on its way.
         case inbox
         case all
         /// The post addressed to one person.
         case person(UUID)
-    }
-
-    /// One titled part of the list. The inbox has up to three (only those with rows); the other scopes one.
-    public struct RowGroup: Equatable, Identifiable, Sendable {
-        public let kind: GroupKind
-        public let title: String
-        /// The section header: in the inbox the title with the number of rows.
-        public let header: String
-        public let rows: [Row]
-
-        public var id: GroupKind { kind }
-    }
-
-    public enum GroupKind: Hashable, Sendable {
-        case review
-        case unassigned
-        case underway
-        case post
     }
 }
 
@@ -73,7 +59,7 @@ extension DocumentsModel.Scope {
 }
 
 extension DocumentsModel {
-    /// The scopes for the menu: the inbox, all post, then each person who is not archived.
+    /// The scopes for the menu: "Te doen", "Alle post", then each person who is not archived.
     public var scopeTitles: [(Scope, String)] {
         [(.inbox, DocumentStrings.scopeInbox), (.all, DocumentStrings.scopeAll)]
             + persons.filter { !$0.isArchived }.map { (.person($0.id), $0.displayName) }
@@ -94,6 +80,25 @@ extension DocumentsModel {
         case .inbox: DocumentStrings.inboxEmpty
         case .all: DocumentStrings.empty
         case .person: DocumentStrings.personEmpty
+        }
+    }
+
+    /// Under the empty "Te doen": what to do next. A viewer is not told to scan.
+    public var emptyHint: String? {
+        guard scope == .inbox else { return nil }
+        return canScan ? DocumentStrings.todoEmptyHintScan : DocumentStrings.todoEmptyHint
+    }
+
+    /// The empty "Te doen" offers a way to "Alle post".
+    public var emptyOffersAllPost: Bool { scope == .inbox }
+
+    /// Under a list with rows: what this place is for, and where the rest is. `nil` for a person's post.
+    public var footer: String? {
+        guard !rows.isEmpty else { return nil }
+        switch scope {
+        case .inbox: return DocumentStrings.todoFooter
+        case .all: return DocumentStrings.allFooter
+        case .person: return nil
         }
     }
 
@@ -118,31 +123,52 @@ extension DocumentsModel {
         return try? await documents.labels()
     }
 
-    /// The inbox in its three groups (empty ones left out); any other scope as one group. `totals` is the
-    /// number per state a header names; a group showing fewer says it shows only the newest.
-    func makeGroups(waiting: [Row], onServer: [(InboxState, Row)], totals: [InboxState: Int]) -> [RowGroup] {
+    /// The rows in the order of the scope. "Te doen": what needs the person first (to check, a name to choose, a
+    /// failed upload), then what is on its way (scans still on the phone, letters being read), each part newest
+    /// first. Any other scope: the scans on the phone, then the server's letters, each newest first.
+    func arrange(waiting: [Row], onServer: [Row]) -> [Row] {
+        let newestFirst = { (lhs: Row, rhs: Row) in
+            lhs.date != rhs.date ? lhs.date > rhs.date : lhs.id.uuidString < rhs.id.uuidString
+        }
         guard scope == .inbox else {
-            let all = waiting + onServer.map(\.1)
-            return [RowGroup(kind: .post, title: DocumentStrings.section, header: DocumentStrings.section, rows: all)]
+            return waiting.sorted(by: newestFirst) + onServer.sorted(by: newestFirst)
         }
-        func rows(in state: InboxState) -> [Row] {
-            onServer.filter { $0.0 == state }.map(\.1)
-        }
-        func group(_ kind: GroupKind, _ title: String, _ state: InboxState, waiting: [Row] = []) -> RowGroup {
-            let onServer = rows(in: state)
-            let all = waiting + onServer
-            let total = waiting.count + max(totals[state] ?? onServer.count, onServer.count)
-            let header = total > all.count
-                ? String(format: DocumentStrings.groupPartialFormat, title, total, all.count)
-                : String(format: DocumentStrings.groupCountFormat, title, all.count)
-            return RowGroup(kind: kind, title: title, header: header, rows: all)
-        }
-        return [
-            group(.review, DocumentStrings.inboxReview, .review),
-            group(.unassigned, DocumentStrings.inboxUnassigned, .unassigned),
-            group(.underway, DocumentStrings.inboxUnderway, .new, waiting: waiting)
-        ].filter { !$0.rows.isEmpty }
+        let all = waiting + onServer
+        return all.filter { !$0.status.isUnderway }.sorted(by: newestFirst)
+            + all.filter(\.status.isUnderway).sorted(by: newestFirst)
     }
+
+    /// The line above "Te doen", in the rows' words: "Controleren: 2 · Naam kiezen: 1 · Bezig: 3". `totals` is
+    /// the number per state the server counted; a part with more letters than shown says it shows the newest.
+    /// `nil` without rows.
+    static func todoSummary(waiting: [Row], onServer: [InboxState], totals: [InboxState: Int]) -> String? {
+        func shown(_ state: InboxState) -> Int { onServer.count { $0 == state } }
+        func total(_ state: InboxState) -> Int { max(totals[state] ?? shown(state), shown(state)) }
+        let failedUploads = waiting.count { !$0.status.isUnderway }
+        let waitingUploads = waiting.count - failedUploads
+        let parts = [
+            SummaryPart(word: DocumentStrings.statusNeedsReview, total: total(.review), shown: shown(.review)),
+            SummaryPart(word: DocumentStrings.statusNeedsName, total: total(.unassigned), shown: shown(.unassigned)),
+            SummaryPart(word: DocumentStrings.statusUploadFailed, total: failedUploads, shown: failedUploads),
+            SummaryPart(
+                word: DocumentStrings.summaryUnderway, total: total(.new) + waitingUploads,
+                shown: shown(.new) + waitingUploads
+            )
+        ]
+        let text = parts.filter { $0.total > 0 }.map { part in
+            part.total > part.shown
+                ? String(format: DocumentStrings.summaryPartialFormat, part.word, part.total, part.shown)
+                : String(format: DocumentStrings.summaryCountFormat, part.word, part.total)
+        }
+        return text.isEmpty ? nil : text.joined(separator: " · ")
+    }
+}
+
+/// One part of the line above "Te doen": a row word, how many there are and how many the list shows.
+private struct SummaryPart {
+    let word: String
+    let total: Int
+    let shown: Int
 }
 
 extension DocumentsModel.Row {
@@ -155,10 +181,10 @@ extension DocumentsModel.Row {
         return String(format: DocumentStrings.addresseesFormat, addressees.formatted(Self.listStyle))
     }
 
-    /// What VoiceOver reads for the row: sender, date and pages, status, the addressees and the labels.
+    /// What VoiceOver reads for the row: sender, date and pages, status and its note, the addressees and the labels.
     public var accessibilityLabel: String {
         var parts = [title, subtitle, status.label]
-        if case let .uploadFailed(message, _) = status { parts.append(message) }
+        if let note = status.note { parts.append(note) }
         if let addresseeLine { parts.append(addresseeLine) }
         if !labels.isEmpty {
             parts.append(String(format: DocumentStrings.labelsFormat, labels.map(\.name).joined(separator: ", ")))

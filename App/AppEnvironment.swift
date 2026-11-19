@@ -19,17 +19,21 @@ struct AppEnvironment {
     let workspaceNames: WorkspaceNames
     /// Which workspace the inbox showed last, per pairing; shared with `AppModel`, which forgets it with the pairing.
     let currentWorkspace: any CurrentWorkspaceStore
+    /// Deadline reminders on this phone; shared with `AppModel`, which forgets them with the pairing.
+    let reminders: DeadlineReminders
+    /// The reminder the user tapped, until the paired app showed it; the app delegate sets it.
+    let reminderRouter: ReminderRouter
 
     /// - Parameters:
-    ///   - calendar: the calendar switches, sync and workspace names, shared with `AppModel` (which clears the
-    ///     switches with the pairing and removes the calendars after a revocation).
+    ///   - shared: what `AppModel` shares (it clears the calendar switches, the current workspace and the reminders
+    ///     with the pairing, and removes the calendars after a revocation).
     ///   - onRevoked: called when an upload finds that the server no longer knows this device.
     @MainActor
     static func live(
-        store: ConnectionStore, server: LiveBrievieServer, calendar: AppCalendar,
-        currentWorkspace: any CurrentWorkspaceStore,
+        store: ConnectionStore, server: LiveBrievieServer, shared: AppShared,
         onRevoked: @escaping @Sendable (UUID) async -> Void
     ) -> AppEnvironment {
+        let calendar = shared.calendar
         let transport = BackgroundUploadTransport(trustProvider: StoredConnectionTrustProvider(store: store))
         // Created at launch, also in the background: the system delivers upload events to this session.
         transport.activate()
@@ -47,20 +51,33 @@ struct AppEnvironment {
                 server: server, uploads: uploads, calendarSettings: calendar.settings, calendarSync: calendar.sync
             ),
             calendarSettings: calendar.settings, calendarSync: calendar.sync, workspaceNames: calendar.workspaceNames,
-            currentWorkspace: currentWorkspace
+            currentWorkspace: shared.currentWorkspace, reminders: shared.reminders,
+            reminderRouter: shared.reminderRouter
         )
     }
 
-    /// After a confirm or a ticked task in `workspace`.
-    func syncCalendar(of workspace: UUID) {
+    /// After a confirm or a ticked task in `workspace`: its calendar and the reminders follow.
+    func tasksChanged(in workspace: UUID) {
         let sync = calendarSync
+        let reminders = reminders
         Task { _ = await sync.sync(workspace: workspace) }
+        Task { await reminders.reschedule() }
     }
 
     /// Scans waiting for upload. Not in a cache directory: the system may empty those.
     private static var uploadsDirectory: URL {
         URL.applicationSupportDirectory.appending(path: "Uploads", directoryHint: .isDirectory)
     }
+}
+
+/// What the app model and the environment share, made before both: `AppModel` forgets the calendar switches, the
+/// current workspace and the reminders with the pairing.
+struct AppShared {
+    let calendar: AppCalendar
+    let currentWorkspace: any CurrentWorkspaceStore
+    let reminders: DeadlineReminders
+    /// The reminder the user tapped; the app delegate sets it.
+    let reminderRouter: ReminderRouter
 }
 
 /// The calendar parts the app model and the environment share. Made before both: `AppModel` needs the sync to
@@ -77,16 +94,21 @@ struct AppCalendar {
         sync = CalendarSync(
             store: EventKitCalendarStore(),
             settings: settings,
-            tasks: { workspace in
-                guard let stored = try store.load() else { throw DocumentsError.missingPairing }
-                return try await WorkspaceDocuments(
-                    workspaceID: workspace, connection: stored.connection, store: store, server: server
-                ).openTasks()
-            },
+            tasks: Self.openTasks(store: store, server: server),
             workspaceName: { workspaceNames.name(of: $0) },
             typeTitle: { TaskTypeName.label(for: $0) },
             today: { CalendarDate(Date(), in: .current) }
         )
+    }
+
+    /// The open tasks of a workspace on the server, through the stored pairing: for the calendar and the reminders.
+    static func openTasks(store: ConnectionStore, server: LiveBrievieServer) -> CalendarSync.TaskSource {
+        { workspace in
+            guard let stored = try store.load() else { throw DocumentsError.missingPairing }
+            return try await WorkspaceDocuments(
+                workspaceID: workspace, connection: stored.connection, store: store, server: server
+            ).openTasks()
+        }
     }
 }
 
