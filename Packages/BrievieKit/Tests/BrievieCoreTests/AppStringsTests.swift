@@ -7,7 +7,8 @@ import Testing
             ("lock.reason", AppStrings.lockReason),
             ("session.revoked", AppStrings.sessionRevoked),
             ("error.generic", AppStrings.genericError),
-            ("unpair.serverStillKnowsDevice", AppStrings.serverStillKnowsDevice)
+            ("unpair.serverStillKnowsDevice", AppStrings.serverStillKnowsDevice),
+            ("app.noPasscode", AppStrings.noPasscode)
         ]
         for (key, resolved) in expected {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "BrievieCore") == resolved, "\(key)")

@@ -68,6 +68,7 @@ import Testing
 
         #expect(model.state == .ready(connection))
         #expect(!model.showsNoPasscodeWarning)
+        #expect(model.noPasscodeWarning == nil)
         #expect(authenticator.reasons == ["Ontgrendel Brievie om je post te zien."])
     }
 
@@ -96,6 +97,8 @@ import Testing
 
         #expect(model.state == .ready(connection))
         #expect(model.showsNoPasscodeWarning)
+        #expect(model.noPasscodeWarning
+            == "Dit apparaat heeft geen toegangscode. Stel een toegangscode in om je post te beschermen.")
         #expect(authenticator.prompts == 0)
     }
 
