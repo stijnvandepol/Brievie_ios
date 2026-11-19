@@ -106,7 +106,10 @@ GitHub Actions (`.github/workflows`):
   simulatorbouw en Keychain-tests.
 - **CI, job `secrets`**: gitleaks over de hele geschiedenis.
 - **CodeQL**: statische analyse van de Swift-code en de workflows, bij elke push naar `main`, elke pull request
-  en wekelijks.
+  en elke maandag, woensdag en vrijdag. Op een pull request draait de Swift-analyse alleen als Swift-code of de
+  buildbestanden veranderd zijn.
+- **Gepland**: gitleaks en CodeQL draaien ook drie keer per week op `main`; een mislukte geplande run opent een
+  issue (zie `SECURITY.md`).
 - **Dependabot**: wekelijkse updates voor GitHub Actions en de Swift-pakketten.
 
 De tests lopen tegen nepservers en lokale testcertificaten, niet tegen een echte Brievie-server. De camera,

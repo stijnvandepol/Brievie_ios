@@ -6,20 +6,66 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Mondays 05:17 UTC: new queries and a rescan of main even when nothing was pushed.
-    - cron: "17 5 * * 1"
+    # Monday, Wednesday and Friday, 05:17 UTC: new queries and a rescan of main even when nothing
+    # was pushed.
+    - cron: "17 5 * * 1,3,5"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  # The event is in the group: a scheduled run and a push run never cancel each other.
+  group: codeql-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The Swift analysis builds the app on macOS and takes about 40 minutes, so on a pull request it
+  # runs only when something it analyses changed: Swift sources, the package manifest and lock, the
+  # generated client's contract, the Xcode project and its inputs, or this workflow. Everywhere
+  # else (push to main, schedule, manual) it always runs.
+  #
+  # The job `analyze` below is always there, also when nothing changed: a path filter on the
+  # workflow would leave a required check "Analyze (swift)" never reported, and block merging. The
+  # skipped leg takes a cheap Linux runner and says why in its log and summary.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      swift: ${{ steps.diff.outputs.swift }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # A pull request is checked out as a merge commit: its first parent is the base, so
+          # one diff against it lists exactly what the pull request changes.
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Did Swift code or its build inputs change
+        id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "swift=true" >> "$GITHUB_OUTPUT"
+            echo "Not a pull request: the Swift analysis runs."
+            exit 0
+          fi
+          pattern='\.swift$|^Packages/BrievieKit/Package\.resolved$|\.xcodeproj/|^project\.yml$|\.xcconfig(\.example)?$|^Makefile$|^scripts/simulator-udid\.sh$|/openapi\.json$|/openapi-generator-config\.yaml$|^\.github/workflows/(codeql|audit-failed)\.yml$'
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          if printf '%s\n' "$changed" | grep -Eq "$pattern"; then
+            echo "swift=true" >> "$GITHUB_OUTPUT"
+            echo "A file the Swift analysis depends on changed: it runs."
+          else
+            echo "swift=false" >> "$GITHUB_OUTPUT"
+            echo "No Swift change: the Swift analysis is skipped."
+          fi
+
   analyze:
     name: Analyze (${{ matrix.language }})
-    runs-on: macos-26
+    needs: changes
+    # macOS only where the Swift build runs; "actions" and a skipped Swift leg need none.
+    runs-on: ${{ (matrix.language == 'swift' && needs.changes.outputs.swift == 'true') && 'macos-26' || 'ubuntu-latest' }}
     timeout-minutes: 60
     permissions:
       contents: read
@@ -37,14 +83,22 @@ jobs:
           - language: actions
             build-mode: none
     steps:
+      - name: Skipped, no Swift change
+        if: ${{ matrix.language == 'swift' && needs.changes.outputs.swift != 'true' }}
+        run: |
+          echo "Skipped: no Swift change in this pull request."
+          echo "Skipped: no Swift change in this pull request, so the Swift analysis did not run." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ matrix.language != 'swift' || needs.changes.outputs.swift == 'true' }}
         with:
           persist-credentials: false
       - name: Toolchain versions
+        if: ${{ matrix.language == 'swift' && needs.changes.outputs.swift == 'true' }}
         run: |
           xcodebuild -version
           swift --version
       - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: ${{ matrix.language != 'swift' || needs.changes.outputs.swift == 'true' }}
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -52,13 +106,26 @@ jobs:
       # Manual build mode analyses what this build compiles: the app and, through it, BrievieKit.
       # Identical in spirit to ci.yml: `make build` on an iPhone simulator.
       - name: Pick a simulator
-        if: matrix.language == 'swift'
+        if: ${{ matrix.language == 'swift' && needs.changes.outputs.swift == 'true' }}
         run: |
           udid=$(scripts/simulator-udid.sh "iPhone 17")
           echo "SIMULATOR_ID=$udid" >> "$GITHUB_ENV"
       - name: Simulator build
-        if: matrix.language == 'swift'
+        if: ${{ matrix.language == 'swift' && needs.changes.outputs.swift == 'true' }}
         run: make build
       - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        if: ${{ matrix.language != 'swift' || needs.changes.outputs.swift == 'true' }}
         with:
           category: "/language:${{ matrix.language }}"
+
+  # When the scheduled run fails, open an issue (audit-failed.yml). Findings are not failures: they go
+  # to the code scanning alerts. This reports a run that broke.
+  audit-failed:
+    if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
+    needs: [changes, analyze]
+    permissions:
+      issues: write
+    # actionlint (1.7.12) does not know the `$/` self-repository syntax yet.
+    uses: ./.github/workflows/audit-failed.yml # zizmor: ignore[self-repository]
+    with:
+      needs: ${{ toJSON(needs) }}
