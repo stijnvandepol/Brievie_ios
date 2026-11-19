@@ -3,37 +3,6 @@ import BrievieCore
 import Foundation
 import Testing
 
-/// A review model against a fake server, shared by the suites below.
-@MainActor
-struct ReviewHarness {
-    private static let url = URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")
-
-    let documentID = UUID()
-    let store = ConnectionStore(secrets: InMemorySecretStore())
-    let server = FakeDocumentServer { _, id in DocumentFixtures.detail(id: id) }
-    let events = EventLog()
-
-    func model(canEdit: Bool = true) throws -> ReviewModel {
-        let connection = ServerConnection(
-            urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn"
-        )
-        try store.save(connection, token: "tok")
-        return ReviewModel(
-            documentID: documentID,
-            documents: WorkspaceDocuments(
-                workspaceID: UUID(), connection: connection, store: store, server: server
-            ),
-            canEdit: canEdit,
-            onRevoked: { [events] in events.add("revoked") },
-            onMissingPairing: { [events] in events.add("missing") }
-        )
-    }
-
-    func answer(_ detail: @escaping @Sendable (UUID) -> DocumentDetail) {
-        server.onDetail { _, id in detail(id) }
-    }
-}
-
 /// From proposals to the draft the user sees.
 @MainActor
 @Suite struct ReviewDraftTests {
@@ -279,7 +248,13 @@ struct ReviewHarness {
         let model = try harness.model()
         await model.load()
         #expect(model.state == .review)
-        #expect(model.draft == ReviewModel.Draft())
+        // Empty but for the letter date, which starts as today.
+        var empty = ReviewModel.Draft()
+        empty.letterDate = CalendarDate(year: 2026, month: 11, day: 19)
+        #expect(model.draft.letterDate == empty.letterDate)
+        #expect(model.draft.isToday(.letterDate))
+        empty.origins = model.draft.origins
+        #expect(model.draft == empty)
 
         model.addTask()
         model.draft.tasks[0].description = "Betalen"

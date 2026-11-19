@@ -817,6 +817,18 @@
         }
       }
     },
+    "review.letterDate.today": {
+      "comment": "Under the letter date in the review when the app filled in today because the letter date was empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit is de datum van vandaag. Staat er een andere datum op de brief? Pas hem dan aan."
+          }
+        }
+      }
+    },
     "review.loading": {
       "comment": "Shown while the document loads.",
       "extractionState": "manual",

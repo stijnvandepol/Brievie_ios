@@ -255,6 +255,12 @@ private struct FieldNotes: View {
         } else if draft.needsAttention(field) {
             mark(DocumentStrings.checkCarefully, systemImage: "exclamationmark.triangle.fill")
         }
+        if draft.isToday(field) {
+            Label(DocumentStrings.letterDateToday, systemImage: "calendar")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("\(title). \(DocumentStrings.letterDateToday)")
+        }
         let quote = draft.quote(for: field)
         if !quote.isEmpty {
             Button {
