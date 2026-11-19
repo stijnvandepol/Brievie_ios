@@ -1,0 +1,41 @@
+name: Bug
+description: Something in the app does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problem? Do not use this form: see [SECURITY.md](https://github.com/stijnvandepol/Brievie_ios/blob/main/SECURITY.md).
+        Never paste real letters, pairing codes, tokens or server addresses you want to keep private.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App version
+      description: Commit or version, for example 0.1.0 (1).
+    validations:
+      required: true
+  - type: input
+    id: server
+    attributes:
+      label: Server version
+      description: Version or commit of Brievie_host, and whether it uses a private CA or a public certificate.
+  - type: input
+    id: device
+    attributes:
+      label: Device and iOS version
+      description: For example iPhone 15, iOS 18.4, or the simulator you used.
+    validations:
+      required: true

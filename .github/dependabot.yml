@@ -1,6 +1,4 @@
 # Weekly, grouped, so updates arrive as one pull request instead of many.
-# Swift packages are not listed: `make check-project` requires the copy of Package.resolved
-# inside Brievie.xcodeproj to match, which an automatic update does not regenerate.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -10,3 +8,18 @@ updates:
     groups:
       actions:
         patterns: ["*"]
+
+  # Swift packages of BrievieKit (Packages/BrievieKit/Package.swift and Package.resolved).
+  # `make check-project` requires the copy of Package.resolved inside Brievie.xcodeproj to match, which an
+  # automatic update does not regenerate: on a Dependabot pull request, run `make generate` and commit the
+  # result; until then CI's "Project matches project.yml" step fails, on purpose.
+  - package-ecosystem: swift
+    directory: /Packages/BrievieKit
+    schedule:
+      interval: weekly
+    groups:
+      swift-packages:
+        patterns: ["*"]
+    ignore:
+      # Pinned below the newest release on purpose (docs/DECISIONS.md, swift-openapi-generator).
+      - dependency-name: "github.com/apple/swift-openapi-generator"

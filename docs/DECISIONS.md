@@ -7,6 +7,9 @@ One line per dependency or tooling choice, with the reason.
 - **XcodeGen** — the Xcode project is generated from `project.yml`, so `*.xcodeproj` never causes merge conflicts.
 - **SwiftLint** (`--strict`, `force_unwrapping` on) — the lint gate locally and in CI.
 - **Swift Testing** — the test framework for all targets; ships with the toolchain, no package dependency.
+- **CodeQL** (`.github/workflows/codeql.yml`, `security-extended`) — static analysis of the Swift code (manual build mode: `make build`, so the app and `BrievieKit` are compiled and analysed; CodeQL supports Swift 5.4 to 6.3 and needs macOS) and of the workflows themselves. Runs on pushes to `main`, pull requests and weekly; results go to GitHub code scanning. Third-party actions are pinned to commit SHAs; Dependabot moves them.
+- **Dependabot for Swift packages** — weekly, grouped, for `Packages/BrievieKit`. A pull request must be completed with `make generate` (the copy of `Package.resolved` in the Xcode project); CI fails until then. `swift-openapi-generator` is ignored (pinned on purpose, see below).
+- **Code coverage** — `make coverage` runs the same tests with `swift test --enable-code-coverage`; `scripts/coverage-summary.sh` prints line coverage per `BrievieKit` target and CI uploads the table and the JSON report as the `coverage` artifact. Tooling that ships with the toolchain and `python3`, no new dependency. There is no minimum yet; the place for one is marked in the script.
 
 ## Package dependencies
 
@@ -197,3 +200,9 @@ Versions checked on 2026-11-13 against the GitHub tags; exact resolutions are in
 - **Accepted risk: the offer survives backgrounding and the typed code is not cleared**, because the user switches to Safari to read the code; it is a one-time, ten-minute value that never leaves the phone. While the code field is on screen the privacy cover is up in the app switcher (`ServerLinkModel.asksForCode`); the rest of the unpaired app stays uncovered.
 - **The notice's banner style comes from the model** (`Presentation.notice(_:kind:)`, warning for "already paired", error otherwise), not from comparing texts.
 - **No new dependency.**
+
+## Licence (2026-11-19)
+
+- **AGPL-3.0-or-later**, the same licence as the host, copyright Stijn van de Pol. Dropped: a permissive licence (Apache-2.0, MIT), which would let a closed fork of the app ship against the open server; MPL-2.0, which protects only per file.
+- **The App Store build is published by the copyright holder only.** The App Store terms add restrictions the AGPL forbids, so a third party cannot ship an AGPL app there; the copyright holder can, because the licence binds the people who receive the code, not its owner.
+- **No outside code is merged before a contributor agreement exists.** With outside code under AGPL only, the author could no longer ship the app in the App Store or offer another licence to a business. The agreement itself is to be written with a lawyer; `CONTRIBUTING.md` says so.
