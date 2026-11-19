@@ -100,6 +100,7 @@ private struct ScanPreviewPage: View {
                     ProgressView(DocumentStrings.scanTurning)
                 }
             }
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(imageLabel)
             .accessibilityAddTraits(.isImage)
