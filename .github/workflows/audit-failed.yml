@@ -1,0 +1,60 @@
+name: Audit failed
+
+# Called by the scheduled runs of ci.yml and codeql.yml, when nobody is looking: opens a
+# GitHub issue, or comments on the one that is still open, so a failed audit is not
+# found by chance. It names the run and the failed jobs and nothing else: a log can hold
+# a finding (a secret, an unpatched vulnerability) that must be judged before it is
+# copied into a public issue.
+
+on:
+  workflow_call:
+    inputs:
+      needs:
+        description: "toJSON(needs) of the calling job (job ids with their results)"
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write # opens or comments on the issue, creates the label
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      # Context values go through the environment, never into the script text.
+      NEEDS: ${{ inputs.needs }}
+      WORKFLOW: ${{ github.workflow }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Open or update the issue
+        run: |
+          set -euo pipefail
+          title="Scheduled security audit failed"
+          label="security-audit"
+
+          failed=$(printf '%s' "$NEEDS" | jq -r '[to_entries[] | select(.value.result == "failure") | .key] | join(", ")')
+          if [ -z "$failed" ]; then
+            echo "No job reports a failure; nothing to report."
+            exit 0
+          fi
+
+          body=$(printf 'The scheduled run of the workflow "%s" failed.\n\nRun: %s\nFailed jobs: %s\n\nThe logs are not copied here: they can hold findings that must be judged first. Open the run, decide what to do, and close this issue when the audit is green again.' \
+            "$WORKFLOW" "$RUN_URL" "$failed")
+
+          labels=$(gh label list --limit 200 --json name --jq '.[].name')
+          if ! printf '%s\n' "$labels" | grep -qx "$label"; then
+            gh label create "$label" --color B60205 \
+              --description "A scheduled security audit failed"
+          fi
+
+          open=$(gh issue list --label "$label" --state open --limit 100 --json number,title \
+            --jq '[.[] | select(.title == "Scheduled security audit failed")][0].number // empty')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --title "$title" --label "$label" --body "$body"
+          fi

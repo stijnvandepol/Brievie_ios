@@ -4,17 +4,26 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The secret scan also runs on the default branch three times a week, and on demand: a new
+  # gitleaks rule can find something in history that did not change. The macOS build and tests
+  # judge the code and are skipped then. Not on the hour, when many schedules start. A failed
+  # scheduled run opens an issue (job `audit-failed`).
+  schedule:
+    - cron: "41 3 * * 1,3,5" # Monday, Wednesday, Friday, 03:41 UTC
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 # A newer push to the same pull request makes the older run pointless. Runs on main always finish.
+# The event is in the group, so a scheduled run neither cancels a push run nor waits behind it.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
+    if: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
     runs-on: macos-26
     timeout-minutes: 45
     env:
@@ -73,3 +82,15 @@ jobs:
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Nobody watches a scheduled run: when it fails, open an issue (or comment on the open one) with
+  # the run URL and the failed job ids, no log lines (audit-failed.yml). Never on a pull request or push.
+  audit-failed:
+    if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
+    needs: [secrets]
+    permissions:
+      issues: write
+    # actionlint (1.7.12) does not know the `$/` self-repository syntax yet.
+    uses: ./.github/workflows/audit-failed.yml # zizmor: ignore[self-repository]
+    with:
+      needs: ${{ toJSON(needs) }}

@@ -45,7 +45,9 @@ What runs on every pull request and on `main` (`.github/workflows`):
 - SwiftLint with `--strict` and the package tests of `BrievieKit` (with a coverage report; no minimum yet).
 - A check that the committed Xcode project matches `project.yml`, a simulator build, and the Keychain tests hosted in the app.
 - A secret scan of the full history with gitleaks.
-- CodeQL (`security-extended`) for the Swift code and for the workflows, weekly as well.
+- CodeQL (`security-extended`) for the Swift code and for the workflows. On a pull request the Swift analysis (about 40 minutes) runs only when Swift sources, the package manifest or lock, the generated client's contract, the Xcode project or the workflow changed; the check is always reported, and says so when it skipped.
 - Dependabot for the GitHub Actions and the Swift packages. Actions are pinned to commit SHAs.
+
+New vulnerabilities and new scanner rules appear without a change of code, so the gitleaks scan of the full history and CodeQL (Swift and workflows) also run on a schedule, on `main`, every Monday, Wednesday and Friday in the early morning (UTC). The macOS build and tests judge the code and run on changes only. A failed scheduled run opens a GitHub issue titled "Scheduled security audit failed" (label `security-audit`), or comments on the one that is still open. The issue names the run and the failed jobs and holds no log lines, because a log can contain a finding that is not yet fixed. CodeQL findings appear under *Security* → *Code scanning*.
 
 What this does not cover: there is no independent security audit or penetration test, the tests do not run against a real Brievie server, and the camera scanner, Face ID and background uploads are checked by hand on a device, not in CI. Passing these checks is not a promise that the app is free of vulnerabilities.
