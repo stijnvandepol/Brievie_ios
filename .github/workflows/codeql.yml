@@ -1,0 +1,64 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Mondays 05:17 UTC: new queries and a rescan of main even when nothing was pushed.
+    - cron: "17 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      # Upload the results to code scanning.
+      security-events: write
+    env:
+      # Same toolchain as ci.yml. CodeQL supports Swift 5.4 to 6.3 and needs macOS.
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: swift
+            build-mode: manual
+          - language: actions
+            build-mode: none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Toolchain versions
+        run: |
+          xcodebuild -version
+          swift --version
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
+      # Manual build mode analyses what this build compiles: the app and, through it, BrievieKit.
+      # Identical in spirit to ci.yml: `make build` on an iPhone simulator.
+      - name: Pick a simulator
+        if: matrix.language == 'swift'
+        run: |
+          udid=$(scripts/simulator-udid.sh "iPhone 17")
+          echo "SIMULATOR_ID=$udid" >> "$GITHUB_ENV"
+      - name: Simulator build
+        if: matrix.language == 'swift'
+        run: make build
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
