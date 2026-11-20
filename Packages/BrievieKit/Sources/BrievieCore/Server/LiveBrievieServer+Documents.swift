@@ -196,7 +196,8 @@ private extension DocumentSummary {
             automatic: AutomaticMarks(
                 confirmedByAI: summary.confirmedByAi, labelIDs: summary.autoLabelIds,
                 addresseeIDs: summary.autoAddresseeIds
-            )
+            ),
+            proposedSender: summary.proposedSender
         )
     }
 
@@ -205,7 +206,7 @@ private extension DocumentSummary {
     init(
         apiID: String, clientID: String, status: String, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: String?, inboxState: String?, addresseeIDs: [String]?,
-        labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks
+        labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks, proposedSender: String?
     ) throws(ServerError) {
         guard let id = UUID(uuidString: apiID), let clientID = UUID(uuidString: clientID) else {
             throw .incompatible
@@ -218,7 +219,9 @@ private extension DocumentSummary {
             addresseeIDs: try uuids(addresseeIDs ?? []), labelIDs: try uuids(labelIDs ?? []),
             openSuggestionCount: openSuggestionCount ?? 0,
             confirmedByAI: automatic.confirmedByAI ?? false,
-            autoLabelIDs: try uuids(automatic.labelIDs ?? []), autoAddresseeIDs: try uuids(automatic.addresseeIDs ?? [])
+            autoLabelIDs: try uuids(automatic.labelIDs ?? []),
+            autoAddresseeIDs: try uuids(automatic.addresseeIDs ?? []),
+            proposedSender: proposedSender ?? ""
         )
     }
 }
@@ -261,7 +264,8 @@ extension DocumentDetail {
             automatic: AutomaticMarks(
                 confirmedByAI: document.confirmedByAi, labelIDs: document.autoLabelIds,
                 addresseeIDs: document.autoAddresseeIds
-            )
+            ),
+            proposedSender: document.proposedSender
         )
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {

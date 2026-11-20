@@ -69,4 +69,15 @@ import Testing
 
         #expect(document.isAutomatic)
     }
+
+    @Test func aLetterToCheckCarriesTheProposedSender() async throws {
+        let url = try StubURLProtocol.serve(.response(status: 200, json: """
+            [{\(Self.summaryJSON),"proposed_sender":"Wonen Voorbeeld","proposed_document_type":"other",
+              "proposed_letter_date":"2026-11-06"},{\(Self.summaryJSON)}]
+            """))
+
+        let documents = try await server.documents(in: scope(url))
+
+        #expect(documents.map(\.proposedSender) == ["Wonen Voorbeeld", ""])
+    }
 }

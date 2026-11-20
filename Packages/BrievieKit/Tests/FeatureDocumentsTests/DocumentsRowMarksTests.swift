@@ -26,11 +26,13 @@ import Testing
     }
 
     private static func document(
-        status: DocumentStatus, sender: String = "", confirmedByAI: Bool = false, autoLabels: [UUID] = []
+        status: DocumentStatus, sender: String = "", confirmedByAI: Bool = false, autoLabels: [UUID] = [],
+        proposedSender: String = ""
     ) -> DocumentSummary {
         DocumentSummary(
             id: UUID(), clientID: UUID(), status: status, pageCount: 1, createdAt: arrival, sender: sender,
-            documentType: "", letterDate: nil, confirmedByAI: confirmedByAI, autoLabelIDs: autoLabels
+            documentType: "", letterDate: nil, confirmedByAI: confirmedByAI, autoLabelIDs: autoLabels,
+            proposedSender: proposedSender
         )
     }
 
@@ -43,6 +45,30 @@ import Testing
             format: DocumentStrings.arrivedFormat, Self.arrival.formatted(date: .omitted, time: .shortened)
         )
         #expect(rows.map(\.title) == [expected, expected])
+    }
+
+    /// A server that lists the AI's proposed sender (host PR #25): shown as a proposal, never as a fact.
+    @Test func aProposedSenderIsShownAsAProposal() async throws {
+        let rows = try await rows(for: [Self.document(status: .needsReview, proposedSender: "Wonen Voorbeeld")])
+
+        let row = try #require(rows.first)
+        #expect(row.title == "Wonen Voorbeeld")
+        #expect(row.titleIsProposal)
+        #expect(row.accessibilityLabel.hasPrefix("Wonen Voorbeeld \(DocumentStrings.proposedMark),"))
+    }
+
+    @Test func anEmptyProposalFallsBackToTheArrivalTime() async throws {
+        let rows = try await rows(for: [Self.document(status: .needsReview, proposedSender: "  ")])
+
+        #expect(rows.first?.titleIsProposal == false)
+        #expect(rows.first?.title.hasPrefix("Binnengekomen") == true)
+    }
+
+    @Test func aConfirmedSenderIsNoProposal() async throws {
+        let rows = try await rows(for: [Self.document(status: .done, sender: "A", proposedSender: "B")])
+
+        #expect(rows.map(\.title) == ["A"])
+        #expect(rows.first?.titleIsProposal == false)
     }
 
     @Test func aConfirmedLetterWithoutSenderStaysUnknown() async throws {
@@ -75,5 +101,8 @@ import Testing
         #expect(DocumentStrings.automaticByAI == "Automatisch door AI")
         #expect(try CatalogParity.dutchValue(forKey: "documents.row.arrived", target: "FeatureDocuments")
             == DocumentStrings.arrivedFormat)
+        #expect(try CatalogParity.dutchValue(forKey: "documents.row.proposed", target: "FeatureDocuments")
+            == "(voorstel)")
+        #expect(DocumentStrings.proposedMark == "(voorstel)")
     }
 }

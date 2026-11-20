@@ -277,15 +277,15 @@ public final class DocumentsModel {
         let addressees = Set(document.addresseeIDs)
         let labelIDs = Set(document.labelIDs)
         let status = Self.status(of: document)
+        let (title, isProposal) = Self.title(of: document, status: status)
         return Row(
-            id: document.id, documentID: document.id,
-            title: document.sender.isEmpty ? Self.untitled(status, arrived: document.createdAt) : document.sender,
+            id: document.id, documentID: document.id, title: title,
             subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
             status: status,
             addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
             labels: labels.filter { labelIDs.contains($0.id) },
             hasSuggestions: document.openSuggestionCount > 0,
-            isAutomatic: document.isAutomatic,
+            isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
             date: document.createdAt
         )
     }

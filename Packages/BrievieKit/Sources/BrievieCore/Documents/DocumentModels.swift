@@ -29,6 +29,9 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
     /// Labels and addressees the AI or a rule put on the letter by itself and nobody confirmed yet.
     public let autoLabelIDs: [UUID]
     public let autoAddresseeIDs: [UUID]
+    /// The sender the AI proposed for a letter waiting for review; empty when the server does not list it (before
+    /// host PR #25) or has none. A proposal, never the confirmed `sender`.
+    public let proposedSender: String
 
     /// "Automatisch door AI", as the web's lists say: confirmed by the AI, or with a label or name it put on.
     public var isAutomatic: Bool { confirmedByAI || !autoLabelIDs.isEmpty || !autoAddresseeIDs.isEmpty }
@@ -37,7 +40,8 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         id: UUID, clientID: UUID, status: DocumentStatus, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: CalendarDate?, inboxState: InboxState = .sorted,
         addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0,
-        confirmedByAI: Bool = false, autoLabelIDs: [UUID] = [], autoAddresseeIDs: [UUID] = []
+        confirmedByAI: Bool = false, autoLabelIDs: [UUID] = [], autoAddresseeIDs: [UUID] = [],
+        proposedSender: String = ""
     ) {
         self.id = id
         self.clientID = clientID
@@ -54,6 +58,7 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         self.confirmedByAI = confirmedByAI
         self.autoLabelIDs = autoLabelIDs
         self.autoAddresseeIDs = autoAddresseeIDs
+        self.proposedSender = proposedSender
     }
 }
 

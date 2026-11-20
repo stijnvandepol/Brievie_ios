@@ -52,6 +52,7 @@ extension DocumentStrings {
         defaultValue: "De AI heeft deze brief zelf bevestigd. Niemand heeft hem gecontroleerd.",
         bundle: .module
     )
+    static let proposedMark = String(localized: "documents.row.proposed", defaultValue: "(voorstel)", bundle: .module)
     static let arrivedFormat = String(
         localized: "documents.row.arrived", defaultValue: "Binnengekomen om %@", bundle: .module
     )
@@ -70,6 +71,7 @@ extension DocumentStrings {
         "documents.automatic": automaticByAI,
         "documents.automatic.added": automaticAddedFormat,
         "documents.automatic.confirmed": automaticConfirmedNote,
-        "documents.row.arrived": arrivedFormat
+        "documents.row.arrived": arrivedFormat,
+        "documents.row.proposed": proposedMark
     ]
 }

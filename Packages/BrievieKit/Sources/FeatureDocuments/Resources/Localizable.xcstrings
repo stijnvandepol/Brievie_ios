@@ -409,6 +409,18 @@
         }
       }
     },
+    "documents.row.proposed": {
+      "comment": "After a sender the AI proposed and nobody confirmed (as in the web).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(voorstel)"
+          }
+        }
+      }
+    },
     "documents.scan": {
       "comment": "Button that opens the document scanner.",
       "extractionState": "manual",

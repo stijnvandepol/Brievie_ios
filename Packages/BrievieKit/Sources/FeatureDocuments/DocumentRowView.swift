@@ -9,8 +9,15 @@ struct DocumentRowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(row.title)
-                .font(.headline)
+            if row.titleIsProposal {
+                // As in the web: italic, and "(voorstel)" in words, so it is never read as a fact.
+                (Text(row.title).italic() + Text(verbatim: " ") + Text(DocumentStrings.proposedMark)
+                    .foregroundStyle(.secondary))
+                    .font(.headline)
+            } else {
+                Text(row.title)
+                    .font(.headline)
+            }
             Text(row.subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

@@ -722,6 +722,24 @@
             "title": "Proposals",
             "type": "array"
           },
+          "proposed_document_type": {
+            "default": "",
+            "title": "Proposed Document Type",
+            "type": "string"
+          },
+          "proposed_letter_date": {
+            "format": "date",
+            "title": "Proposed Letter Date",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proposed_sender": {
+            "default": "",
+            "title": "Proposed Sender",
+            "type": "string"
+          },
           "sender": {
             "title": "Sender",
             "type": "string"
@@ -851,6 +869,24 @@
           "page_count": {
             "title": "Page Count",
             "type": "integer"
+          },
+          "proposed_document_type": {
+            "default": "",
+            "title": "Proposed Document Type",
+            "type": "string"
+          },
+          "proposed_letter_date": {
+            "format": "date",
+            "title": "Proposed Letter Date",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proposed_sender": {
+            "default": "",
+            "title": "Proposed Sender",
+            "type": "string"
           },
           "sender": {
             "title": "Sender",
@@ -8933,6 +8969,7 @@
         ]
       },
       "put": {
+        "description": "`name_variants` and `archived` left out keep the person's current value (a rename never archives, restores or clears the variants); sent, they replace it.",
         "operationId": "updatePerson",
         "parameters": [
           {
