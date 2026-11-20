@@ -21,6 +21,8 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case busy
     /// The server does not know this request: it is older than the app (a 1b server has no task list).
     case notSupported
+    /// HTTP 429: too many requests in a short time (searches: 30 a minute). Wait a moment.
+    case tooManyRequests
     case cancelled
     case failed
 }
@@ -54,6 +56,11 @@ public struct WorkspaceDocuments: Sendable {
 
     public func list(filter: DocumentFilter = .all) async throws(DocumentsError) -> [DocumentSummary] {
         try await perform { try await server.documents(in: $0, filter: filter) }
+    }
+
+    /// One page of a search; `.tooManyRequests` after too many searches in a minute (429).
+    public func search(_ query: DocumentSearchQuery) async throws(DocumentsError) -> DocumentSearchPage {
+        try await perform { try await server.search(query, in: $0) }
     }
 
     public func inboxCounts() async throws(DocumentsError) -> InboxCounts {
@@ -142,7 +149,7 @@ public struct WorkspaceDocuments: Sendable {
             } catch let ServerError.other(code) {
                 throw Self.verdict(code)
             } catch {
-                throw .failed
+                throw Self.otherFailure(error)
             }
         }
         if Task.isCancelled { throw .cancelled }
@@ -159,6 +166,11 @@ public struct WorkspaceDocuments: Sendable {
         }
         guard let stored else { throw .missingPairing }
         return stored.token
+    }
+
+    /// A 429 asks to wait; anything else this seam does not sort is a plain failure.
+    private static func otherFailure(_ error: any Error) -> DocumentsError {
+        (error as? ServerError) == .tooManyAttempts ? .tooManyRequests : .failed
     }
 
     private static func verdict(_ code: String) -> DocumentsError {

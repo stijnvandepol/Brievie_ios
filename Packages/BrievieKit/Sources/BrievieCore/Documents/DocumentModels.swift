@@ -240,9 +240,16 @@ public protocol DocumentServer: Sendable {
     func openTasks(in scope: DocumentScope) async throws -> [WorkspaceTask]
     func completeTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
     func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
+    /// One page of a search in the letters of the workspace (a server before host PR #27 answers 404).
+    func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage
 }
 
 public extension DocumentServer {
+    /// For servers that predate search (the test servers): the 404 of a server without the endpoint.
+    func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
+        throw ServerError.other("http_404")
+    }
+
     /// The newest documents of the workspace, unfiltered.
     func documents(in scope: DocumentScope) async throws -> [DocumentSummary] {
         try await documents(in: scope, filter: .all)
