@@ -60,12 +60,13 @@ struct DeadlineRow: View {
 /// throwing a scan away; it closes when the app leaves the foreground (`ReviewModel.sceneDidChange`).
 struct RemoveTaskQuestion: ViewModifier {
     @Bindable var model: ReviewModel
+    let taskID: UUID
 
     func body(content: Content) -> some View {
         content.confirmationDialog(
             DocumentStrings.removeTaskTitle,
             isPresented: Binding(
-                get: { model.taskAskedToRemove != nil },
+                get: { model.taskAskedToRemove == taskID },
                 set: { if !$0 { model.taskAskedToRemove = nil } }
             ),
             titleVisibility: .visible

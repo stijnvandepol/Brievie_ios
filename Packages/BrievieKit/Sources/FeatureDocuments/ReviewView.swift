@@ -83,7 +83,6 @@ public struct ReviewView: View {
                 }
             }
         }
-        .modifier(RemoveTaskQuestion(model: model))
         .confirmationDialog(
             DocumentStrings.discardEditsTitle,
             isPresented: Binding(
@@ -261,6 +260,8 @@ public struct ReviewView: View {
                 }
                 .font(.footnote)
                 .buttonStyle(.borderless)
+                // On the button, so the question points at the task it is about.
+                .modifier(RemoveTaskQuestion(model: model, taskID: id))
             }
         }
     }
