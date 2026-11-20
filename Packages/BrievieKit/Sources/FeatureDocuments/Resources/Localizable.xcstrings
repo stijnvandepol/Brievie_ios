@@ -1369,6 +1369,30 @@
         }
       }
     },
+    "review.proposals.open.many": {
+      "comment": "Above Bevestigen: several proposals are not taken and will be dismissed on confirm. %1$d is the number, %2$@ their names.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staan nog %1$d voorstellen open: %2$@. Neem je ze niet over, dan vervallen ze als je bevestigt."
+          }
+        }
+      }
+    },
+    "review.proposals.open.one": {
+      "comment": "Above Bevestigen: one proposal (a person or label) is not taken and will be dismissed on confirm. %@ is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staat nog 1 voorstel open: %@. Neem je het niet over, dan vervalt het als je bevestigt."
+          }
+        }
+      }
+    },
     "review.readOnly": {
       "comment": "Shown to a viewer, who cannot confirm.",
       "extractionState": "manual",

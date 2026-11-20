@@ -59,3 +59,26 @@ extension ReviewModel {
         draft.syncDeadlineSource(of: index)
     }
 }
+
+// What confirming does to the proposals not taken.
+extension ReviewModel {
+    /// "Er staat nog 1 voorstel open: Wonen. …" above "Bevestigen": the server dismisses every proposal the user
+    /// did not take when the letter is confirmed with the lists, for good. `nil` when none is open, or when the
+    /// review confirms without the lists (a 1b server: nothing is dismissed then).
+    public var openProposalsNote: String? {
+        guard organiseAvailable else { return nil }
+        let organise = draft.organise
+        let open = organise.openSuggestions(for: .addAddressee) + organise.openSuggestions(for: .addLabel)
+        guard !open.isEmpty else { return nil }
+        let names = open.compactMap { suggestion -> String? in
+            switch suggestion.action {
+            case .addAddressee: persons.first { $0.id == suggestion.targetID }?.displayName
+            case .addLabel: labels.first { $0.id == suggestion.targetID }?.name
+            case .unknown: nil
+            }
+        }.joined(separator: ", ")
+        return open.count == 1
+            ? String(format: DocumentStrings.openProposalsOneFormat, names)
+            : String(format: DocumentStrings.openProposalsManyFormat, open.count, names)
+    }
+}

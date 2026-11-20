@@ -27,6 +27,19 @@ extension DocumentStrings {
     static let removeTaskKeep = String(
         localized: "review.task.remove.keep", defaultValue: "Laten staan", bundle: .module
     )
+    static let openProposalsOneFormat = String(
+        localized: "review.proposals.open.one",
+        defaultValue: "Er staat nog 1 voorstel open: %@. Neem je het niet over, dan vervalt het als je bevestigt.",
+        bundle: .module
+    )
+    static let openProposalsManyFormat = String(
+        localized: "review.proposals.open.many",
+        defaultValue: """
+        Er staan nog %1$d voorstellen open: %2$@. \
+        Neem je ze niet over, dan vervallen ze als je bevestigt.
+        """,
+        bundle: .module
+    )
 
     /// The strings of this part by catalog key, for the parity test (merged into `all`).
     static let taskEditing: [String: String] = [
@@ -36,6 +49,8 @@ extension DocumentStrings {
         "review.task.remove.title": removeTaskTitle,
         "review.task.remove.message": removeTaskMessage,
         "review.task.remove.confirm": removeTaskConfirm,
-        "review.task.remove.keep": removeTaskKeep
+        "review.task.remove.keep": removeTaskKeep,
+        "review.proposals.open.one": openProposalsOneFormat,
+        "review.proposals.open.many": openProposalsManyFormat
     ]
 }

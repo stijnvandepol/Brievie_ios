@@ -218,6 +218,10 @@ public struct ReviewView: View {
             if let error = model.saveError {
                 ErrorBanner(error)
             }
+            if model.canEdit, let note = model.openProposalsNote {
+                Label(note, systemImage: "lightbulb")
+                    .font(.subheadline)
+            }
             if model.canEdit {
                 PrimaryButton(model.isSaving ? DocumentStrings.saving : DocumentStrings.confirm) {
                     Task { await model.confirm() }
