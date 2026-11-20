@@ -52,7 +52,7 @@ extension LetterFixture {
             key: "belasting", pageCount: 1,
             facts: facts(
                 "Belastingdienst", "12 november 2026", amount: "1.248,00", deadline: "uiterlijk 31 december 2026",
-                addressee: "S.T.J. van de Pol"
+                addressee: "J.A. de Wilde"
             ),
             style: ScanStyle()
         ),
@@ -68,7 +68,7 @@ extension LetterFixture {
             key: "paspoort", pageCount: 1,
             facts: facts(
                 "Gemeente Venray", "5 november 2026", amount: "83,87", deadline: "tot en met 14 februari 2027",
-                addressee: "S.T.J. van de Pol"
+                addressee: "J.A. de Wilde"
             ),
             style: ScanStyle(lowContrast: true, shadow: true)
         ),
@@ -84,7 +84,7 @@ extension LetterFixture {
             key: "incasso", pageCount: 1,
             facts: facts(
                 "Flanderijn Incasso", "10 november 2026", amount: "99,90",
-                deadline: "binnen 14 dagen na dagtekening", addressee: "S.T.J. van de Pol"
+                deadline: "binnen 14 dagen na dagtekening", addressee: "J.A. de Wilde"
             ),
             style: ScanStyle(font: "Courier", softness: 0.6, shadow: true)
         ),
@@ -92,7 +92,7 @@ extension LetterFixture {
             key: "verkeersboete", pageCount: 1,
             facts: facts(
                 "Centraal Justitieel Incassobureau", "3 november 2026", amount: "96,00",
-                deadline: "vóór 15 december 2026", addressee: "S.T.J. van de Pol"
+                deadline: "vóór 15 december 2026", addressee: "J.A. de Wilde"
             ),
             style: ScanStyle(skew: 4, lowContrast: true)
         ),
@@ -123,20 +123,20 @@ extension LetterFixture {
         LetterFixture(
             key: "jaaropgaaf", pageCount: 1,
             facts: facts(
-                "Stichting Voorbeeldzorg", "2 november 2026", amount: "2.348,60", addressee: "S.T.J. van de Pol"
+                "Stichting Voorbeeldzorg", "2 november 2026", amount: "2.348,60", addressee: "J.A. de Wilde"
             ),
             style: ScanStyle(skew: 2, shadow: true, noise: true)
         ),
         LetterFixture(
             key: "injectie", pageCount: 1,
-            facts: facts("Voordeelclub Nederland", "13 november 2026", addressee: "S.T.J. van de Pol"),
+            facts: facts("Voordeelclub Nederland", "13 november 2026", addressee: "J.A. de Wilde"),
             style: ScanStyle(lowContrast: true, noise: true)
         ),
         LetterFixture(
             key: "huurverhoging", pageCount: 2,
             facts: facts(
                 "Wonen Limburg", "6 november 2026", amount: "772,61", deadline: "vóór 1 januari 2027",
-                deadlinePage: 2, addressee: "S.T.J. van de Pol en mevrouw M. de Vries"
+                deadlinePage: 2, addressee: "J.A. de Wilde en mevrouw M. de Vries"
             ),
             style: ScanStyle(skew: -1.5, softness: 0.65, shadow: true)
         )

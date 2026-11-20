@@ -9,7 +9,7 @@ import Testing
     @Test(arguments: [
         ("Flanderijn Incasso", "'landerijn Incasso en Gerechtsdeurwaarders"),  // a lost first letter
         ("CZ Zorgverzekeringen", "CZ. Zorgverzekcringen"),  // one wrong letter, a stray full stop
-        ("S.T.J. van de Pol", "De heer S.T.J. van de Po1"),  // l read as 1
+        ("J.A. de Wilde", "De heer J.A. de Wi1de"),  // l read as 1
         ("Aan de bewoners van", "AAN DE  BEWONERS\nVAN")  // case and line breaks
     ])
     func namesSurviveTheUsualOCRSlips(expected: String, read: String) {

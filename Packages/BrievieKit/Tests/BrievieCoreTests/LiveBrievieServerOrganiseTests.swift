@@ -15,7 +15,7 @@ import Testing
     private static let labelID = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d"
 
     private static let personJSON = """
-        {"id":"\(personID)","display_name":"Stijn","name_variants":["S. van de Pol"],"user_id":null,
+        {"id":"\(personID)","display_name":"Stijn","name_variants":["J. de Wilde"],"user_id":null,
          "archived":false,"document_count":3}
         """
 
@@ -123,7 +123,7 @@ import Testing
         let labels = try await server.labels(in: scope(labelsURL))
 
         #expect(persons == [Person(
-            id: try uuid(Self.personID), displayName: "Stijn", nameVariants: ["S. van de Pol"], isArchived: false
+            id: try uuid(Self.personID), displayName: "Stijn", nameVariants: ["J. de Wilde"], isArchived: false
         )])
         #expect(labels == [DocumentLabel(id: try uuid(Self.labelID), name: "Zorg", colorKey: "green")])
         #expect(StubURLProtocol.requests(to: personsURL).first?.url?.path() == "\(Self.workspacePath)/persons")
