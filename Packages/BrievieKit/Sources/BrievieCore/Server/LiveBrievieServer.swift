@@ -40,6 +40,9 @@ public struct LiveBrievieServer: BrievieServer {
             switch try await client.getHealth() {
             case let .ok(response):
                 return try response.body.json.apiVersion
+            case .serviceUnavailable:
+                // The server runs but its database does not answer: the same as before the contract listed it.
+                throw ServerError(status: 503, code: nil)
             case let .undocumented(status, _):
                 throw ServerError(status: status, code: nil)
             }
