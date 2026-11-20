@@ -40,6 +40,21 @@ extension DocumentStrings {
         """,
         bundle: .module
     )
+    // What the AI did by itself (the web's words), and a letter to check without a sender
+    static let automaticByAI = String(
+        localized: "documents.automatic", defaultValue: "Automatisch door AI", bundle: .module
+    )
+    static let automaticAddedFormat = String(
+        localized: "documents.automatic.added", defaultValue: "Automatisch toegevoegd: %@", bundle: .module
+    )
+    static let automaticConfirmedNote = String(
+        localized: "documents.automatic.confirmed",
+        defaultValue: "De AI heeft deze brief zelf bevestigd. Niemand heeft hem gecontroleerd.",
+        bundle: .module
+    )
+    static let arrivedFormat = String(
+        localized: "documents.row.arrived", defaultValue: "Binnengekomen om %@", bundle: .module
+    )
 
     /// The strings of this part by catalog key, for the parity test (merged into `all`).
     static let taskEditing: [String: String] = [
@@ -51,6 +66,10 @@ extension DocumentStrings {
         "review.task.remove.confirm": removeTaskConfirm,
         "review.task.remove.keep": removeTaskKeep,
         "review.proposals.open.one": openProposalsOneFormat,
-        "review.proposals.open.many": openProposalsManyFormat
+        "review.proposals.open.many": openProposalsManyFormat,
+        "documents.automatic": automaticByAI,
+        "documents.automatic.added": automaticAddedFormat,
+        "documents.automatic.confirmed": automaticConfirmedNote,
+        "documents.row.arrived": arrivedFormat
     ]
 }

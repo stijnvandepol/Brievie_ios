@@ -43,7 +43,10 @@ import Testing
         #expect(model.state == .loaded)
         #expect(model.rows.map(\.id) == [newer.id, older.id])
         #expect(model.rows.map(\.status) == [.needsReview, .done])
-        #expect(model.rows.map(\.title) == [DocumentStrings.unknownSender, "CAK"])
+        let arrived = String(
+            format: DocumentStrings.arrivedFormat, newer.createdAt.formatted(date: .omitted, time: .shortened)
+        )
+        #expect(model.rows.map(\.title) == [arrived, "CAK"])
         #expect(model.rows.map(\.documentID) == [newer.id, older.id])
     }
 

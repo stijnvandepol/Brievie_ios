@@ -16,13 +16,15 @@ extension DocumentsModel {
         public let labels: [DocumentLabel]
         /// The server has open proposals for addressees or labels.
         public let hasSuggestions: Bool
+        /// The AI confirmed the letter, or put a label or name on it, by itself: "Automatisch door AI".
+        public let isAutomatic: Bool
         /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
         let date: Date
 
         init(
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
             addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
-            date: Date = .distantPast
+            isAutomatic: Bool = false, date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -32,6 +34,7 @@ extension DocumentsModel {
             self.addressees = addressees
             self.labels = labels
             self.hasSuggestions = hasSuggestions
+            self.isAutomatic = isAutomatic
             self.date = date
         }
     }
@@ -190,6 +193,7 @@ extension DocumentsModel.Row {
             parts.append(String(format: DocumentStrings.labelsFormat, labels.map(\.name).joined(separator: ", ")))
         }
         if hasSuggestions { parts.append(DocumentStrings.suggestion) }
+        if isAutomatic { parts.append(DocumentStrings.automaticByAI) }
         return parts.joined(separator: ", ")
     }
 }
@@ -219,6 +223,17 @@ extension DocumentsModel {
     static let dateStyle = Date.FormatStyle(
         date: .abbreviated, time: .omitted, locale: Locale(identifier: "nl_NL")
     )
+
+    /// A letter the server read but nobody checked yet has no sender in the list (the AI's proposal is only in
+    /// the detail): it is named by the time it came in, so letters of one day can be told apart.
+    static func untitled(_ status: RowStatus, arrived: Date) -> String {
+        switch status {
+        case .processing: DocumentStrings.newDocument
+        case .needsReview, .failed:
+            String(format: DocumentStrings.arrivedFormat, arrived.formatted(date: .omitted, time: .shortened))
+        default: DocumentStrings.unknownSender
+        }
+    }
 
     static func subtitle(date: Date, pages: Int) -> String {
         let pageText = pages == 1 ? DocumentStrings.pagesOne : String(format: DocumentStrings.pagesManyFormat, pages)

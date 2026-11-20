@@ -24,11 +24,20 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
     public let addresseeIDs: [UUID]
     public let labelIDs: [UUID]
     public let openSuggestionCount: Int
+    /// The AI confirmed the letter itself (the workspace's autopilot); nobody checked it.
+    public let confirmedByAI: Bool
+    /// Labels and addressees the AI or a rule put on the letter by itself and nobody confirmed yet.
+    public let autoLabelIDs: [UUID]
+    public let autoAddresseeIDs: [UUID]
+
+    /// "Automatisch door AI", as the web's lists say: confirmed by the AI, or with a label or name it put on.
+    public var isAutomatic: Bool { confirmedByAI || !autoLabelIDs.isEmpty || !autoAddresseeIDs.isEmpty }
 
     public init(
         id: UUID, clientID: UUID, status: DocumentStatus, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: CalendarDate?, inboxState: InboxState = .sorted,
-        addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0
+        addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0,
+        confirmedByAI: Bool = false, autoLabelIDs: [UUID] = [], autoAddresseeIDs: [UUID] = []
     ) {
         self.id = id
         self.clientID = clientID
@@ -42,6 +51,9 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         self.addresseeIDs = addresseeIDs
         self.labelIDs = labelIDs
         self.openSuggestionCount = openSuggestionCount
+        self.confirmedByAI = confirmedByAI
+        self.autoLabelIDs = autoLabelIDs
+        self.autoAddresseeIDs = autoAddresseeIDs
     }
 }
 
@@ -82,10 +94,12 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
     public let deadlineQuote: String
     /// Ticked off (`status` is `done`).
     public var isDone: Bool
+    /// The AI made this task when it confirmed the letter by itself.
+    public let createdByAI: Bool
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String, isDone: Bool = false
+        deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false
     ) {
         self.id = id
         self.type = type
@@ -94,6 +108,7 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
         self.deadlineSource = deadlineSource
         self.deadlineQuote = deadlineQuote
         self.isDone = isDone
+        self.createdByAI = createdByAI
     }
 }
 

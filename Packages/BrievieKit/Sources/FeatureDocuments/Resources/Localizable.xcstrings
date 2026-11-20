@@ -133,6 +133,42 @@
         }
       }
     },
+    "documents.automatic": {
+      "comment": "Mark on a letter or task the AI handled by itself (the web's wording).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch door AI"
+          }
+        }
+      }
+    },
+    "documents.automatic.added": {
+      "comment": "Under labels or names the AI or a rule put on a letter by itself. %@ is the list of names.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch toegevoegd: %@"
+          }
+        }
+      }
+    },
+    "documents.automatic.confirmed": {
+      "comment": "Under the mark on a letter the AI confirmed by itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De AI heeft deze brief zelf bevestigd. Niemand heeft hem gecontroleerd."
+          }
+        }
+      }
+    },
     "documents.delete": {
       "comment": "Deletes a scan that is still on the phone.",
       "extractionState": "manual",
@@ -357,6 +393,18 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opnieuw proberen"
+          }
+        }
+      }
+    },
+    "documents.row.arrived": {
+      "comment": "Title of a letter to check that has no sender yet. %@ is the time it came in, like 14:32.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binnengekomen om %@"
           }
         }
       }

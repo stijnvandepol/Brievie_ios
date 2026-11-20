@@ -32,6 +32,11 @@ struct DocumentRowView: View {
                     .font(.subheadline)
                     .foregroundStyle(BrievieColor.brand)
             }
+            if row.isAutomatic {
+                AdaptiveLabel(DocumentStrings.automaticByAI, systemImage: "sparkles")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         // One element, read in a fixed order: sender, date, status and its note, names, labels, proposal.

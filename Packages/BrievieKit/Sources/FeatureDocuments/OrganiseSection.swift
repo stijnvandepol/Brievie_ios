@@ -44,6 +44,9 @@ struct OrganiseSection: View {
     let labels: [DocumentLabel]
     let actions: OrganiseActions?
     let onShowQuote: (String) -> Void
+    /// "Automatisch toegevoegd: …" under each list on a confirmed letter (what the AI or a rule put there).
+    var automaticAddressees: String?
+    var automaticLabels: String?
 
     var body: some View {
         Section {
@@ -78,6 +81,8 @@ struct OrganiseSection: View {
             }
         } header: {
             Text(DocumentStrings.addressees)
+        } footer: {
+            if let automaticAddressees { Text(automaticAddressees) }
         }
         Section {
             ForEach(chosenLabels) { label in
@@ -116,6 +121,8 @@ struct OrganiseSection: View {
             }
         } header: {
             Text(DocumentStrings.labels)
+        } footer: {
+            if let automaticLabels { Text(automaticLabels) }
         }
     }
 
