@@ -391,5 +391,5 @@ extension DocumentStrings {
         "documents.suggestion": suggestion
     ].merging(organise) { current, _ in current }.merging(reader) { current, _ in current }
         .merging(scanPreview) { current, _ in current }.merging(list) { current, _ in current }
-        .merging(taskEditing) { current, _ in current }
+        .merging(taskEditing) { current, _ in current }.merging(search) { current, _ in current }
 }

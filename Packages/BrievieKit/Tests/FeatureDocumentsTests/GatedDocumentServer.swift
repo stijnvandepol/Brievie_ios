@@ -9,6 +9,8 @@ final class GatedDocumentServer: DocumentServer {
     enum Gate: Hashable {
         case person(UUID)
         case inbox(InboxState)
+        /// A search for this exact term.
+        case search(String)
     }
 
     private struct State {
@@ -16,6 +18,7 @@ final class GatedDocumentServer: DocumentServer {
         var waiters: [Gate: [CheckedContinuation<Void, Never>]] = [:]
         var holdsTasks = false
         var taskWaiters: [CheckedContinuation<Void, Never>] = []
+        var cancelledSearches: [String] = []
     }
 
     let inner: FakeDocumentServer
@@ -94,19 +97,35 @@ final class GatedDocumentServer: DocumentServer {
         }
     }
 
+    private func wait(at gate: Gate) async {
+        await withCheckedContinuation { continuation in
+            let waits = state.withLock { state in
+                guard state.gated.contains(gate) else { return false }
+                state.waiters[gate, default: []].append(continuation)
+                return true
+            }
+            if !waits { continuation.resume() }
+        }
+    }
+
     func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {
         let gate: Gate? = filter.personID.map(Gate.person) ?? filter.inboxState.map(Gate.inbox)
-        if let gate {
-            await withCheckedContinuation { continuation in
-                let waits = state.withLock { state in
-                    guard state.gated.contains(gate) else { return false }
-                    state.waiters[gate, default: []].append(continuation)
-                    return true
-                }
-                if !waits { continuation.resume() }
-            }
-        }
+        if let gate { await wait(at: gate) }
         return try await inner.documents(in: scope, filter: filter)
+    }
+
+    /// A held search that was cancelled meanwhile ends as URLSession ends a cancelled request.
+    func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
+        await wait(at: .search(query.text))
+        if Task.isCancelled {
+            state.withLock { $0.cancelledSearches.append(query.text) }
+            throw CancellationError()
+        }
+        return try await inner.search(query, in: scope)
+    }
+
+    func searchWasCancelled(_ text: String) -> Bool {
+        state.withLock { $0.cancelledSearches.contains(text) }
     }
 
     func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts {

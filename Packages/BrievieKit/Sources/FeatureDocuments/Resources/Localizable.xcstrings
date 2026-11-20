@@ -2029,6 +2029,162 @@
         }
       }
     },
+    "search.bsnRemoved": {
+      "comment": "The server removed a citizen service number (BSN) from the search term.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoeken op een BSN kan niet: Brievie bewaart geen BSN's. We hebben het nummer uit je zoekopdracht gehaald."
+          }
+        }
+      }
+    },
+    "search.empty.hint": {
+      "comment": "What can be searched for, before anything is typed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek op afzender, onderwerp, een woord uit de brief, een label of een naam. Het begin van een woord is genoeg."
+          }
+        }
+      }
+    },
+    "search.empty.title": {
+      "comment": "Above the search results before anything is typed.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek een brief"
+          }
+        }
+      }
+    },
+    "search.error.notSupported": {
+      "comment": "The server is older than search.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je Brievie-server kan nog niet zoeken. Vraag de beheerder om de server bij te werken."
+          }
+        }
+      }
+    },
+    "search.error.tooMany": {
+      "comment": "The server refused the search: too many searches in a minute.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt veel gezocht in korte tijd. Wacht een minuut en probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "search.fuzzy": {
+      "comment": "Above results that match only approximately.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen exacte treffer. Dit lijkt erop."
+          }
+        }
+      }
+    },
+    "search.more": {
+      "comment": "Button under the search results that loads the next page.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meer laden"
+          }
+        }
+      }
+    },
+    "search.none.hint": {
+      "comment": "The next step when nothing was found.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebruik minder woorden, of probeer een andere spelling of het begin van een woord."
+          }
+        }
+      }
+    },
+    "search.none.title": {
+      "comment": "No letter matched the search term.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets gevonden"
+          }
+        }
+      }
+    },
+    "search.prompt": {
+      "comment": "The placeholder of the search field in \"Alle post\".",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoek in je post"
+          }
+        }
+      }
+    },
+    "search.results": {
+      "comment": "Accessibility name of the list of search results.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoekresultaten"
+          }
+        }
+      }
+    },
+    "search.searching": {
+      "comment": "While the server searches.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezig met zoeken…"
+          }
+        }
+      }
+    },
+    "search.tooShort": {
+      "comment": "The search term has one character.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typ minstens twee tekens."
+          }
+        }
+      }
+    },
     "task.apply": {
       "comment": "Task type apply.",
       "extractionState": "manual",
