@@ -95,6 +95,9 @@ extension DocumentsModel {
         return canScan ? DocumentStrings.todoEmptyHintScan : DocumentStrings.todoEmptyHint
     }
 
+    /// Search belongs to "Alle post": the other scopes are short lists of their own.
+    public var searchIsAvailable: Bool { scope == .all }
+
     /// The empty "Te doen" offers a way to "Alle post".
     public var emptyOffersAllPost: Bool { scope == .inbox }
 

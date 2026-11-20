@@ -21,6 +21,7 @@ public final class FakeDocumentServer: DocumentServer {
         case openTasks(URL)
         case completeTask(URL, UUID)
         case reopenTask(URL, UUID)
+        case search(URL, DocumentSearchQuery)
     }
 
     private struct State {
@@ -47,6 +48,9 @@ public final class FakeDocumentServer: DocumentServer {
         }
         var reopenTask: @Sendable (URL, UUID) throws -> WorkspaceTask = { _, id in
             FakeDocumentServer.task(id, done: false)
+        }
+        var search: @Sendable (URL, DocumentSearchQuery) throws -> DocumentSearchPage = { _, _ in
+            DocumentSearchPage(hits: [])
         }
     }
 
@@ -114,6 +118,14 @@ public final class FakeDocumentServer: DocumentServer {
 
     public func onReopenTask(_ answer: @escaping @Sendable (URL, UUID) throws -> WorkspaceTask) {
         state.withLock { $0.reopenTask = answer }
+    }
+
+    public func onSearch(_ answer: @escaping @Sendable (URL, DocumentSearchQuery) throws -> DocumentSearchPage) {
+        state.withLock { $0.search = answer }
+    }
+
+    public func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
+        try record(.search(scope.url, query), scope) { $0.search }(scope.url, query)
     }
 
     public func documents(in scope: DocumentScope, filter: DocumentFilter) async throws -> [DocumentSummary] {

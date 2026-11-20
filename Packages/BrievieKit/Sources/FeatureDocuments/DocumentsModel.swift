@@ -68,6 +68,9 @@ public final class DocumentsModel {
     public private(set) var removedNotice: String?
     /// A letter opened from outside the list (a tapped reminder): the screen pushes it.
     public var openedDocument: UUID?
+    /// Search in "Alle post"; forgotten when the user leaves it (and with this model, on a workspace switch or when
+    /// the session ends).
+    public let search: DocumentSearchModel
 
     private let documents: WorkspaceDocuments
     private let uploads: any UploadQueue
@@ -98,7 +101,8 @@ public final class DocumentsModel {
         openSettings: @escaping @MainActor () -> Void,
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void,
-        refreshInterval: Duration = .seconds(3)
+        refreshInterval: Duration = .seconds(3),
+        searchDelay: Duration = DocumentSearchModel.typingPause
     ) {
         self.documents = documents
         self.uploads = uploads
@@ -108,6 +112,9 @@ public final class DocumentsModel {
         self.onRevoked = onRevoked
         self.onMissingPairing = onMissingPairing
         self.refreshInterval = refreshInterval
+        search = DocumentSearchModel(
+            documents: documents, onRevoked: onRevoked, onMissingPairing: onMissingPairing, delay: searchDelay
+        )
     }
 
     public var workspaceID: UUID { documents.workspaceID }
@@ -124,6 +131,7 @@ public final class DocumentsModel {
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
         guard scope != self.scope else { return }
+        if scope != .all { search.forget() }
         if Self.source(for: scope) != Self.source(for: self.scope) {
             serverDocuments = []
             inboxTotals = [:]
@@ -169,6 +177,7 @@ public final class DocumentsModel {
         let freshPersons = await fetchedPersons
         if let freshPersons { persons = freshPersons }
         if let fetched = await fetchedLabels { labels = fetched }
+        search.use(persons: persons, labels: labels)
         // The chosen person was archived or removed meanwhile: back to the inbox.
         if let freshPersons, isCurrent(source), !isActivePersonScope(in: freshPersons) {
             await select(.inbox)
@@ -255,7 +264,8 @@ public final class DocumentsModel {
         let arrived = Set(serverDocuments.map(\.clientID))
         // A scan on the phone has no addressee yet: it is not under a person.
         let waiting = scope.showsQueue ? waitingRows(arrived: arrived) : []
-        rows = arrange(waiting: waiting, onServer: serverDocuments.map(row(for:)))
+        let onServer = serverDocuments.map { Self.row(for: $0, persons: persons, labels: labels) }
+        rows = arrange(waiting: waiting, onServer: onServer)
         summary = scope == .inbox
             ? Self.todoSummary(waiting: waiting, onServer: serverDocuments.map(\.inboxState), totals: inboxTotals)
             : nil
@@ -273,7 +283,8 @@ public final class DocumentsModel {
             }
     }
 
-    private func row(for document: DocumentSummary) -> Row {
+    /// A letter's row in the words of the list; the search shows its hits with the same row.
+    static func row(for document: DocumentSummary, persons: [Person], labels: [DocumentLabel]) -> Row {
         let addressees = Set(document.addresseeIDs)
         let labelIDs = Set(document.labelIDs)
         let status = Self.status(of: document)

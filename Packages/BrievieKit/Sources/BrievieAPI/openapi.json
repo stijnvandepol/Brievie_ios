@@ -790,6 +790,237 @@
         "title": "DocumentOut",
         "type": "object"
       },
+      "DocumentSearchHitOut": {
+        "properties": {
+          "addressee_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Addressee Ids",
+            "type": "array"
+          },
+          "auto_addressee_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Auto Addressee Ids",
+            "type": "array"
+          },
+          "auto_label_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Auto Label Ids",
+            "type": "array"
+          },
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "confirmed_by_ai": {
+            "default": false,
+            "title": "Confirmed By Ai",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "document_type": {
+            "title": "Document Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "inbox_state": {
+            "default": "",
+            "title": "Inbox State",
+            "type": "string"
+          },
+          "label_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Label Ids",
+            "type": "array"
+          },
+          "letter_date": {
+            "format": "date",
+            "title": "Letter Date",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "open_suggestion_count": {
+            "default": 0,
+            "title": "Open Suggestion Count",
+            "type": "integer"
+          },
+          "page_count": {
+            "title": "Page Count",
+            "type": "integer"
+          },
+          "proposed_document_type": {
+            "default": "",
+            "title": "Proposed Document Type",
+            "type": "string"
+          },
+          "proposed_letter_date": {
+            "format": "date",
+            "title": "Proposed Letter Date",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "proposed_sender": {
+            "default": "",
+            "title": "Proposed Sender",
+            "type": "string"
+          },
+          "sender": {
+            "title": "Sender",
+            "type": "string"
+          },
+          "snippet": {
+            "items": {
+              "$ref": "#/components/schemas/SnippetPartOut"
+            },
+            "title": "Snippet",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "client_id",
+          "status",
+          "page_count",
+          "created_at",
+          "sender",
+          "document_type",
+          "letter_date"
+        ],
+        "title": "DocumentSearchHitOut",
+        "type": "object"
+      },
+      "DocumentSearchIn": {
+        "description": "A search in the letters of the workspace. POST, so the term is never in a URL.",
+        "properties": {
+          "date_from": {
+            "format": "date",
+            "title": "Date From",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date_to": {
+            "format": "date",
+            "title": "Date To",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "document_type": {
+            "default": "",
+            "title": "Document Type",
+            "type": "string"
+          },
+          "inbox_state": {
+            "default": "",
+            "title": "Inbox State",
+            "type": "string"
+          },
+          "label_id": {
+            "format": "uuid",
+            "title": "Label Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "limit": {
+            "default": 30,
+            "maximum": 100,
+            "minimum": 1,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "maximum": 1000,
+            "minimum": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "person_id": {
+            "format": "uuid",
+            "title": "Person Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "q": {
+            "maxLength": 200,
+            "title": "Q",
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "title": "DocumentSearchIn",
+        "type": "object"
+      },
+      "DocumentSearchOut": {
+        "properties": {
+          "bsn_removed": {
+            "default": false,
+            "title": "Bsn Removed",
+            "type": "boolean"
+          },
+          "fuzzy": {
+            "default": false,
+            "title": "Fuzzy",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentSearchHitOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_offset": {
+            "title": "Next Offset",
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "DocumentSearchOut",
+        "type": "object"
+      },
       "DocumentSummaryOut": {
         "properties": {
           "addressee_ids": {
@@ -988,6 +1219,11 @@
         "properties": {
           "api_version": {
             "title": "Api Version",
+            "type": "string"
+          },
+          "server_version": {
+            "default": "",
+            "title": "Server Version",
             "type": "string"
           },
           "status": {
@@ -2344,6 +2580,25 @@
         "title": "SetupStatusOut",
         "type": "object"
       },
+      "SnippetPartOut": {
+        "description": "A piece of the fragment; `hit` pieces are what matched. Plain text, never HTML.",
+        "properties": {
+          "hit": {
+            "title": "Hit",
+            "type": "boolean"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "hit"
+        ],
+        "title": "SnippetPartOut",
+        "type": "object"
+      },
       "SuggestionOut": {
         "properties": {
           "action": {
@@ -3313,6 +3568,16 @@
               }
             },
             "description": "OK"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Get Health"
@@ -5813,6 +6078,138 @@
           }
         ],
         "summary": "Create Document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/documents/search": {
+      "post": {
+        "description": "Search the letters of the workspace by their text, sender, summary, label names and person names; every word must match, as a word beginning (Dutch stems too). Best first, then newest. The filters narrow the search; together they all apply. When nothing matches exactly, letters with similar words are answered with `fuzzy=true`. A BSN in `q` is removed before searching (`bsn_removed`). `next_offset` is null on the last page (offset at most 1000). Each hit has a fragment (`snippet`) with the matched words marked. The term is never logged. 422 `validation_error` for a term over 200 characters, an unknown `inbox_state` or `document_type`, or `date_from` after `date_to`; 429 after 30 searches a minute.",
+        "operationId": "searchDocuments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentSearchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentSearchOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Search Documents",
         "tags": [
           "documents"
         ]

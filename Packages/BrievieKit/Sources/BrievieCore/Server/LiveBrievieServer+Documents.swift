@@ -27,6 +27,42 @@ extension LiveBrievieServer: DocumentServer {
         }
     }
 
+    /// The term goes in the body (a POST), so it never shows up in a URL or a proxy's access log.
+    public func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
+        try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
+            let output = try await client.searchDocuments(
+                path: .init(workspaceId: scope.workspaceID.apiString),
+                body: .json(.init(limit: DocumentSearchQuery.pageSize, offset: query.offset, q: query.text))
+            )
+            switch output {
+            case let .ok(response):
+                let page = try response.body.json
+                return try DocumentSearchPage(
+                    hits: page.items.map(DocumentSearchHit.init(hit:)), nextOffset: page.nextOffset,
+                    isFuzzy: page.fuzzy ?? false, bsnRemoved: page.bsnRemoved ?? false
+                )
+            case let .unauthorized(response):
+                throw ServerError(status: 401, code: try? response.body.json.code)
+            case let .notFound(response):
+                throw ServerError(status: 404, code: try? response.body.json.code)
+            case let .unprocessableContent(response):
+                throw ServerError(status: 422, code: try? response.body.json.code)
+            case .tooManyRequests:
+                throw ServerError.tooManyAttempts
+            case let .badRequest(response):
+                throw ServerError(status: 400, code: try? response.body.json.code)
+            case let .forbidden(response):
+                throw ServerError(status: 403, code: try? response.body.json.code)
+            case .contentTooLarge:
+                throw ServerError(status: 413, code: nil)
+            case .unsupportedMediaType:
+                throw ServerError(status: 415, code: nil)
+            case let .undocumented(status, _):
+                throw ServerError(status: status, code: nil)
+            }
+        }
+    }
+
     public func inboxCounts(in scope: DocumentScope) async throws -> InboxCounts {
         try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
             switch try await client.getInboxCounts(path: .init(workspaceId: scope.workspaceID.apiString)) {
@@ -183,6 +219,24 @@ private extension InboxState {
         case .done: .sorted
         case .unknown: .unknown
         }
+    }
+}
+
+private extension DocumentSearchHit {
+    init(hit: Components.Schemas.DocumentSearchHitOut) throws(ServerError) {
+        try self.init(
+            document: DocumentSummary(
+                apiID: hit.id, clientID: hit.clientId, status: hit.status, pageCount: hit.pageCount,
+                createdAt: hit.createdAt, sender: hit.sender, documentType: hit.documentType,
+                letterDate: hit.letterDate, inboxState: hit.inboxState, addresseeIDs: hit.addresseeIds,
+                labelIDs: hit.labelIds, openSuggestionCount: hit.openSuggestionCount,
+                automatic: AutomaticMarks(
+                    confirmedByAI: hit.confirmedByAi, labelIDs: hit.autoLabelIds, addresseeIDs: hit.autoAddresseeIds
+                ),
+                proposedSender: hit.proposedSender
+            ),
+            snippet: (hit.snippet ?? []).map { SnippetPart(text: $0.text, isHit: $0.hit) }
+        )
     }
 }
 

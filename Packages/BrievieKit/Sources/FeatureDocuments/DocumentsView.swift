@@ -42,6 +42,81 @@ public struct DocumentsView<Destination: View>: View {
 
     public var body: some View {
         @Bindable var model = model
+        content
+            .modifier(SearchField(search: model.search, isAvailable: model.searchIsAvailable))
+            .navigationTitle(navigationTitle)
+            .workspaceSubtitle(workspaceName)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarTitleMenu { scopeMenu }
+            .toolbar {
+                if model.canScan {
+                    ToolbarItem(placement: .primaryAction) { scanButton }
+                }
+            }
+            .refreshable { await model.load() }
+            .task {
+                await model.load()
+                model.startPolling()
+            }
+            .onDisappear { model.stopPolling() }
+            .onChange(of: scenePhase) { _, phase in
+                switch phase {
+                case .active:
+                    model.startPolling()
+                    model.refreshCameraNotice()
+                case .background:
+                    // The scanner shows the pages scanned so far; it would sit above the lock screen.
+                    showsScanner = false
+                    showsPhotoPicker = false
+                    model.stopPolling()
+                default:
+                    model.stopPolling()
+                }
+            }
+            .fullScreenCover(isPresented: $showsScanner) {
+                DocumentScannerView(
+                    onFinish: { pages in
+                        showsScanner = false
+                        save(pages)
+                    },
+                    onCancel: { showsScanner = false }
+                )
+                .ignoresSafeArea()
+            }
+            .photosPicker(
+                isPresented: $showsPhotoPicker, selection: $pickedPhotos, maxSelectionCount: 30, matching: .images
+            )
+            .onChange(of: pickedPhotos) { _, items in
+                guard !items.isEmpty else { return }
+                pickedPhotos = []
+                Task { save(await PhotoPages.load(items)) }
+            }
+            .navigationDestination(
+                isPresented: Binding(get: { scanModel.isPresented }, set: { if !$0 { scanModel.discard() } })
+            ) {
+                ScanFlowView(model: scanModel)
+            }
+            // A letter opened by a tapped reminder.
+            .navigationDestination(item: $model.openedDocument) { documentID in
+                destination(documentID)
+            }
+            .onChange(of: scanModel.phase) { _, phase in
+                guard phase == .finished else { return }
+                scanModel.reset()
+                Task { await model.load() }
+            }
+    }
+
+    /// The search results while a term is typed in "Alle post", otherwise the post list.
+    @ViewBuilder private var content: some View {
+        if model.searchIsAvailable, model.search.isActive {
+            DocumentSearchList(model: model.search, destination: destination)
+        } else {
+            postList
+        }
+    }
+
+    private var postList: some View {
         DocumentsList(
             state: model.state,
             rows: model.rows,
@@ -60,67 +135,6 @@ public struct DocumentsView<Destination: View>: View {
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
             destination: destination
         )
-        .navigationTitle(navigationTitle)
-        .workspaceSubtitle(workspaceName)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarTitleMenu { scopeMenu }
-        .toolbar {
-            if model.canScan {
-                ToolbarItem(placement: .primaryAction) { scanButton }
-            }
-        }
-        .refreshable { await model.load() }
-        .task {
-            await model.load()
-            model.startPolling()
-        }
-        .onDisappear { model.stopPolling() }
-        .onChange(of: scenePhase) { _, phase in
-            switch phase {
-            case .active:
-                model.startPolling()
-                model.refreshCameraNotice()
-            case .background:
-                // The scanner shows the pages scanned so far; it would sit above the lock screen.
-                showsScanner = false
-                showsPhotoPicker = false
-                model.stopPolling()
-            default:
-                model.stopPolling()
-            }
-        }
-        .fullScreenCover(isPresented: $showsScanner) {
-            DocumentScannerView(
-                onFinish: { pages in
-                    showsScanner = false
-                    save(pages)
-                },
-                onCancel: { showsScanner = false }
-            )
-            .ignoresSafeArea()
-        }
-        .photosPicker(
-            isPresented: $showsPhotoPicker, selection: $pickedPhotos, maxSelectionCount: 30, matching: .images
-        )
-        .onChange(of: pickedPhotos) { _, items in
-            guard !items.isEmpty else { return }
-            pickedPhotos = []
-            Task { save(await PhotoPages.load(items)) }
-        }
-        .navigationDestination(
-            isPresented: Binding(get: { scanModel.isPresented }, set: { if !$0 { scanModel.discard() } })
-        ) {
-            ScanFlowView(model: scanModel)
-        }
-        // A letter opened by a tapped reminder.
-        .navigationDestination(item: $model.openedDocument) { documentID in
-            destination(documentID)
-        }
-        .onChange(of: scanModel.phase) { _, phase in
-            guard phase == .finished else { return }
-            scanModel.reset()
-            Task { await model.load() }
-        }
     }
 
     private var navigationTitle: String {

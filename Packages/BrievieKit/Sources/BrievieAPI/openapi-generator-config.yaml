@@ -16,6 +16,7 @@ filter:
     - listDocuments
     - getInboxCounts
     - getDocument
+    - searchDocuments
     - getDocumentPage
     - confirmDocument
     - retryDocumentProcessing
