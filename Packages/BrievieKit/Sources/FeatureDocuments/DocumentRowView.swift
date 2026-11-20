@@ -28,7 +28,7 @@ struct DocumentRowView: View {
             }
             status
             if row.hasSuggestions {
-                Label(DocumentStrings.suggestion, systemImage: "lightbulb")
+                AdaptiveLabel(DocumentStrings.suggestion, systemImage: "lightbulb")
                     .font(.subheadline)
                     .foregroundStyle(BrievieColor.brand)
             }
@@ -71,7 +71,7 @@ struct DocumentRowView: View {
     }
 
     private func statusLabel(color: Color) -> some View {
-        Label {
+        AdaptiveLabel {
             Text(row.status.label)
                 .foregroundStyle(.primary)
         } icon: {

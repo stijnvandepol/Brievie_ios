@@ -86,7 +86,7 @@ struct OrganiseSection: View {
                         Button {
                             actions.removeLabel(label.id)
                         } label: {
-                            HStack(spacing: 6) {
+                            AdaptiveStack(spacing: 6) {
                                 LabelChip(name: label.name, colorKey: label.colorKey)
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundStyle(.secondary)
@@ -101,7 +101,7 @@ struct OrganiseSection: View {
             ForEach(openLabels, id: \.0.id) { suggestion, label in
                 ChoiceRow(origin: suggestion, name: label.name, onShowQuote: onShowQuote) {
                     proposal(suggestion, name: label.name) { isEditable in
-                        HStack(spacing: 6) {
+                        AdaptiveStack(spacing: 6) {
                             if isEditable {
                                 Image(systemName: "plus.circle")
                             }
@@ -228,9 +228,10 @@ private struct ProposalMarked<Chip: View>: View {
     let chip: Chip
 
     var body: some View {
-        HStack(spacing: 8) {
+        AdaptiveStack(spacing: 8) {
             chip
             Text(DocumentStrings.suggestion)
+                .fixedSize()
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 6)
