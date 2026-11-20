@@ -19,12 +19,15 @@ struct BrievieApp: App {
         let store = ConnectionStore(secrets: KeychainSecretStore())
         let launchFlag = UserDefaultsLaunchFlag()
         let server = LiveBrievieServer()
-        let calendar = AppCalendar(store: store, server: server, settings: UserDefaultsCalendarSettings())
+        let revocations = RevocationRelay()
+        let calendar = AppCalendar(
+            store: store, server: server, settings: UserDefaultsCalendarSettings(), revocations: revocations
+        )
         let currentWorkspace = UserDefaultsCurrentWorkspaceStore()
         // Local notifications for deadlines, made on the phone from the tasks the app read; nothing goes to a server.
         let reminders = DeadlineReminders(
             center: UserNotificationsReminderCenter(), settings: UserDefaultsReminderSettings(),
-            tasks: AppCalendar.openTasks(store: store, server: server)
+            tasks: AppCalendar.openTasks(store: store, server: server, revocations: revocations)
         )
         let reminderRouter = ReminderRouter()
         AppDelegate.reminderRouter = reminderRouter
@@ -55,13 +58,13 @@ struct BrievieApp: App {
             if case .unpaired = model.state { return links.asksForCode }
             return true
         }
-        // An upload that gets a 401 sends the user back to pairing, like any other call.
+        // Any call that gets a 401 `not_authenticated` (an upload, a calendar sync, a screen's call) ends the session.
+        revocations.connect { [model] deviceID in await model.sessionRevoked(deviceID: deviceID) }
         let shared = AppShared(
-            calendar: calendar, currentWorkspace: currentWorkspace, reminders: reminders, reminderRouter: reminderRouter
+            calendar: calendar, currentWorkspace: currentWorkspace, reminders: reminders,
+            reminderRouter: reminderRouter, revocations: revocations
         )
-        environment = AppEnvironment.live(store: store, server: server, shared: shared) { [model] deviceID in
-            await model.sessionRevoked(deviceID: deviceID)
-        }
+        environment = AppEnvironment.live(store: store, server: server, shared: shared)
     }
 
     var body: some Scene {

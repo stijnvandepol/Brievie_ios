@@ -181,7 +181,7 @@ public final class AppModel {
     /// connection's, so it cannot wipe a pairing made since.
     public func sessionRevoked(deviceID: UUID) {
         // The user is unpairing: a 401 is the expected result of that, and the unpair forgets the pairing itself.
-        guard !isUnpairing else { return }
+        guard !isUnpairing, !hasLeftPairing else { return }
         do {
             if let stored = try store.load(), stored.connection.deviceID != deviceID { return }
         } catch {
@@ -238,9 +238,18 @@ public final class AppModel {
     }
 
     /// The stored pairing is gone although the app thinks it is paired. Not a revocation by the server, so the
-    /// notice is the generic one.
+    /// notice is the generic one. Once the app has left the pairing (revoked, unpaired) the empty storage is the
+    /// result of that, not a new reason: a screen that reads it afterwards never replaces the notice.
     public func connectionMissing() {
+        guard !hasLeftPairing, !isUnpairing else { return }
         state = .unpaired(notice: AppStrings.genericError)
+    }
+
+    /// The app already showed pairing for a reason and nothing is left to forget: later reports of the old
+    /// pairing (a late 401, a read of the empty storage) are its echo. The reason stays the one of the transition.
+    private var hasLeftPairing: Bool {
+        guard case .unpaired = state else { return false }
+        return pendingForget == nil
     }
 
     /// For views: unlocks without tying the work to the lifetime of a screen.

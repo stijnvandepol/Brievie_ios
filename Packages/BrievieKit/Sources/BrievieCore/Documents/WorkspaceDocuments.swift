@@ -32,12 +32,21 @@ public struct WorkspaceDocuments: Sendable {
     private let connection: ServerConnection
     private let store: ConnectionStore
     private let server: any DocumentServer
+    private let onRevoked: @Sendable (UUID) async -> Void
 
-    public init(workspaceID: UUID, connection: ServerConnection, store: ConnectionStore, server: any DocumentServer) {
+    /// - Parameter onRevoked: called with this pairing's device before a call throws `.revoked`, whatever the
+    ///   screen does with the error (also a call whose failure the screen ignores, such as the persons list or the
+    ///   open tasks of a calendar sync). The app passes `AppModel.sessionRevoked(deviceID:)`: the one place where a
+    ///   401 `not_authenticated` ends the session.
+    public init(
+        workspaceID: UUID, connection: ServerConnection, store: ConnectionStore, server: any DocumentServer,
+        onRevoked: @escaping @Sendable (UUID) async -> Void = { _ in }
+    ) {
         self.workspaceID = workspaceID
         self.connection = connection
         self.store = store
         self.server = server
+        self.onRevoked = onRevoked
     }
 
     /// The device this pairing belongs to, for `AppModel.sessionRevoked(deviceID:)`.
@@ -126,6 +135,7 @@ public struct WorkspaceDocuments: Sendable {
                 // Not the host's verdict (no `not_authenticated`): try the next address, never a revocation.
                 sawForeign401 = true
             } catch ServerError.unauthorized {
+                await onRevoked(connection.deviceID)
                 throw .revoked
             } catch is CancellationError {
                 throw .cancelled
