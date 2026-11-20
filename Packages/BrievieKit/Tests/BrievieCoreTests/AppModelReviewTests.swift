@@ -127,9 +127,14 @@ import Testing
         #expect(model.state == .unpaired(notice: "Er ging iets mis. Probeer het opnieuw."))
     }
 
-    @Test func aMissingPairingIsNotReportedAsRevoked() throws {
+    @Test func aMissingPairingIsNotReportedAsRevoked() async throws {
+        // Paired and open: a screen then finds the storage empty. (Once unpaired, a report is ignored: see
+        // `AppModelLeaveReasonTests`.)
+        _ = try pairedStore()
         let model = makeModel()
         model.start()
+        await model.unlock()
+        try store.clear()
 
         model.connectionMissing()
 
