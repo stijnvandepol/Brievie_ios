@@ -25,6 +25,7 @@
       }
     },
     "pairing.camera.denied": {
+      "comment": "Shown when camera access was refused.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
@@ -33,10 +34,10 @@
             "value": "Brievie mag de camera niet gebruiken. Zet dit aan in Instellingen, of plak de koppelgegevens."
           }
         }
-      },
-      "comment": "Shown when camera access was refused."
+      }
     },
     "pairing.camera.openSettings": {
+      "comment": "Button that opens the app's page in the Settings app.",
       "extractionState": "manual",
       "localizations": {
         "nl": {
@@ -45,8 +46,7 @@
             "value": "Open Instellingen"
           }
         }
-      },
-      "comment": "Button that opens the app's page in the Settings app."
+      }
     },
     "pairing.camera.restricted": {
       "comment": "Shown when the device forbids camera use (Screen Time, MDM).",
@@ -312,6 +312,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Je hebt een link van je Brievie-server geopend. Hiermee koppel je deze telefoon."
+          }
+        }
+      }
+    },
+    "pairing.link.name.footer": {
+      "comment": "Under the phone's name field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zo heet deze telefoon op de server, bij Apparaten. Zo weet je later welke telefoon welke is."
+          }
+        }
+      }
+    },
+    "pairing.link.name.label": {
+      "comment": "Header and label of the field with the name the server shows for this phone.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naam van deze telefoon"
+          }
+        }
+      }
+    },
+    "pairing.link.name.prompt": {
+      "comment": "Placeholder of the phone's name field.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bijvoorbeeld iPhone van Jesse"
           }
         }
       }

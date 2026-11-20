@@ -39,6 +39,7 @@ public struct ServerLinkView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { model.dismiss() } label: {
@@ -115,12 +116,10 @@ public struct ServerLinkView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         addressSection(address)
-        codeSection(isPairing: isPairing)
-        if failure != nil || isPairing {
+        codeSection(isPairing: isPairing, failure: failure)
+        nameSection(isPairing: isPairing)
+        if isPairing {
             Section {
-                if let failure {
-                    ErrorBanner(failure)
-                }
                 if isPairing {
                     HStack(spacing: 12) {
                         ProgressView()
@@ -155,8 +154,31 @@ public struct ServerLinkView: View {
         }
     }
 
-    private func codeSection(isPairing: Bool) -> some View {
+    /// The name the server shows under Apparaten; starts as the phone's name, which iOS mostly gives as "iPhone".
+    private func nameSection(isPairing: Bool) -> some View {
         Section {
+            TextField(text: $model.deviceNameField, prompt: Text("pairing.link.name.prompt", bundle: .module)) {
+                Text("pairing.link.name.label", bundle: .module)
+            }
+            .textContentType(nil)
+            .autocorrectionDisabled()
+            .submitLabel(.done)
+            .disabled(isPairing)
+            .accessibilityLabel(Text("pairing.link.name.label", bundle: .module))
+        } header: {
+            Text("pairing.link.name.label", bundle: .module)
+        } footer: {
+            Text("pairing.link.name.footer", bundle: .module)
+        }
+    }
+
+    /// A refusal shows right under the field and goes as soon as the user types again (`ServerLinkModel.code`),
+    /// so it does not keep pushing "Koppel" down; the keyboard's own "Ga" pairs too.
+    private func codeSection(isPairing: Bool, failure: String?) -> some View {
+        Section {
+            if let failure {
+                ErrorBanner(failure)
+            }
             TextField(text: $model.code, prompt: Text("pairing.link.code.prompt", bundle: .module)) {
                 Text("pairing.link.code.label", bundle: .module)
             }
