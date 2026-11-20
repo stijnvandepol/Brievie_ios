@@ -83,6 +83,7 @@ public struct ReviewView: View {
                 }
             }
         }
+        .modifier(RemoveTaskQuestion(model: model))
         .confirmationDialog(
             DocumentStrings.discardEditsTitle,
             isPresented: Binding(
@@ -177,7 +178,7 @@ public struct ReviewView: View {
                 }
             }
             notes(for: .documentType, title: DocumentStrings.documentType)
-            OptionalDateRow(title: DocumentStrings.letterDate, date: $model.draft.letterDate)
+            OptionalDateRow(title: DocumentStrings.letterDate, date: $model.draft.letterDate, today: model.today)
             notes(for: .letterDate, title: DocumentStrings.letterDate)
         }
         if model.organiseAvailable {
@@ -241,21 +242,21 @@ public struct ReviewView: View {
             notes(for: .taskType(id), title: DocumentStrings.taskType)
             TextField(DocumentStrings.taskDescription, text: task.description, axis: .vertical)
             notes(for: .taskDescription(id), title: DocumentStrings.taskDescription)
-            OptionalDateRow(
-                title: DocumentStrings.deadline,
-                date: Binding(
-                    get: { task.wrappedValue.deadline },
-                    set: { model.setDeadline($0, for: id) }
-                )
-            )
-            .accessibilityHint(DocumentStrings.deadlineHint)
+            DeadlineRow(model: model, taskID: id, deadline: task.wrappedValue.deadline)
             notes(for: .taskDeadline(id), title: DocumentStrings.deadline)
-            Button(DocumentStrings.removeTask, role: .destructive) {
-                model.removeTask(id)
-            }
         } header: {
             if showsHeader {
                 Text(DocumentStrings.tasks)
+            }
+        } footer: {
+            // Small and apart from the fields, so a tap while scrolling does not land on it; it asks first.
+            HStack {
+                Spacer()
+                Button(DocumentStrings.removeTask, systemImage: "trash", role: .destructive) {
+                    model.requestRemoveTask(id)
+                }
+                .font(.footnote)
+                .buttonStyle(.borderless)
             }
         }
     }
@@ -313,10 +314,12 @@ private struct FieldNotes: View {
     }
 }
 
-/// A date that may be absent: a button to add one, or a picker with a way to remove it.
+/// A date that may be absent: a button to add one, or a picker with a way to remove it. Adding fills in `today`
+/// at once: right for the letter date, which starts as today anyway (owner decision 2026-11-19).
 private struct OptionalDateRow: View {
     let title: String
     @Binding var date: CalendarDate?
+    let today: CalendarDate
 
     var body: some View {
         if let current = date {
@@ -332,7 +335,7 @@ private struct OptionalDateRow: View {
                 .font(.footnote)
         } else {
             LabeledContent(title) {
-                Button(DocumentStrings.addDate) { date = CalendarDate(Date(), in: .current) }
+                Button(DocumentStrings.addDate) { date = today }
             }
         }
     }

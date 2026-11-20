@@ -865,6 +865,42 @@
         }
       }
     },
+    "review.deadline.pick.cancel": {
+      "comment": "Closes the termijn calendar without a date.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "review.deadline.pick.hint": {
+      "comment": "Under the calendar of a termijn that is being chosen.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik op een dag. Tot dan blijft de termijn leeg."
+          }
+        }
+      }
+    },
+    "review.deadline.pick.today": {
+      "comment": "Sets the termijn to today.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vandaag"
+          }
+        }
+      }
+    },
     "review.discard.confirm": {
       "comment": "Destructive button: throw away the user's changes and process the letter again.",
       "extractionState": "manual",
@@ -1509,6 +1545,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "Taak verwijderen"
+          }
+        }
+      }
+    },
+    "review.task.remove.confirm": {
+      "comment": "Removes the task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "review.task.remove.keep": {
+      "comment": "Keeps the task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laten staan"
+          }
+        }
+      }
+    },
+    "review.task.remove.message": {
+      "comment": "Explains what removing a task does.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De taak en de termijn gaan weg uit deze brief."
+          }
+        }
+      }
+    },
+    "review.task.remove.title": {
+      "comment": "Question before a task is removed from the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze taak verwijderen?"
           }
         }
       }

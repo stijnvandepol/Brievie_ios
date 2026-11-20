@@ -45,6 +45,10 @@ public final class ReviewModel {
     public var shownQuote: SourceQuote?
     /// The letter on the whole screen (pushed, so it stays under the lock screen); `nil` when closed.
     public var reader: LetterReaderModel?
+    /// The task whose termijn picker is open; nothing is stored until a day is chosen (see `ReviewModel+Tasks`).
+    public internal(set) var pickingDeadline: UUID?
+    /// The task "Taak verwijderen" asks about (a question, so it closes when the app leaves the foreground).
+    public var taskAskedToRemove: UUID?
     /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
     /// on to `confirmed` itself, so a tick that is answered after this screen closed still reaches it.
     public var onTasksChanged: (@MainActor () -> Void)? {
@@ -56,7 +60,7 @@ public final class ReviewModel {
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
-    private let clock: TodayClock
+    let clock: TodayClock
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     /// The draft as it was pre-filled, to tell whether the user changed anything.
     @ObservationIgnored private var pristineDraft = Draft()
@@ -158,6 +162,7 @@ public final class ReviewModel {
         } else {
             picker = nil
             shownQuote = nil
+            taskAskedToRemove = nil
             stopPolling()
         }
     }
@@ -185,24 +190,6 @@ public final class ReviewModel {
             // The page stays a placeholder; a 401 still ends the session.
             handle(error) { _ in }
         }
-    }
-
-    public func addTask() {
-        draft.tasks.append(Self.emptyTask())
-    }
-
-    public func removeTask(_ id: UUID) {
-        draft.tasks.removeAll { $0.id == id }
-    }
-
-    /// A deadline the user changed is theirs: its source in the letter no longer belongs to it. Setting the
-    /// date read from the letter again brings its source back.
-    public func setDeadline(_ deadline: CalendarDate?, for taskID: UUID) {
-        guard let index = draft.tasks.firstIndex(where: { $0.id == taskID }),
-              draft.tasks[index].deadline != deadline
-        else { return }
-        draft.tasks[index].deadline = deadline
-        draft.syncDeadlineSource(of: index)
     }
 
     /// The user changed something since the draft was pre-filled (or started empty).
