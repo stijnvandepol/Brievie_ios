@@ -133,6 +133,42 @@
         }
       }
     },
+    "documents.automatic": {
+      "comment": "Mark on a letter or task the AI handled by itself (the web's wording).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch door AI"
+          }
+        }
+      }
+    },
+    "documents.automatic.added": {
+      "comment": "Under labels or names the AI or a rule put on a letter by itself. %@ is the list of names.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch toegevoegd: %@"
+          }
+        }
+      }
+    },
+    "documents.automatic.confirmed": {
+      "comment": "Under the mark on a letter the AI confirmed by itself.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De AI heeft deze brief zelf bevestigd. Niemand heeft hem gecontroleerd."
+          }
+        }
+      }
+    },
     "documents.delete": {
       "comment": "Deletes a scan that is still on the phone.",
       "extractionState": "manual",
@@ -357,6 +393,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opnieuw proberen"
+          }
+        }
+      }
+    },
+    "documents.row.arrived": {
+      "comment": "Title of a letter to check that has no sender yet. %@ is the time it came in, like 14:32.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binnengekomen om %@"
+          }
+        }
+      }
+    },
+    "documents.row.proposed": {
+      "comment": "After a sender the AI proposed and nobody confirmed (as in the web).",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(voorstel)"
           }
         }
       }
@@ -865,6 +925,42 @@
         }
       }
     },
+    "review.deadline.pick.cancel": {
+      "comment": "Closes the termijn calendar without a date.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "review.deadline.pick.hint": {
+      "comment": "Under the calendar of a termijn that is being chosen.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tik op een dag. Tot dan blijft de termijn leeg."
+          }
+        }
+      }
+    },
+    "review.deadline.pick.today": {
+      "comment": "Sets the termijn to today.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vandaag"
+          }
+        }
+      }
+    },
     "review.discard.confirm": {
       "comment": "Destructive button: throw away the user's changes and process the letter again.",
       "extractionState": "manual",
@@ -1333,6 +1429,30 @@
         }
       }
     },
+    "review.proposals.open.many": {
+      "comment": "Above Bevestigen: several proposals are not taken and will be dismissed on confirm. %1$d is the number, %2$@ their names.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staan nog %1$d voorstellen open: %2$@. Neem je ze niet over, dan vervallen ze als je bevestigt."
+          }
+        }
+      }
+    },
+    "review.proposals.open.one": {
+      "comment": "Above Bevestigen: one proposal (a person or label) is not taken and will be dismissed on confirm. %@ is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staat nog 1 voorstel open: %@. Neem je het niet over, dan vervalt het als je bevestigt."
+          }
+        }
+      }
+    },
     "review.readOnly": {
       "comment": "Shown to a viewer, who cannot confirm.",
       "extractionState": "manual",
@@ -1509,6 +1629,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "Taak verwijderen"
+          }
+        }
+      }
+    },
+    "review.task.remove.confirm": {
+      "comment": "Removes the task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "review.task.remove.keep": {
+      "comment": "Keeps the task.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laten staan"
+          }
+        }
+      }
+    },
+    "review.task.remove.message": {
+      "comment": "Explains what removing a task does.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De taak en de termijn gaan weg uit deze brief."
+          }
+        }
+      }
+    },
+    "review.task.remove.title": {
+      "comment": "Question before a task is removed from the review.",
+      "extractionState": "manual",
+      "localizations": {
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze taak verwijderen?"
           }
         }
       }

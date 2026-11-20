@@ -23,15 +23,15 @@ struct AppEnvironment {
     let reminders: DeadlineReminders
     /// The reminder the user tapped, until the paired app showed it; the app delegate sets it.
     let reminderRouter: ReminderRouter
+    /// Where every call of the paired app reports a 401 `not_authenticated`: ends the session at once.
+    let revocations: RevocationRelay
 
     /// - Parameters:
     ///   - shared: what `AppModel` shares (it clears the calendar switches, the current workspace and the reminders
     ///     with the pairing, and removes the calendars after a revocation).
-    ///   - onRevoked: called when an upload finds that the server no longer knows this device.
     @MainActor
     static func live(
-        store: ConnectionStore, server: LiveBrievieServer, shared: AppShared,
-        onRevoked: @escaping @Sendable (UUID) async -> Void
+        store: ConnectionStore, server: LiveBrievieServer, shared: AppShared
     ) -> AppEnvironment {
         let calendar = shared.calendar
         let transport = BackgroundUploadTransport(trustProvider: StoredConnectionTrustProvider(store: store))
@@ -41,7 +41,7 @@ struct AppEnvironment {
             store: UploadQueueStore(directory: uploadsDirectory),
             transport: transport,
             connection: { try store.load().map { ($0.connection, $0.token) } },
-            onRevoked: onRevoked
+            onRevoked: shared.revocations.revoked
         )
         AppDelegate.uploads = uploads
         Task { await uploads.run() }
@@ -52,7 +52,7 @@ struct AppEnvironment {
             ),
             calendarSettings: calendar.settings, calendarSync: calendar.sync, workspaceNames: calendar.workspaceNames,
             currentWorkspace: shared.currentWorkspace, reminders: shared.reminders,
-            reminderRouter: shared.reminderRouter
+            reminderRouter: shared.reminderRouter, revocations: shared.revocations
         )
     }
 
@@ -78,6 +78,22 @@ struct AppShared {
     let reminders: DeadlineReminders
     /// The reminder the user tapped; the app delegate sets it.
     let reminderRouter: ReminderRouter
+    let revocations: RevocationRelay
+}
+
+/// The one place a 401 `not_authenticated` goes, from any call of the paired app (documents, tasks for the calendar
+/// and the reminders, uploads): `AppModel.sessionRevoked(deviceID:)`. Made before the app model, so the calendar and
+/// the reminders, which are made first, can hold it; the app connects it once the model exists.
+final class RevocationRelay: Sendable {
+    private let target = Mutex<(@Sendable (UUID) async -> Void)?>(nil)
+
+    func connect(_ handler: @escaping @Sendable (UUID) async -> Void) {
+        target.withLock { $0 = handler }
+    }
+
+    @Sendable func revoked(_ deviceID: UUID) async {
+        await target.withLock { $0 }?(deviceID)
+    }
 }
 
 /// The calendar parts the app model and the environment share. Made before both: `AppModel` needs the sync to
@@ -87,14 +103,16 @@ struct AppCalendar {
     let sync: CalendarSync
     let workspaceNames: WorkspaceNames
 
-    init(store: ConnectionStore, server: LiveBrievieServer, settings: any CalendarSettings) {
+    init(
+        store: ConnectionStore, server: LiveBrievieServer, settings: any CalendarSettings, revocations: RevocationRelay
+    ) {
         let workspaceNames = WorkspaceNames()
         self.settings = settings
         self.workspaceNames = workspaceNames
         sync = CalendarSync(
             store: EventKitCalendarStore(),
             settings: settings,
-            tasks: Self.openTasks(store: store, server: server),
+            tasks: Self.openTasks(store: store, server: server, revocations: revocations),
             workspaceName: { workspaceNames.name(of: $0) },
             typeTitle: { TaskTypeName.label(for: $0) },
             today: { CalendarDate(Date(), in: .current) }
@@ -102,11 +120,14 @@ struct AppCalendar {
     }
 
     /// The open tasks of a workspace on the server, through the stored pairing: for the calendar and the reminders.
-    static func openTasks(store: ConnectionStore, server: LiveBrievieServer) -> CalendarSync.TaskSource {
+    static func openTasks(
+        store: ConnectionStore, server: LiveBrievieServer, revocations: RevocationRelay
+    ) -> CalendarSync.TaskSource {
         { workspace in
             guard let stored = try store.load() else { throw DocumentsError.missingPairing }
             return try await WorkspaceDocuments(
-                workspaceID: workspace, connection: stored.connection, store: store, server: server
+                workspaceID: workspace, connection: stored.connection, store: store, server: server,
+                onRevoked: revocations.revoked
             ).openTasks()
         }
     }

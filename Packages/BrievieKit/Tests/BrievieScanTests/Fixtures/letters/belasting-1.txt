@@ -1,9 +1,9 @@
 Belastingdienst
 Postbus 100, 6400 AC Heerlen
 
-S.T.J. van de Pol
+J.A. de Wilde
 Voorbeeldlaan 12
-5445 XX Landhorst
+1234 XX Voorbeelddorp
 
 Datum: 12 november 2026
 Burgerservicenummer: 111222333
@@ -11,7 +11,7 @@ Aanslagnummer: 1112.22.333.H.76.01
 
 Voorlopige aanslag inkomstenbelasting 2027
 
-Geachte heer Van de Pol,
+Geachte heer De Wilde,
 
 U ontvangt een voorlopige aanslag inkomstenbelasting en premie volksverzekeringen over 2027.
 Het te betalen bedrag is € 1.248,00.

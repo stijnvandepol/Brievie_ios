@@ -12,6 +12,13 @@ struct DoneSections: View {
     let onShowQuote: (String) -> Void
 
     var body: some View {
+        if detail.summary.confirmedByAI {
+            Section {
+                AdaptiveLabel(DocumentStrings.automaticByAI, systemImage: "sparkles")
+            } footer: {
+                Text(DocumentStrings.automaticConfirmedNote)
+            }
+        }
         Section {
             LabeledContent(DocumentStrings.sender, value: detail.summary.sender)
             LabeledContent(
@@ -63,7 +70,8 @@ struct ConfirmedDocumentSections: View {
         }
         OrganiseSection(
             draft: model.organise, persons: model.persons, labels: model.labels,
-            actions: model.canEdit ? actions : nil, onShowQuote: onShowQuote
+            actions: model.canEdit ? actions : nil, onShowQuote: onShowQuote,
+            automaticAddressees: model.automaticAddresseesNote, automaticLabels: model.automaticLabelsNote
         )
         Section {
             if model.tasks.isEmpty {
@@ -157,7 +165,10 @@ private struct TaskTickRow: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(task.description)
-        .accessibilityValue(task.isDone ? DocumentStrings.taskDone : DocumentStrings.taskOpen)
+        .accessibilityValue(
+            [task.isDone ? DocumentStrings.taskDone : DocumentStrings.taskOpen]
+                .appending(task.createdByAI ? DocumentStrings.automaticByAI : nil).joined(separator: ", ")
+        )
         .accessibilityCustomContent(
             Text(DocumentStrings.taskType), Text(DocumentTypes.taskTypeLabel(task.type))
         )
@@ -183,6 +194,12 @@ private struct TaskTickRow: View {
     }
 }
 
+private extension Array where Element == String {
+    func appending(_ element: String?) -> [String] {
+        element.map { self + [$0] } ?? self
+    }
+}
+
 /// A confirmed task: what to do, by when, and where the deadline stands in the letter.
 struct ConfirmedTaskRow: View {
     let task: ConfirmedTask
@@ -197,6 +214,11 @@ struct ConfirmedTaskRow: View {
                 DocumentTypes.taskTypeLabel(task.type), task.deadline?.display ?? DocumentStrings.noDeadline
             ))
             .font(.subheadline)
+            if task.createdByAI {
+                AdaptiveLabel(DocumentStrings.automaticByAI, systemImage: "sparkles")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             if task.deadlineQuote.isEmpty {
                 if task.deadline != nil {
                     Text(DocumentStrings.manualSource)

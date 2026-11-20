@@ -192,7 +192,12 @@ private extension DocumentSummary {
             apiID: summary.id, clientID: summary.clientId, status: summary.status, pageCount: summary.pageCount,
             createdAt: summary.createdAt, sender: summary.sender, documentType: summary.documentType,
             letterDate: summary.letterDate, inboxState: summary.inboxState, addresseeIDs: summary.addresseeIds,
-            labelIDs: summary.labelIds, openSuggestionCount: summary.openSuggestionCount
+            labelIDs: summary.labelIds, openSuggestionCount: summary.openSuggestionCount,
+            automatic: AutomaticMarks(
+                confirmedByAI: summary.confirmedByAi, labelIDs: summary.autoLabelIds,
+                addresseeIDs: summary.autoAddresseeIds
+            ),
+            proposedSender: summary.proposedSender
         )
     }
 
@@ -201,7 +206,7 @@ private extension DocumentSummary {
     init(
         apiID: String, clientID: String, status: String, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: String?, inboxState: String?, addresseeIDs: [String]?,
-        labelIDs: [String]?, openSuggestionCount: Int?
+        labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks, proposedSender: String?
     ) throws(ServerError) {
         guard let id = UUID(uuidString: apiID), let clientID = UUID(uuidString: clientID) else {
             throw .incompatible
@@ -212,9 +217,20 @@ private extension DocumentSummary {
             documentType: documentType, letterDate: letterDate.flatMap(CalendarDate.init(iso:)),
             inboxState: InboxState(apiValue: inboxState, status: status),
             addresseeIDs: try uuids(addresseeIDs ?? []), labelIDs: try uuids(labelIDs ?? []),
-            openSuggestionCount: openSuggestionCount ?? 0
+            openSuggestionCount: openSuggestionCount ?? 0,
+            confirmedByAI: automatic.confirmedByAI ?? false,
+            autoLabelIDs: try uuids(automatic.labelIDs ?? []),
+            autoAddresseeIDs: try uuids(automatic.addresseeIDs ?? []),
+            proposedSender: proposedSender ?? ""
         )
     }
+}
+
+/// What the AI did by itself; a server before the autopilot leaves all three out, which reads as nothing.
+private struct AutomaticMarks {
+    let confirmedByAI: Bool?
+    let labelIDs: [String]?
+    let addresseeIDs: [String]?
 }
 
 private extension Suggestion {
@@ -244,7 +260,12 @@ extension DocumentDetail {
             apiID: document.id, clientID: document.clientId, status: document.status, pageCount: document.pageCount,
             createdAt: document.createdAt, sender: document.sender, documentType: document.documentType,
             letterDate: document.letterDate, inboxState: document.inboxState, addresseeIDs: document.addresseeIds,
-            labelIDs: document.labelIds, openSuggestionCount: document.openSuggestionCount
+            labelIDs: document.labelIds, openSuggestionCount: document.openSuggestionCount,
+            automatic: AutomaticMarks(
+                confirmedByAI: document.confirmedByAi, labelIDs: document.autoLabelIds,
+                addresseeIDs: document.autoAddresseeIds
+            ),
+            proposedSender: document.proposedSender
         )
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {
@@ -252,7 +273,8 @@ extension DocumentDetail {
             tasks.append(ConfirmedTask(
                 id: taskID, type: task._type, description: task.description,
                 deadline: task.deadline.flatMap(CalendarDate.init(iso:)), deadlineSource: task.deadlineSource,
-                deadlineQuote: task.deadlineQuote, isDone: task.status == "done"
+                deadlineQuote: task.deadlineQuote, isDone: task.status == "done",
+                createdByAI: task.createdByAi ?? false
             ))
         }
         self.init(

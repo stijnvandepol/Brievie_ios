@@ -33,7 +33,19 @@ public final class ServerLinkModel {
     public private(set) var presentation: Presentation?
     /// What the user typed. Kept while the offer is open (the user may switch to Safari to read the code); cleared
     /// when the offer closes, after pairing, and when the code may be spent or was refused.
-    public var code = ""
+    public var code = "" {
+        // A new code makes the last refusal old news: it goes, so it no longer pushes "Koppel" out of view.
+        didSet {
+            guard code != oldValue, case let .offer(address, .some, isPairing: false) = presentation else { return }
+            presentation = .offer(address: address, failure: nil, isPairing: false)
+        }
+    }
+    /// The name the server shows for this phone under Apparaten. Starts as the phone's name (on iOS 16 and later
+    /// usually just "iPhone"); the user may change it before pairing.
+    public var deviceNameField = ""
+
+    /// The server's limit for `device_name` (`PairIn`, `PairProofIn`), in code points as the host counts them.
+    static let maxDeviceNameLength = 100
 
     public var canSubmit: Bool {
         guard case .offer(_, _, isPairing: false) = presentation, link != nil, located != nil else { return false }
@@ -123,8 +135,7 @@ public final class ServerLinkModel {
         guard canSubmit, let link, let located, let typed = PairingCode(typed: code) else { return }
         let address = located.displayAddress
         presentation = .offer(address: address, failure: nil, isPairing: true)
-        let name = deviceName().trimmingCharacters(in: .whitespacesAndNewlines)
-        let deviceName = name.isEmpty ? "iPhone" : name
+        let deviceName = Self.sentName(deviceNameField)
         pairingTask = Task {
             await pair(link, at: located, code: typed, address: address, deviceName: deviceName)
         }
@@ -144,6 +155,17 @@ public final class ServerLinkModel {
         link = nil
         located = nil
         code = ""
+        deviceNameField = ""
+    }
+
+    /// The typed name, trimmed and cut to the server's limit between whole characters; "iPhone" when empty.
+    static func sentName(_ typed: String) -> String {
+        var name = ""
+        for character in typed.trimmingCharacters(in: .whitespacesAndNewlines) {
+            guard name.unicodeScalars.count + character.unicodeScalars.count <= maxDeviceNameLength else { break }
+            name.append(character)
+        }
+        return name.isEmpty ? "iPhone" : name
     }
 
     private func search(_ link: ServerLink, generation current: Int) async {
@@ -157,6 +179,7 @@ public final class ServerLinkModel {
         switch result {
         case let .success(server):
             located = server
+            deviceNameField = deviceName()
             presentation = .offer(address: server.displayAddress, failure: nil, isPairing: false)
         case .failure(.cancelled):
             close()

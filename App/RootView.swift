@@ -217,7 +217,7 @@ private struct DocumentsScreen: View {
     ) {
         let documents = WorkspaceDocuments(
             workspaceID: workspace.id, connection: connection, store: environment.store,
-            server: environment.documents
+            server: environment.documents, onRevoked: environment.revocations.revoked
         )
         let canEdit = Self.canEdit(workspace)
         _model = State(initialValue: DocumentsModel(

@@ -16,13 +16,17 @@ extension DocumentsModel {
         public let labels: [DocumentLabel]
         /// The server has open proposals for addressees or labels.
         public let hasSuggestions: Bool
+        /// `title` is the sender the AI proposed, not a confirmed one: shown as "(voorstel)", never as a fact.
+        public let titleIsProposal: Bool
+        /// The AI confirmed the letter, or put a label or name on it, by itself: "Automatisch door AI".
+        public let isAutomatic: Bool
         /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
         let date: Date
 
         init(
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
             addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
-            date: Date = .distantPast
+            isAutomatic: Bool = false, titleIsProposal: Bool = false, date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -32,6 +36,8 @@ extension DocumentsModel {
             self.addressees = addressees
             self.labels = labels
             self.hasSuggestions = hasSuggestions
+            self.isAutomatic = isAutomatic
+            self.titleIsProposal = titleIsProposal
             self.date = date
         }
     }
@@ -183,13 +189,14 @@ extension DocumentsModel.Row {
 
     /// What VoiceOver reads for the row: sender, date and pages, status and its note, the addressees and the labels.
     public var accessibilityLabel: String {
-        var parts = [title, subtitle, status.label]
+        var parts = [titleIsProposal ? "\(title) \(DocumentStrings.proposedMark)" : title, subtitle, status.label]
         if let note = status.note { parts.append(note) }
         if let addresseeLine { parts.append(addresseeLine) }
         if !labels.isEmpty {
             parts.append(String(format: DocumentStrings.labelsFormat, labels.map(\.name).joined(separator: ", ")))
         }
         if hasSuggestions { parts.append(DocumentStrings.suggestion) }
+        if isAutomatic { parts.append(DocumentStrings.automaticByAI) }
         return parts.joined(separator: ", ")
     }
 }
@@ -219,6 +226,26 @@ extension DocumentsModel {
     static let dateStyle = Date.FormatStyle(
         date: .abbreviated, time: .omitted, locale: Locale(identifier: "nl_NL")
     )
+
+    /// A letter the server read but nobody checked yet has no sender in the list (the AI's proposal is only in
+    /// the detail): it is named by the time it came in, so letters of one day can be told apart.
+    /// The row's title and whether it is a proposal: the confirmed sender; for a letter to check without one the
+    /// sender the AI proposed (when the server lists it), else the time it came in.
+    static func title(of document: DocumentSummary, status: RowStatus) -> (String, isProposal: Bool) {
+        if !document.sender.isEmpty { return (document.sender, false) }
+        let proposed = document.proposedSender.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !proposed.isEmpty, status == .needsReview || status == .failed { return (proposed, true) }
+        return (untitled(status, arrived: document.createdAt), false)
+    }
+
+    static func untitled(_ status: RowStatus, arrived: Date) -> String {
+        switch status {
+        case .processing: DocumentStrings.newDocument
+        case .needsReview, .failed:
+            String(format: DocumentStrings.arrivedFormat, arrived.formatted(date: .omitted, time: .shortened))
+        default: DocumentStrings.unknownSender
+        }
+    }
 
     static func subtitle(date: Date, pages: Int) -> String {
         let pageText = pages == 1 ? DocumentStrings.pagesOne : String(format: DocumentStrings.pagesManyFormat, pages)

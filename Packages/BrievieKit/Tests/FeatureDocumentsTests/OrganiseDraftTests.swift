@@ -54,7 +54,7 @@ import Testing
         let label = try #require(draft.openSuggestions(for: .addLabel).first)
 
         #expect(draft.origin(ofAddressee: stijn)?.origin == .nameMatch)
-        #expect(draft.origin(ofAddressee: stijn)?.quote == "S. van de Pol")
+        #expect(draft.origin(ofAddressee: stijn)?.quote == "J. de Wilde")
         #expect(draft.origin(ofLabel: belasting) == nil)
 
         draft.setLabels([belasting, zorg])

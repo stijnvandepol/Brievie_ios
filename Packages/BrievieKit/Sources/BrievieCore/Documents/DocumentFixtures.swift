@@ -11,7 +11,7 @@ public enum DocumentFixtures {
     public static let persons = [
         Person(
             id: UUID(uuidString: "3F0C8A52-6D0E-4C8E-9A51-1E2B3C4D5E6F") ?? UUID(), displayName: "Stijn",
-            nameVariants: ["S. van de Pol"], isArchived: false
+            nameVariants: ["J. de Wilde"], isArchived: false
         ),
         Person(
             id: UUID(uuidString: "7E6D5C4B-3A29-4180-9F7E-6D5C4B3A2918") ?? UUID(), displayName: "Anne",
@@ -42,7 +42,7 @@ public enum DocumentFixtures {
             suggestions: [
                 Suggestion(
                     id: UUID(uuidString: "5C1E9F0A-2B3D-4E5F-8A6B-7C8D9E0F1A2B") ?? UUID(), action: .addAddressee,
-                    targetID: persons[0].id, origin: .nameMatch, ruleName: "", quote: "S. van de Pol",
+                    targetID: persons[0].id, origin: .nameMatch, ruleName: "", quote: "J. de Wilde",
                     confidence: Decimal(string: "0.95") ?? 0, isPreselected: true
                 ),
                 Suggestion(

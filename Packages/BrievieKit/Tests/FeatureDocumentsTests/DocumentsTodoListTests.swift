@@ -257,6 +257,10 @@ import Testing
 
         await model.load()
 
-        #expect(model.rows.map(\.title) == ["Onbekende afzender", "Nieuwe brief", "Nieuwe brief"])
+        // A letter to check has no sender in the list yet: it is named by the time it came in.
+        let arrived = String(
+            format: DocumentStrings.arrivedFormat, read.createdAt.formatted(date: .omitted, time: .shortened)
+        )
+        #expect(model.rows.map(\.title) == [arrived, "Nieuwe brief", "Nieuwe brief"])
     }
 }

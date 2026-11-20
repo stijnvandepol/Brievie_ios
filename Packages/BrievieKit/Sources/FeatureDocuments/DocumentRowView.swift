@@ -9,8 +9,15 @@ struct DocumentRowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(row.title)
-                .font(.headline)
+            if row.titleIsProposal {
+                // As in the web: italic, and "(voorstel)" in words, so it is never read as a fact.
+                (Text(row.title).italic() + Text(verbatim: " ") + Text(DocumentStrings.proposedMark)
+                    .foregroundStyle(.secondary))
+                    .font(.headline)
+            } else {
+                Text(row.title)
+                    .font(.headline)
+            }
             Text(row.subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -28,9 +35,14 @@ struct DocumentRowView: View {
             }
             status
             if row.hasSuggestions {
-                Label(DocumentStrings.suggestion, systemImage: "lightbulb")
+                AdaptiveLabel(DocumentStrings.suggestion, systemImage: "lightbulb")
                     .font(.subheadline)
                     .foregroundStyle(BrievieColor.brand)
+            }
+            if row.isAutomatic {
+                AdaptiveLabel(DocumentStrings.automaticByAI, systemImage: "sparkles")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -71,7 +83,7 @@ struct DocumentRowView: View {
     }
 
     private func statusLabel(color: Color) -> some View {
-        Label {
+        AdaptiveLabel {
             Text(row.status.label)
                 .foregroundStyle(.primary)
         } icon: {
