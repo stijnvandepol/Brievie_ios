@@ -68,17 +68,34 @@ public final class DocumentsModel {
     public private(set) var removedNotice: String?
     /// A letter opened from outside the list (a tapped reminder): the screen pushes it.
     public var openedDocument: UUID?
+    /// The server has a trash: "Prullenbak", "Verwijderen". False until a whole load found out (`probeTrash`).
+    public internal(set) var hasTrash = false
+    public internal(set) var undo: UndoNotice?
+    public var isShowingTrash = false
+    /// "Dubbel?" in "Te doen": the open pairs, asked on a whole load when the server counts them (see `+Duplicates`).
+    public internal(set) var duplicates: [DuplicateRow] = []
+    /// "Goed. We vragen het niet meer…" after a pair was dismissed; gone on "Sluiten" or another scope.
+    public internal(set) var duplicateNotice: String?
+    @ObservationIgnored var pairCount = 0 // counted by the last whole inbox load (0 from a server without pairs)
+    /// The number of the latest pair load: only that one writes `duplicates`.
+    @ObservationIgnored var latestPairLoad = 0
+    /// "Ongedaan maken" is on its way: the button waits.
+    public internal(set) var isUndoing = false
+    /// The letters' open tasks changed on the server (a letter went to the trash or came back): the calendar
+    /// and the deadline reminders follow. Set by the screen that owns this model.
+    @ObservationIgnored public var onTasksChanged: @MainActor () -> Void = {}
     /// Search in "Alle post"; forgotten when the user leaves it (and with this model, on a workspace switch or when
     /// the session ends).
     public let search: DocumentSearchModel
 
-    private let documents: WorkspaceDocuments
+    let documents: WorkspaceDocuments
     private let uploads: any UploadQueue
     private let camera: any ScanCameraAccess
     private let settingsOpener: @MainActor () -> Void
-    private let onRevoked: @MainActor () -> Void
-    private let onMissingPairing: @MainActor () -> Void
+    let onRevoked: @MainActor () -> Void
+    let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
+    let locale: Locale
 
     private var serverDocuments: [DocumentSummary] = []
     /// In the inbox: per state, the number its header names (more than shown when only the newest are listed).
@@ -102,7 +119,8 @@ public final class DocumentsModel {
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void,
         refreshInterval: Duration = .seconds(3),
-        searchDelay: Duration = DocumentSearchModel.typingPause
+        searchDelay: Duration = DocumentSearchModel.typingPause,
+        locale: Locale = .autoupdatingCurrent
     ) {
         self.documents = documents
         self.uploads = uploads
@@ -112,6 +130,7 @@ public final class DocumentsModel {
         self.onRevoked = onRevoked
         self.onMissingPairing = onMissingPairing
         self.refreshInterval = refreshInterval
+        self.locale = locale
         search = DocumentSearchModel(
             documents: documents, onRevoked: onRevoked, onMissingPairing: onMissingPairing, delay: searchDelay
         )
@@ -125,12 +144,20 @@ public final class DocumentsModel {
     /// Reads the queue, the server's list and the workspace's persons and labels. A list that is already on
     /// screen stays when the server cannot be reached. For the first load, pull-to-refresh and retry.
     public func load() async {
+        // Once the server is known to have a trash, it keeps it: no need to ask again.
+        let knowsTrash = hasTrash
+        async let probe = knowsTrash ? true : Self.probeTrash(documents)
         await load(organisation: true)
+        if let found = await probe { hasTrash = found }
+        await loadDuplicates()
     }
 
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
         guard scope != self.scope else { return }
+        undo = nil
+        duplicateNotice = nil
+        if scope != .inbox { duplicates = [] }
         if scope != .all { search.forget() }
         if Self.source(for: scope) != Self.source(for: self.scope) {
             serverDocuments = []
@@ -148,7 +175,10 @@ public final class DocumentsModel {
     /// its new status. An inbox that is not loaded (still loading, or failed) is loaded whole.
     public func refreshIfNeeded() async {
         guard needsRefresh, wholeLoadsInFlight == 0 else { return }
+        let pairsBefore = pairCount
         await load(organisation: false, movingOnly: state == .loaded)
+        // A tick that loaded the inbox whole may learn of a new pair (or one decided elsewhere): only then the group.
+        if pairCount != pairsBefore { await loadDuplicates() }
     }
 
     /// Every write that belongs to one scope is checked against the scope after each wait: a slow answer
@@ -235,6 +265,8 @@ public final class DocumentsModel {
         }
         serverDocuments = kept
         state = .loaded
+        // Counts that failed say nothing about the pairs: keep the last number, so the group stays.
+        if withCounts, let counts = answer.counts { pairCount = counts.duplicate }
         guard states != Self.inboxStates else { return false }
         let isNew = Set(kept.filter { $0.inboxState == .new }.map(\.id))
         let leftQueue = wasQueued.subtracting(queued.map(\.id))
@@ -283,24 +315,6 @@ public final class DocumentsModel {
             }
     }
 
-    /// A letter's row in the words of the list; the search shows its hits with the same row.
-    static func row(for document: DocumentSummary, persons: [Person], labels: [DocumentLabel]) -> Row {
-        let addressees = Set(document.addresseeIDs)
-        let labelIDs = Set(document.labelIDs)
-        let status = Self.status(of: document)
-        let (title, isProposal) = Self.title(of: document, status: status)
-        return Row(
-            id: document.id, documentID: document.id, title: title,
-            subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
-            status: status,
-            addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
-            labels: labels.filter { labelIDs.contains($0.id) },
-            hasSuggestions: document.openSuggestionCount > 0,
-            isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
-            date: document.createdAt
-        )
-    }
-
     private func status(of item: UploadItem) -> RowStatus {
         switch item.state {
         case .waiting: .waitingForUpload
@@ -309,20 +323,9 @@ public final class DocumentsModel {
             progress[item.id].map { .uploading(progress: $0) } ?? .waitingForUpload
         case .failed:
             .uploadFailed(
-                message: Self.uploadMessage(for: item.failureCode), canRetry: item.failureCode != "server_changed"
+                message: Self.uploadMessage(for: item.failureCode),
+                canRetry: !Self.finalUploadCodes.contains(item.failureCode ?? "")
             )
-        }
-    }
-
-    /// What a letter on the server needs. A read letter on nobody's name says "Naam kiezen" in every scope, as
-    /// in the web: "Klaar" only when nothing waits.
-    static func status(of document: DocumentSummary) -> RowStatus {
-        switch document.status {
-        case .processing: .processing
-        case .needsReview: .needsReview
-        case .failed: .failed
-        // A status this app does not know yet is at least a document that can be opened.
-        case .done, .unknown: document.inboxState == .unassigned ? .needsName : .done
         }
     }
 }

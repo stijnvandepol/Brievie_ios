@@ -7,10 +7,20 @@ import SwiftUI
 /// found, and a clear word for every state (nothing typed, too short, searching, nothing found, failed).
 struct DocumentSearchList<Destination: View>: View {
     let model: DocumentSearchModel
+    /// A letter deleted from the results: its "Ongedaan maken" stands here too, not only in the hidden post list.
+    var undo: DocumentsModel.UndoNotice?
+    var isUndoing = false
+    var undoAction: () -> Void = {}
+    var closeUndo: () -> Void = {}
     let destination: (UUID) -> Destination
 
     var body: some View {
         List {
+            if let undo {
+                Section {
+                    UndoRow(notice: undo, isUndoing: isUndoing, undo: undoAction, close: closeUndo)
+                }
+            }
             notices
             switch model.state {
             case .idle:

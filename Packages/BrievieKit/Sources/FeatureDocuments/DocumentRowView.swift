@@ -25,8 +25,12 @@ struct DocumentRowView: View {
                 Text(addresseeLine)
                     .font(.subheadline)
             }
-            if !row.labels.isEmpty {
+            if !row.labels.isEmpty || row.isPossibleDuplicate {
                 ChipFlow {
+                    // As in the web: "Dubbel?" as a chip of its own colour, before the labels.
+                    if row.isPossibleDuplicate {
+                        LabelChip(name: DocumentStrings.duplicateChip, colorKey: LabelColor.orange.rawValue)
+                    }
                     ForEach(row.labels) { label in
                         LabelChip(name: label.name, colorKey: label.colorKey)
                     }
@@ -46,7 +50,7 @@ struct DocumentRowView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        // One element, read in a fixed order: sender, date, status and its note, names, labels, proposal.
+        // One element, read in a fixed order: sender, date, status and its note, names, labels, proposal, "Dubbel?".
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(progressValue)

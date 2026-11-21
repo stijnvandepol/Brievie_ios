@@ -20,13 +20,16 @@ extension DocumentsModel {
         public let titleIsProposal: Bool
         /// The AI confirmed the letter, or put a label or name on it, by itself: "Automatisch door AI".
         public let isAutomatic: Bool
+        /// The letter is in an open duplicate pair: the chip "Dubbel?".
+        public let isPossibleDuplicate: Bool
         /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
         let date: Date
 
         init(
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
             addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
-            isAutomatic: Bool = false, titleIsProposal: Bool = false, date: Date = .distantPast
+            isAutomatic: Bool = false, titleIsProposal: Bool = false, isPossibleDuplicate: Bool = false,
+            date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -38,6 +41,7 @@ extension DocumentsModel {
             self.hasSuggestions = hasSuggestions
             self.isAutomatic = isAutomatic
             self.titleIsProposal = titleIsProposal
+            self.isPossibleDuplicate = isPossibleDuplicate
             self.date = date
         }
     }
@@ -79,6 +83,9 @@ extension DocumentsModel {
         case let .person(id): persons.first { $0.id == id }?.displayName ?? DocumentStrings.section
         }
     }
+
+    /// The list shows its empty text: no rows and, in "Te doen", no pairs either.
+    public var showsEmpty: Bool { rows.isEmpty && duplicates.isEmpty }
 
     /// What the list says when the current scope has no rows.
     public var emptyText: String {
@@ -202,6 +209,7 @@ extension DocumentsModel.Row {
         }
         if hasSuggestions { parts.append(DocumentStrings.suggestion) }
         if isAutomatic { parts.append(DocumentStrings.automaticByAI) }
+        if isPossibleDuplicate { parts.append(DocumentStrings.duplicateChip) }
         return parts.joined(separator: ", ")
     }
 }
@@ -209,12 +217,34 @@ extension DocumentsModel.Row {
 extension DocumentsModel {
     // Texts of rows and errors
 
+    /// A letter's row in the words of the list; the search shows its hits with the same row.
+    static func row(for document: DocumentSummary, persons: [Person], labels: [DocumentLabel]) -> Row {
+        let addressees = Set(document.addresseeIDs)
+        let labelIDs = Set(document.labelIDs)
+        let status = Self.status(of: document)
+        let (title, isProposal) = Self.title(of: document, status: status)
+        return Row(
+            id: document.id, documentID: document.id, title: title,
+            subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
+            status: status,
+            addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
+            labels: labels.filter { labelIDs.contains($0.id) },
+            hasSuggestions: document.openSuggestionCount > 0,
+            isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
+            isPossibleDuplicate: document.isPossibleDuplicate, date: document.createdAt
+        )
+    }
+
+    /// Upload failures that a retry cannot fix: the scan can only be deleted.
+    static let finalUploadCodes: Set<String> = ["server_changed", "document_trashed"]
+
     static func uploadMessage(for code: String?) -> String {
         switch code {
         case "untrusted": DocumentStrings.notVerified
         case "workspace_not_found": DocumentStrings.workspaceGone
         case "server_changed": DocumentStrings.otherServer
         case "payload_too_large": DocumentStrings.tooLarge
+        case "document_trashed": DocumentStrings.uploadTrashed
         default: DocumentStrings.uploadFailed
         }
     }
@@ -224,6 +254,9 @@ extension DocumentsModel {
         case .unreachable: DocumentStrings.unreachable
         case .notVerified: DocumentStrings.notVerified
         case .notFound: DocumentStrings.notFound
+        case .forbidden: DocumentStrings.forbidden
+        case .busy: DocumentStrings.busy
+        case .inTrash: DocumentStrings.inTrash
         default: DocumentStrings.generic
         }
     }

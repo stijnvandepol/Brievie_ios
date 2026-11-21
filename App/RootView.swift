@@ -220,7 +220,9 @@ private struct DocumentsScreen: View {
             server: environment.documents, onRevoked: environment.revocations.revoked
         )
         let canEdit = Self.canEdit(workspace)
-        _model = State(initialValue: DocumentsModel(
+        let workspaceID = workspace.id
+        let onTasksChanged: @MainActor () -> Void = { environment.tasksChanged(in: workspaceID) }
+        let model = DocumentsModel(
             documents: documents,
             uploads: environment.uploads,
             canScan: canEdit,
@@ -228,7 +230,10 @@ private struct DocumentsScreen: View {
             openSettings: openSystemSettings,
             onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
-        ))
+        )
+        // A letter that goes to the trash or comes back takes its tasks along: the calendar and reminders follow.
+        model.onTasksChanged = onTasksChanged
+        _model = State(initialValue: model)
         _scanModel = State(initialValue: ScanFlowModel(workspaceID: workspace.id, uploads: environment.uploads))
         title = workspace.name
         self.workspaceName = workspaceName
@@ -237,8 +242,7 @@ private struct DocumentsScreen: View {
         self.canEdit = canEdit
         self.appModel = appModel
         deviceID = connection.deviceID
-        let workspaceID = workspace.id
-        onTasksChanged = { environment.tasksChanged(in: workspaceID) }
+        self.onTasksChanged = onTasksChanged
         reminderRouter = environment.reminderRouter
         self.workspaceID = workspaceID
     }
@@ -249,7 +253,17 @@ private struct DocumentsScreen: View {
         ) { documentID in
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
-                deviceID: deviceID, onTasksChanged: onTasksChanged
+                deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: model.hasTrash,
+                onTrashed: { [model] id in Task { await model.didTrash(id) } }
+            )
+        } compare: { pairID in
+            DuplicateScreen(
+                pairID: pairID, documents: documents, canEdit: canEdit, persons: model.persons, labels: model.labels,
+                appModel: appModel, deviceID: deviceID,
+                // `didMerge` lets the calendar follow (a twin task completed, the other letter's tasks left).
+                onMerged: { [model] otherID in Task { await model.didMerge(trashed: otherID) } },
+                onDismissed: { [model] in Task { await model.didDismissDuplicate() } },
+                onDecidedElsewhere: { [model] in Task { await model.didFindPairDecided() } }
             )
         }
         // A tapped reminder of this workspace opens its letter, once the app is open (never behind the lock).
@@ -271,22 +285,48 @@ private struct ReviewScreen: View {
 
     init(
         documentID: UUID, documents: WorkspaceDocuments, canEdit: Bool, appModel: AppModel, deviceID: UUID,
-        onTasksChanged: @escaping @MainActor () -> Void
+        onTasksChanged: @escaping @MainActor () -> Void, trashAvailable: Bool,
+        onTrashed: @escaping @MainActor (UUID) -> Void
     ) {
         let model = ReviewModel(
             documentID: documentID,
             documents: documents,
             canEdit: canEdit,
+            trashAvailable: trashAvailable,
             onRevoked: { appModel.sessionRevoked(deviceID: deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
         )
         // After a confirm and after ticking off a task (also of the confirmed letter): the calendar follows.
         model.onTasksChanged = onTasksChanged
+        // In the trash now: the post list offers the undo.
+        model.onTrashed = onTrashed
         _model = State(initialValue: model)
     }
 
     var body: some View {
         ReviewView(model: model)
+    }
+}
+
+/// The compare screen of a pair in "Dubbel?". A merge or dismiss is reported to the post list, which reloads.
+private struct DuplicateScreen: View {
+    @State private var model: DuplicateModel
+
+    init(
+        pairID: UUID, documents: WorkspaceDocuments, canEdit: Bool, persons: [Person], labels: [DocumentLabel],
+        appModel: AppModel, deviceID: UUID, onMerged: @escaping @MainActor (UUID) -> Void,
+        onDismissed: @escaping @MainActor () -> Void, onDecidedElsewhere: @escaping @MainActor () -> Void
+    ) {
+        _model = State(initialValue: DuplicateModel(
+            pairID: pairID, documents: documents, canEdit: canEdit, persons: persons, labels: labels,
+            onMerged: onMerged, onDismissed: onDismissed, onDecidedElsewhere: onDecidedElsewhere,
+            onRevoked: { appModel.sessionRevoked(deviceID: deviceID) },
+            onMissingPairing: { appModel.connectionMissing() }
+        ))
+    }
+
+    var body: some View {
+        DuplicateView(model: model)
     }
 }
 

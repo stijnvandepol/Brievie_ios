@@ -15,15 +15,19 @@ public final class ReviewModel {
         case review
         case done
         case failed(message: String)
+        /// The letter is in the trash (opened from a reminder or a stale list): nothing to retry.
+        case inTrash
+        /// The letter went to the trash from this screen: the screen closes itself.
+        case trashed
     }
 
-    public private(set) var state: State = .loading
+    public internal(set) var state: State = .loading
     public var draft = Draft()
     public private(set) var detail: DocumentDetail?
     /// Page images by 1-based page number. In memory only.
     public private(set) var pages: [Int: Data] = [:]
-    public private(set) var isSaving = false
-    public private(set) var saveError: String?
+    public internal(set) var isSaving = false
+    public internal(set) var saveError: String?
     /// "Opnieuw verwerken" was asked while the draft holds the user's own changes: the screen asks first.
     public private(set) var confirmsDiscardingEdits = false
     /// Members and admins confirm; a viewer only reads.
@@ -49,14 +53,20 @@ public final class ReviewModel {
     public internal(set) var pickingDeadline: UUID?
     /// The task "Taak verwijderen" asks about (a question, so it closes when the app leaves the foreground).
     public var taskAskedToRemove: UUID?
+    /// "Brief verwijderen?" is asked (a question, so it closes when the app leaves the foreground).
+    public var asksToTrash = false
+    /// Called with the letter's id once it went to the trash: the post list offers the undo.
+    public var onTrashed: (@MainActor (UUID) -> Void)?
+    /// The server has a trash; a 1d server does not, and then there is no "Verwijderen".
+    public let trashAvailable: Bool
     /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
     /// on to `confirmed` itself, so a tick that is answered after this screen closed still reaches it.
     public var onTasksChanged: (@MainActor () -> Void)? {
         didSet { confirmed?.onTasksChanged = onTasksChanged }
     }
 
-    private let documentID: UUID
-    private let documents: WorkspaceDocuments
+    let documentID: UUID
+    let documents: WorkspaceDocuments
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
@@ -72,6 +82,7 @@ public final class ReviewModel {
         documentID: UUID,
         documents: WorkspaceDocuments,
         canEdit: Bool,
+        trashAvailable: Bool = false,
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void,
         refreshInterval: Duration = .seconds(3),
@@ -80,6 +91,7 @@ public final class ReviewModel {
         self.documentID = documentID
         self.documents = documents
         self.canEdit = canEdit
+        self.trashAvailable = trashAvailable
         self.onRevoked = onRevoked
         self.onMissingPairing = onMissingPairing
         self.refreshInterval = refreshInterval
@@ -126,6 +138,8 @@ public final class ReviewModel {
                 confirmed?.showLists(persons: fresh.persons, labels: fresh.labels)
             }
             show(detail)
+        } catch .inTrash {
+            state = .inTrash
         } catch {
             handle(error) { state = .failed(message: DocumentsModel.message(for: $0)) }
         }
@@ -163,6 +177,7 @@ public final class ReviewModel {
             picker = nil
             shownQuote = nil
             taskAskedToRemove = nil
+            asksToTrash = false
             stopPolling()
         }
     }
@@ -260,7 +275,7 @@ public final class ReviewModel {
         }
     }
 
-    private func handle(_ error: DocumentsError, otherwise: (DocumentsError) -> Void) {
+    func handle(_ error: DocumentsError, otherwise: (DocumentsError) -> Void) {
         switch error {
         case .revoked: onRevoked()
         case .missingPairing: onMissingPairing()

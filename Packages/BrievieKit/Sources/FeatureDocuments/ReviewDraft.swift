@@ -249,9 +249,11 @@ extension ReviewModel {
 extension CalendarDate {
     /// "1 december 2026" or "1 December 2026": the day as written in the user's language, whatever the device's
     /// time zone.
-    var display: String {
+    var display: String { display(locale: .autoupdatingCurrent) }
+
+    func display(locale: Locale) -> String {
         let utc = TimeZone(identifier: "UTC") ?? .gmt
-        let style = Date.FormatStyle(date: .long, time: .omitted, locale: .autoupdatingCurrent, timeZone: utc)
+        let style = Date.FormatStyle(date: .long, time: .omitted, locale: locale, timeZone: utc)
         return date(in: utc).formatted(style)
     }
 }

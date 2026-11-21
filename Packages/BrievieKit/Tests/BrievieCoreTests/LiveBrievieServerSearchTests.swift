@@ -79,4 +79,17 @@ import Testing
             try await server.search(DocumentSearchQuery(text: "brief"), in: scope(url))
         }
     }
+
+    @Test func aSearchHitCarriesTheDuplicateCount() async throws {
+        let hit = Self.hitJSON.replacingOccurrences(
+            of: #""label_ids":[]"#, with: #""label_ids":[],"open_duplicate_count":1"#
+        )
+        let url = try StubURLProtocol.serve(.response(status: 200, json: """
+            {"items":[\(hit),\(Self.hitJSON)],"next_offset":null}
+            """))
+
+        let page = try await server.search(DocumentSearchQuery(text: "water"), in: scope(url))
+
+        #expect(page.hits.map(\.document.isPossibleDuplicate) == [true, false])
+    }
 }

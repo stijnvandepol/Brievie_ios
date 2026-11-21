@@ -7,7 +7,7 @@ import SwiftUI
 
 /// The post of one workspace, with a button to scan a new letter. The app's root screen: the app adds the
 /// settings button to its navigation bar.
-public struct DocumentsView<Destination: View>: View {
+public struct DocumentsView<Destination: View, Compare: View>: View {
     private let model: DocumentsModel
     private let scanModel: ScanFlowModel
     /// The workspace's name: the header of the scope menu.
@@ -18,10 +18,14 @@ public struct DocumentsView<Destination: View>: View {
     private let warning: String?
     /// What a document on the server opens (the review screen).
     private let destination: (UUID) -> Destination
+    /// What a pair in "Dubbel?" opens (the compare screen).
+    private let compare: (UUID) -> Compare
 
     @State private var showsScanner = false
     @State private var showsPhotoPicker = false
     @State private var pickedPhotos: [PhotosPickerItem] = []
+    /// Made once per push of the Prullenbak screen.
+    @State private var trashModel: TrashModel?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(
@@ -30,7 +34,8 @@ public struct DocumentsView<Destination: View>: View {
         title: String,
         workspaceName: String? = nil,
         warning: String? = nil,
-        @ViewBuilder destination: @escaping (UUID) -> Destination
+        @ViewBuilder destination: @escaping (UUID) -> Destination,
+        @ViewBuilder compare: @escaping (UUID) -> Compare
     ) {
         self.model = model
         self.scanModel = scanModel
@@ -38,6 +43,7 @@ public struct DocumentsView<Destination: View>: View {
         self.workspaceName = workspaceName
         self.warning = warning
         self.destination = destination
+        self.compare = compare
     }
 
     public var body: some View {
@@ -96,9 +102,16 @@ public struct DocumentsView<Destination: View>: View {
             ) {
                 ScanFlowView(model: scanModel)
             }
-            // A letter opened by a tapped reminder.
+            .navigationDestination(isPresented: $model.isShowingTrash) {
+                if let trashModel { TrashView(model: trashModel) }
+            }
+            // A letter opened by a tapped reminder (or again after "Ongedaan maken").
             .navigationDestination(item: $model.openedDocument) { documentID in
                 destination(documentID)
+            }
+            // The undo row appears while the letter screen closes: VoiceOver says so, or it is easily missed.
+            .onChange(of: model.undo?.documentID) { _, id in
+                if id != nil { AccessibilityNotification.Announcement(DocumentStrings.undoTrashed).post() }
             }
             .onChange(of: scanModel.phase) { _, phase in
                 guard phase == .finished else { return }
@@ -110,7 +123,11 @@ public struct DocumentsView<Destination: View>: View {
     /// The search results while a term is typed in "Alle post", otherwise the post list.
     @ViewBuilder private var content: some View {
         if model.searchIsAvailable, model.search.isActive {
-            DocumentSearchList(model: model.search, destination: destination)
+            DocumentSearchList(
+                model: model.search, undo: model.undo, isUndoing: model.isUndoing,
+                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
+                destination: destination
+            )
         } else {
             postList
         }
@@ -122,18 +139,23 @@ public struct DocumentsView<Destination: View>: View {
             rows: model.rows,
             summary: model.summary,
             footer: model.footer,
+            duplicates: model.duplicates,
             empty: DocumentsList.Empty(
                 text: model.emptyText, hint: model.emptyHint,
                 showAllPost: model.emptyOffersAllPost ? { Task { await model.select(.all) } } : nil
             ),
             notices: DocumentsList.Notices(
                 warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
-                openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true }
+                undo: model.undo, isUndoing: model.isUndoing, duplicate: model.duplicateNotice,
+                openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true },
+                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
+                closeDuplicate: { model.closeDuplicateNotice() }
             ),
             retryLoad: { Task { await model.load() } },
             retryUpload: { id in Task { await model.retryUpload(id) } },
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
-            destination: destination
+            destination: destination,
+            compare: compare
         )
     }
 
@@ -145,8 +167,8 @@ public struct DocumentsView<Destination: View>: View {
         )
     }
 
-    /// "Inbox", "Alle post", or the post of one person; the current one is ticked.
-    private var scopeMenu: some View {
+    /// "Inbox", "Alle post", or the post of one person; the current one is ticked. Then "Prullenbak".
+    @ViewBuilder private var scopeMenu: some View {
         Section(title) {
             Picker(
                 selection: Binding(get: { model.scope }, set: { scope in Task { await model.select(scope) } })
@@ -158,6 +180,14 @@ public struct DocumentsView<Destination: View>: View {
                 Text(model.scopeTitle)
             }
             .pickerStyle(.inline)
+        }
+        if model.hasTrash {
+            Section {
+                Button(DocumentStrings.trashTitle, systemImage: "trash") {
+                    trashModel = model.makeTrashModel()
+                    model.isShowingTrash = true
+                }
+            }
         }
     }
 

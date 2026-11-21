@@ -107,11 +107,14 @@ public struct InboxCounts: Equatable, Sendable {
     public let new: Int
     public let review: Int
     public let unassigned: Int
+    /// Open duplicate pairs ("Dubbel?"); 0 for a viewer and from a server before host PR #34.
+    public let duplicate: Int
 
-    public init(new: Int, review: Int, unassigned: Int) {
+    public init(new: Int, review: Int, unassigned: Int, duplicate: Int = 0) {
         self.new = new
         self.review = review
         self.unassigned = unassigned
+        self.duplicate = duplicate
     }
 
     /// The count of one of the three inbox states; `nil` for a state that is not in the inbox.
