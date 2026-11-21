@@ -38,7 +38,7 @@ public enum UploadPolicy {
     /// server-chosen text is stored or shown.
     static let knownCodes: Set<String> = [
         "document_conflict", "page_checksum_mismatch", "workspace_not_found", "validation_error",
-        "payload_too_large", "length_required"
+        "payload_too_large", "length_required", "document_trashed"
     ]
 
     public static func decide(_ outcome: UploadOutcome, item: UploadItem, urlCount: Int) -> UploadDecision {

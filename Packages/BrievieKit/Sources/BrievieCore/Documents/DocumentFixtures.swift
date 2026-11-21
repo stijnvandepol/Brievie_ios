@@ -101,4 +101,27 @@ public enum DocumentFixtures {
             tasks: tasks
         )
     }
+
+    /// A letter in the trash, trashed on 2026-11-21 10:00 UTC; `purgeAfter` defaults to 30 days later.
+    public static func trashed(
+        id: UUID = UUID(), sender: String = "", by name: String = "",
+        purgeAfter: Date = Date(timeIntervalSince1970: 1_797_847_200)
+    ) -> TrashedDocument {
+        TrashedDocument(
+            summary: summary(id: id, status: .done, sender: sender),
+            trashedAt: Date(timeIntervalSince1970: 1_795_255_200), trashedByName: name, purgeAfter: purgeAfter
+        )
+    }
+
+    /// A pair of letters that look scanned twice, created on 2026-11-20 10:00 UTC, 92% alike.
+    public static func pair(
+        id: UUID = UUID(), first: DocumentSummary, second: DocumentSummary, suggestedKeep: UUID? = nil,
+        differences: [DuplicateDifference] = [], twins: [TaskTwin] = [], canMerge: Bool = true
+    ) -> DuplicatePair {
+        DuplicatePair(
+            id: id, createdAt: Date(timeIntervalSince1970: 1_795_168_800), first: first, second: second,
+            suggestedKeepID: suggestedKeep ?? first.id, similarity: 92, same: [.sender], differences: differences,
+            taskTwins: twins, canMerge: canMerge, blockedReason: canMerge ? "" : "visibility_differs"
+        )
+    }
 }

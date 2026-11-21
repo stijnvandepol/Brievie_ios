@@ -32,6 +32,11 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
     /// The sender the AI proposed for a letter waiting for review; empty when the server does not list it (before
     /// host PR #25) or has none. A proposal, never the confirmed `sender`.
     public let proposedSender: String
+    /// How many open duplicate pairs this letter is in (0 from a server before host PR #34).
+    public let openDuplicateCount: Int
+
+    /// "Dubbel?": the letter is in a pair that still waits for a choice.
+    public var isPossibleDuplicate: Bool { openDuplicateCount > 0 }
 
     /// "Automatisch door AI", as the web's lists say: confirmed by the AI, or with a label or name it put on.
     public var isAutomatic: Bool { confirmedByAI || !autoLabelIDs.isEmpty || !autoAddresseeIDs.isEmpty }
@@ -41,7 +46,7 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         documentType: String, letterDate: CalendarDate?, inboxState: InboxState = .sorted,
         addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0,
         confirmedByAI: Bool = false, autoLabelIDs: [UUID] = [], autoAddresseeIDs: [UUID] = [],
-        proposedSender: String = ""
+        proposedSender: String = "", openDuplicateCount: Int = 0
     ) {
         self.id = id
         self.clientID = clientID
@@ -59,6 +64,7 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         self.autoLabelIDs = autoLabelIDs
         self.autoAddresseeIDs = autoAddresseeIDs
         self.proposedSender = proposedSender
+        self.openDuplicateCount = openDuplicateCount
     }
 }
 
@@ -242,11 +248,57 @@ public protocol DocumentServer: Sendable {
     func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
     /// One page of a search in the letters of the workspace (a server before host PR #27 answers 404).
     func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage
+    /// Puts a letter in the trash (a server before host PR #32 answers 404).
+    func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument
+    /// Takes a letter out of the trash; the answer is the letter as it is now.
+    func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    func trashList(in scope: DocumentScope) async throws -> TrashList
+    /// The open duplicate pairs of the workspace (a server before host PR #34 answers 404).
+    func duplicates(in scope: DocumentScope) async throws -> [DuplicatePair]
+    func duplicate(_ id: UUID, in scope: DocumentScope) async throws -> DuplicatePair
+    /// Keeps `keep` and puts the pair's other letter in the trash; the answer is the kept letter.
+    func mergeDuplicate(
+        _ id: UUID, keep: UUID, completeTwinTasks: Bool, in scope: DocumentScope
+    ) async throws -> DocumentDetail
+    /// "Het zijn twee brieven": the pair is not asked again.
+    func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws
 }
 
 public extension DocumentServer {
     /// For servers that predate search (the test servers): the 404 of a server without the endpoint.
     func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
+        throw ServerError.other("http_404")
+    }
+
+    /// For servers that predate the trash: the 404 of a server without the endpoint.
+    func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument {
+        throw ServerError.other("http_404")
+    }
+
+    func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
+        throw ServerError.other("http_404")
+    }
+
+    func trashList(in scope: DocumentScope) async throws -> TrashList {
+        throw ServerError.other("http_404")
+    }
+
+    /// For servers that predate duplicate pairs: the 404 of a server without the endpoint.
+    func duplicates(in scope: DocumentScope) async throws -> [DuplicatePair] {
+        throw ServerError.other("http_404")
+    }
+
+    func duplicate(_ id: UUID, in scope: DocumentScope) async throws -> DuplicatePair {
+        throw ServerError.other("http_404")
+    }
+
+    func mergeDuplicate(
+        _ id: UUID, keep: UUID, completeTwinTasks: Bool, in scope: DocumentScope
+    ) async throws -> DocumentDetail {
+        throw ServerError.other("http_404")
+    }
+
+    func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws {
         throw ServerError.other("http_404")
     }
 

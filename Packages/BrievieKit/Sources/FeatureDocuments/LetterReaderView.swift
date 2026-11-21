@@ -6,9 +6,9 @@ import UIKit
 /// The letter on the whole screen, pushed from the review or the confirmed letter (so it stays under the lock
 /// screen). "Pagina": swipe through the pages, pinch or double tap to zoom; a zoomed page pans instead of
 /// turning. "Tekst": the recognised text of every page as real text, the path for VoiceOver.
-struct LetterReaderView: View {
-    /// The pages, their texts and the page loading stay with the review.
-    let review: ReviewModel
+struct LetterReaderView<Source: LetterPageSource>: View {
+    /// The pages, their texts and the page loading stay with the review (or the compare screen's letter).
+    let review: Source
     @Bindable var reader: LetterReaderModel
 
     var body: some View {

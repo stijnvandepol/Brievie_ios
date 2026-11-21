@@ -30,6 +30,7 @@ public struct ReviewView: View {
             case .review:
                 pagesSection
                 reviewSections
+                TrashSection(model: model)
             case .done:
                 pagesSection
                 if let detail = model.detail {
@@ -38,6 +39,9 @@ public struct ReviewView: View {
                         onShowQuote: { model.showQuote($0) }
                     )
                 }
+                TrashSection(model: model)
+            case .inTrash: Section { ErrorBanner(DocumentStrings.inTrash, style: .warning) }
+            case .trashed: EmptyView()
             }
         }
         .listStyle(.insetGrouped)
@@ -98,6 +102,7 @@ public struct ReviewView: View {
         } message: {
             Text(DocumentStrings.discardEditsMessage)
         }
+        .modifier(TrashQuestion(model: model))
     }
 
     private func progressRow(_ text: String) -> some View {
@@ -268,6 +273,48 @@ public struct ReviewView: View {
 
     private func notes(for field: ReviewField, title: String) -> some View {
         FieldNotes(draft: model.draft, field: field, title: title) { model.showQuote($0) }
+    }
+}
+
+/// "Verwijderen" at the end, apart from the fields; it asks first. On a confirmed letter its error shows above it
+/// (the review shows it above "Bevestigen").
+private struct TrashSection: View {
+    let model: ReviewModel
+
+    var body: some View {
+        if model.canEdit, model.trashAvailable {
+            Section {
+                if model.state == .done, let error = model.saveError {
+                    ErrorBanner(error)
+                }
+                Button(DocumentStrings.trashButton, systemImage: "trash", role: .destructive) {
+                    model.askToTrash()
+                }
+                .disabled(!model.canTrash)
+            }
+        }
+    }
+}
+
+/// "Brief verwijderen?" with the 30 days, "Naar de prullenbak" and "Annuleren". Once the letter is in the trash
+/// the screen closes: the post list offers the undo.
+private struct TrashQuestion: ViewModifier {
+    @Bindable var model: ReviewModel
+    @Environment(\.dismiss) private var dismiss
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: model.state) { _, state in
+                if state == .trashed { dismiss() }
+            }
+            .confirmationDialog(
+                DocumentStrings.trashQuestion, isPresented: $model.asksToTrash, titleVisibility: .visible
+            ) {
+                Button(DocumentStrings.trashConfirm, role: .destructive) { Task { await model.trash() } }
+                Button(DocumentStrings.trashCancel, role: .cancel) {}
+            } message: {
+                Text(DocumentStrings.trashQuestionMessage)
+            }
     }
 }
 

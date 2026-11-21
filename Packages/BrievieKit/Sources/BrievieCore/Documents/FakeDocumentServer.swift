@@ -22,6 +22,13 @@ public final class FakeDocumentServer: DocumentServer {
         case completeTask(URL, UUID)
         case reopenTask(URL, UUID)
         case search(URL, DocumentSearchQuery)
+        case trash(URL, UUID)
+        case restore(URL, UUID)
+        case trashList(URL)
+        case duplicates(URL)
+        case duplicate(URL, UUID)
+        case merge(URL, UUID, keep: UUID, completeTwinTasks: Bool)
+        case dismissDuplicate(URL, UUID)
     }
 
     private struct State {
@@ -52,6 +59,15 @@ public final class FakeDocumentServer: DocumentServer {
         var search: @Sendable (URL, DocumentSearchQuery) throws -> DocumentSearchPage = { _, _ in
             DocumentSearchPage(hits: [])
         }
+        var trash: @Sendable (URL, UUID) throws -> TrashedDocument = { _, id in DocumentFixtures.trashed(id: id) }
+        var restore: @Sendable (URL, UUID) throws -> DocumentDetail = { _, id in DocumentFixtures.detail(id: id) }
+        var trashList: @Sendable (URL) throws -> TrashList = { _ in TrashList(items: []) }
+        var duplicates: @Sendable (URL) throws -> [DuplicatePair] = { _ in [] }
+        /// `nil` answers with the pair of that id from `duplicates`, or `duplicate_not_found`.
+        var duplicate: (@Sendable (URL, UUID) throws -> DuplicatePair)?
+        /// `nil` answers with `detail` of the kept letter.
+        var merge: (@Sendable (URL, UUID, UUID, Bool) throws -> DocumentDetail)?
+        var dismissDuplicate: @Sendable (URL, UUID) throws -> Void = { _, _ in }
     }
 
     private let state: Mutex<State>
@@ -122,6 +138,72 @@ public final class FakeDocumentServer: DocumentServer {
 
     public func onSearch(_ answer: @escaping @Sendable (URL, DocumentSearchQuery) throws -> DocumentSearchPage) {
         state.withLock { $0.search = answer }
+    }
+
+    public func onTrash(_ answer: @escaping @Sendable (URL, UUID) throws -> TrashedDocument) {
+        state.withLock { $0.trash = answer }
+    }
+
+    public func onRestore(_ answer: @escaping @Sendable (URL, UUID) throws -> DocumentDetail) {
+        state.withLock { $0.restore = answer }
+    }
+
+    public func onTrashList(_ answer: @escaping @Sendable (URL) throws -> TrashList) {
+        state.withLock { $0.trashList = answer }
+    }
+
+    public func onDuplicates(_ answer: @escaping @Sendable (URL) throws -> [DuplicatePair]) {
+        state.withLock { $0.duplicates = answer }
+    }
+
+    public func onDuplicate(_ answer: @escaping @Sendable (URL, UUID) throws -> DuplicatePair) {
+        state.withLock { $0.duplicate = answer }
+    }
+
+    /// The answer to a merge: pair id, kept letter, the twin choice.
+    public func onMerge(_ answer: @escaping @Sendable (URL, UUID, UUID, Bool) throws -> DocumentDetail) {
+        state.withLock { $0.merge = answer }
+    }
+
+    public func onDismissDuplicate(_ answer: @escaping @Sendable (URL, UUID) throws -> Void) {
+        state.withLock { $0.dismissDuplicate = answer }
+    }
+
+    public func duplicates(in scope: DocumentScope) async throws -> [DuplicatePair] {
+        try record(.duplicates(scope.url), scope) { $0.duplicates }(scope.url)
+    }
+
+    public func duplicate(_ id: UUID, in scope: DocumentScope) async throws -> DuplicatePair {
+        let (duplicate, list) = record(.duplicate(scope.url, id), scope) { ($0.duplicate, $0.duplicates) }
+        if let duplicate { return try duplicate(scope.url, id) }
+        guard let pair = try list(scope.url).first(where: { $0.id == id }) else {
+            throw ServerError.other("duplicate_not_found")
+        }
+        return pair
+    }
+
+    public func mergeDuplicate(
+        _ id: UUID, keep: UUID, completeTwinTasks: Bool, in scope: DocumentScope
+    ) async throws -> DocumentDetail {
+        let call = Call.merge(scope.url, id, keep: keep, completeTwinTasks: completeTwinTasks)
+        let (merge, detail) = record(call, scope) { ($0.merge, $0.detail) }
+        return try merge?(scope.url, id, keep, completeTwinTasks) ?? detail(scope.url, keep)
+    }
+
+    public func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws {
+        try record(.dismissDuplicate(scope.url, id), scope) { $0.dismissDuplicate }(scope.url, id)
+    }
+
+    public func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument {
+        try record(.trash(scope.url, id), scope) { $0.trash }(scope.url, id)
+    }
+
+    public func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
+        try record(.restore(scope.url, id), scope) { $0.restore }(scope.url, id)
+    }
+
+    public func trashList(in scope: DocumentScope) async throws -> TrashList {
+        try record(.trashList(scope.url), scope) { $0.trashList }(scope.url)
     }
 
     public func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
