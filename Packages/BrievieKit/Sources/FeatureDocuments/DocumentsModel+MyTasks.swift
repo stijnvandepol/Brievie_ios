@@ -74,6 +74,8 @@ extension DocumentsModel {
         guard hasMyTasks else { return }
         undo = nil
         duplicateNotice = nil
+        // Leaving "Alle post" forgets the search term, as picking another scope does.
+        search.forget()
         isShowingMyTasks = true
     }
 

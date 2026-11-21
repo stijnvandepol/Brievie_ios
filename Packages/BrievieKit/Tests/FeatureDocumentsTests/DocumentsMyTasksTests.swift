@@ -101,7 +101,10 @@ import Testing
     @Test func pickingAScopeLeavesMyTasks() async throws {
         let model = try model()
         await model.load()
+        await model.select(.all)
+        model.search.query = "belasting"
         model.showMyTasks()
+        #expect(!model.search.isActive)
         #expect(model.isShowingMyTasks)
         #expect(model.screenTitle == "Mijn taken")
         #expect(!model.searchIsAvailable)
