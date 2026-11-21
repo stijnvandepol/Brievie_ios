@@ -4327,6 +4327,78 @@
         }
       }
     },
+    "tasks.announce.done": {
+      "comment": "VoiceOver announcement after ticking a task off; %@ is what to do.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticked off: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afgevinkt: %@"
+          }
+        }
+      }
+    },
+    "tasks.announce.open": {
+      "comment": "VoiceOver announcement after opening a task again; %@ is what to do.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open again: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weer open: %@"
+          }
+        }
+      }
+    },
+    "tasks.description.business": {
+      "comment": "Mijn taken: what the screen is for, in an organisation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks that are yours. Tasks of your department and mail without a name are under To pick up."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken die bij jou horen. Taken van je afdeling en post zonder naam staan bij Op te pakken."
+          }
+        }
+      }
+    },
+    "tasks.description.home": {
+      "comment": "Mijn taken: what the screen is for, in a home workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to do with your mail, by date. You do not need to open the letter for it."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wat je met je post moet doen, op datum. Je hoeft de brief er niet voor te openen."
+          }
+        }
+      }
+    },
     "tasks.done.by": {
       "comment": "Mijn taken, Afgerond: who ticked the task off (%1$@) and on which day (%2$@).",
       "extractionState": "manual",
@@ -4359,6 +4431,114 @@
           "stringUnit": {
             "state": "translated",
             "value": "Afgevinkt op %@"
+          }
+        }
+      }
+    },
+    "tasks.done.state": {
+      "comment": "VoiceOver value of a ticked task's tick box.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar"
+          }
+        }
+      }
+    },
+    "tasks.empty.done": {
+      "comment": "Mijn taken: nothing ticked off in the last 30 days.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have not ticked anything off in the last 30 days."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt de laatste 30 dagen niets afgevinkt."
+          }
+        }
+      }
+    },
+    "tasks.empty.open": {
+      "comment": "Mijn taken: the open list is empty.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have no open tasks. New tasks appear here by themselves once your mail has been checked."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt geen open taken. Nieuwe taken komen hier vanzelf zodra je post is nagekeken."
+          }
+        }
+      }
+    },
+    "tasks.filter.all": {
+      "comment": "Mijn taken: choice that shows every task the member may see.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle taken"
+          }
+        }
+      }
+    },
+    "tasks.filter.label": {
+      "comment": "Mijn taken: name of the choice between own tasks and all tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welke taken"
+          }
+        }
+      }
+    },
+    "tasks.filter.mine": {
+      "comment": "Mijn taken: choice that shows only the member's own tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken"
           }
         }
       }
@@ -4633,6 +4813,186 @@
         }
       }
     },
+    "tasks.notDone": {
+      "comment": "Mijn taken, Afgerond: button that opens a ticked-off task again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not done after all"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toch niet klaar"
+          }
+        }
+      }
+    },
+    "tasks.notSupported": {
+      "comment": "Mijn taken: the server is older than this feature.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your server does not know My tasks yet. Update Brievie on the server."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je server kent Mijn taken nog niet. Werk Brievie op de server bij."
+          }
+        }
+      }
+    },
+    "tasks.notice.noPerson": {
+      "comment": "Mijn taken: the member's account is not linked to a person.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account is not linked to a name yet. That is why you only see tasks someone hands to you here. Ask an admin to link you under Persons."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je account hangt nog niet aan een naam. Daarom zie je hier alleen taken die iemand aan je geeft. Vraag een beheerder om je te koppelen bij Personen."
+          }
+        }
+      }
+    },
+    "tasks.notice.truncated": {
+      "comment": "Mijn taken: the server lists only the first 500 tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the first 500 tasks are shown."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen de eerste 500 taken worden getoond."
+          }
+        }
+      }
+    },
+    "tasks.notice.viewer": {
+      "comment": "Mijn taken: a viewer may not tick tasks off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can view tasks, but not tick them off."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt taken bekijken, maar niet afvinken."
+          }
+        }
+      }
+    },
+    "tasks.open.state": {
+      "comment": "VoiceOver value of an open task's tick box.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        }
+      }
+    },
+    "tasks.showInbox": {
+      "comment": "Mijn taken: button to the Inbox under the waiting letters line.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to Inbox"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naar Inbox"
+          }
+        }
+      }
+    },
+    "tasks.tab.done": {
+      "comment": "Mijn taken: tab of the tasks ticked off in the last 30 days.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afgerond"
+          }
+        }
+      }
+    },
+    "tasks.tab.label": {
+      "comment": "Mijn taken: name of the choice between open and done tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
+          }
+        }
+      }
+    },
+    "tasks.tab.open": {
+      "comment": "Mijn taken: tab of the open tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        }
+      }
+    },
     "tasks.tick": {
       "comment": "Mijn taken: VoiceOver name of a task's tick box; %@ is what to do.",
       "extractionState": "manual",
@@ -4647,6 +5007,120 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klaar: %@"
+          }
+        }
+      }
+    },
+    "tasks.title": {
+      "comment": "Title of the Mijn taken screen and its menu entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken"
+          }
+        }
+      }
+    },
+    "tasks.toPickUp": {
+      "comment": "Mijn taken: heading of the tasks nobody has taken yet (organisation only).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To pick up"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op te pakken"
+          }
+        }
+      }
+    },
+    "tasks.toPickUp.empty": {
+      "comment": "Mijn taken: under 'Op te pakken' when there is nothing.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is nothing to pick up."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er ligt niets op te pakken."
+          }
+        }
+      }
+    },
+    "tasks.undo": {
+      "comment": "Mijn taken: button on a task just ticked off, to open it again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongedaan maken"
+          }
+        }
+      }
+    },
+    "tasks.waiting": {
+      "comment": "Mijn taken: letters (%lld) still waiting for a review; tasks may come out of them.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld letter is still waiting to be checked. New tasks may come from it."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld letters are still waiting to be checked. New tasks may come from them."
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Er wacht nog %lld brief op nakijken. Daar kunnen nieuwe taken uit komen."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Er wachten nog %lld brieven op nakijken. Daar kunnen nieuwe taken uit komen."
+                }
+              }
+            }
           }
         }
       }

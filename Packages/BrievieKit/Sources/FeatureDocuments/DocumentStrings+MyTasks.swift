@@ -59,6 +59,85 @@ extension DocumentStrings {
     )
     static let taskDoneOnFormat = String(localized: "tasks.done.on", defaultValue: "Afgevinkt op %@", bundle: .module)
 
+    // "Mijn taken": the screen
+    static let myTasksTitle = String(localized: "tasks.title", defaultValue: "Mijn taken", bundle: .module)
+    static let myTasksFilterLabel = String(
+        localized: "tasks.filter.label", defaultValue: "Welke taken", bundle: .module
+    )
+    static let myTasksFilterMine = String(localized: "tasks.filter.mine", defaultValue: "Mijn taken", bundle: .module)
+    static let myTasksFilterAll = String(localized: "tasks.filter.all", defaultValue: "Alle taken", bundle: .module)
+    static let myTasksTabLabel = String(localized: "tasks.tab.label", defaultValue: "Taken", bundle: .module)
+    static let myTasksTabOpen = String(localized: "tasks.tab.open", defaultValue: "Open", bundle: .module)
+    static let myTasksTabDone = String(localized: "tasks.tab.done", defaultValue: "Afgerond", bundle: .module)
+    static let myTasksDescriptionHome = String(
+        localized: "tasks.description.home",
+        defaultValue: "Wat je met je post moet doen, op datum. Je hoeft de brief er niet voor te openen.",
+        bundle: .module
+    )
+    static let myTasksDescriptionBusiness = String(
+        localized: "tasks.description.business",
+        defaultValue: "Taken die bij jou horen. Taken van je afdeling en post zonder naam staan bij Op te pakken.",
+        bundle: .module
+    )
+    static let myTasksToPickUp = String(localized: "tasks.toPickUp", defaultValue: "Op te pakken", bundle: .module)
+    static let myTasksToPickUpEmpty = String(
+        localized: "tasks.toPickUp.empty", defaultValue: "Er ligt niets op te pakken.", bundle: .module
+    )
+    static let myTasksEmptyOpen = String(
+        localized: "tasks.empty.open",
+        defaultValue: "Je hebt geen open taken. Nieuwe taken komen hier vanzelf zodra je post is nagekeken.",
+        bundle: .module
+    )
+    static let myTasksEmptyDone = String(
+        localized: "tasks.empty.done", defaultValue: "Je hebt de laatste 30 dagen niets afgevinkt.", bundle: .module
+    )
+    static let myTasksNoPerson = String(
+        localized: "tasks.notice.noPerson",
+        defaultValue: """
+        Je account hangt nog niet aan een naam. Daarom zie je hier alleen taken die iemand aan je geeft. \
+        Vraag een beheerder om je te koppelen bij Personen.
+        """,
+        bundle: .module
+    )
+    static let myTasksViewer = String(
+        localized: "tasks.notice.viewer", defaultValue: "Je kunt taken bekijken, maar niet afvinken.", bundle: .module
+    )
+    static let myTasksTruncated = String(
+        localized: "tasks.notice.truncated", defaultValue: "Alleen de eerste 500 taken worden getoond.", bundle: .module
+    )
+
+    /// `count` (at least 1) letters still wait for a review.
+    static func myTasksWaiting(_ count: Int) -> String {
+        count == 1
+            ? String(
+                localized: "tasks.waiting",
+                defaultValue: "Er wacht nog \(count) brief op nakijken. Daar kunnen nieuwe taken uit komen.",
+                bundle: .module
+            )
+            : String(
+                localized: "tasks.waiting",
+                defaultValue: "Er wachten nog \(count) brieven op nakijken. Daar kunnen nieuwe taken uit komen.",
+                bundle: .module
+            )
+    }
+
+    static let myTasksShowInbox = String(localized: "tasks.showInbox", defaultValue: "Naar Inbox", bundle: .module)
+    static let myTasksUndo = String(localized: "tasks.undo", defaultValue: "Ongedaan maken", bundle: .module)
+    static let myTasksNotDone = String(localized: "tasks.notDone", defaultValue: "Toch niet klaar", bundle: .module)
+    static let myTasksAnnounceDoneFormat = String(
+        localized: "tasks.announce.done", defaultValue: "Afgevinkt: %@", bundle: .module
+    )
+    static let myTasksAnnounceOpenFormat = String(
+        localized: "tasks.announce.open", defaultValue: "Weer open: %@", bundle: .module
+    )
+    static let myTasksNotSupported = String(
+        localized: "tasks.notSupported",
+        defaultValue: "Je server kent Mijn taken nog niet. Werk Brievie op de server bij.",
+        bundle: .module
+    )
+    static let myTasksStateDone = String(localized: "tasks.done.state", defaultValue: "Klaar", bundle: .module)
+    static let myTasksStateOpen = String(localized: "tasks.open.state", defaultValue: "Open", bundle: .module)
+
     /// The plain keys of "Mijn taken" with the text the code resolves, for the catalog parity test.
     static var myTasksAll: [String: String] {
         [
@@ -71,7 +150,19 @@ extension DocumentStrings {
             "tasks.why.letter": taskFromLetterFormat, "tasks.why.manual": taskDateByHand,
             "tasks.needsDate": taskNeedsDate, "tasks.needsDate.term": taskNeedsDateTermFormat,
             "tasks.needsDate.noTerm": taskNeedsDateNoTerm, "tasks.tick": taskTickFormat,
-            "tasks.done.by": taskDoneByFormat, "tasks.done.on": taskDoneOnFormat
+            "tasks.done.by": taskDoneByFormat, "tasks.done.on": taskDoneOnFormat,
+            "tasks.title": myTasksTitle, "tasks.filter.label": myTasksFilterLabel,
+            "tasks.filter.mine": myTasksFilterMine, "tasks.filter.all": myTasksFilterAll,
+            "tasks.tab.label": myTasksTabLabel, "tasks.tab.open": myTasksTabOpen, "tasks.tab.done": myTasksTabDone,
+            "tasks.description.home": myTasksDescriptionHome, "tasks.description.business": myTasksDescriptionBusiness,
+            "tasks.toPickUp": myTasksToPickUp, "tasks.toPickUp.empty": myTasksToPickUpEmpty,
+            "tasks.empty.open": myTasksEmptyOpen, "tasks.empty.done": myTasksEmptyDone,
+            "tasks.notice.noPerson": myTasksNoPerson, "tasks.notice.viewer": myTasksViewer,
+            "tasks.notice.truncated": myTasksTruncated, "tasks.showInbox": myTasksShowInbox,
+            "tasks.undo": myTasksUndo, "tasks.notDone": myTasksNotDone,
+            "tasks.announce.done": myTasksAnnounceDoneFormat, "tasks.announce.open": myTasksAnnounceOpenFormat,
+            "tasks.notSupported": myTasksNotSupported, "tasks.done.state": myTasksStateDone,
+            "tasks.open.state": myTasksStateOpen
         ]
     }
 }
