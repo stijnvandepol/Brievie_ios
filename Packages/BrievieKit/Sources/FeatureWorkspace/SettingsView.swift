@@ -1,4 +1,5 @@
 #if os(iOS)
+import BrievieCore
 import BrievieUI
 import SwiftUI
 
@@ -216,6 +217,17 @@ private struct CalendarSwitchRow: View {
                 }
                 .accessibilityHint(model.detailsFooter)
                 Text(model.detailsFooter)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Picker(
+                    WorkspaceStrings.calendarTasksLabel,
+                    selection: Binding(get: { model.taskPart }, set: { model.setTaskPart($0) })
+                ) {
+                    Text(WorkspaceStrings.calendarTasksMine).tag(MyTasksPart.mine)
+                    Text(WorkspaceStrings.calendarTasksAll).tag(MyTasksPart.all)
+                }
+                .accessibilityHint(WorkspaceStrings.calendarTasksFooter)
+                Text(WorkspaceStrings.calendarTasksFooter)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

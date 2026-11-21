@@ -196,6 +196,17 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.currentUserID(in: $0) }
     }
 
+    /// The tasks the phone's reminders and calendar follow: the member's own ("Mijn taken", the default) or every
+    /// task they may see. Never "Op te pakken" (asked as the own tasks). A server before "Mijn taken" (404) gives
+    /// every open task of the workspace, as before; any other failure is a failure, never that fallback.
+    public func phoneTasks(_ part: MyTasksPart) async throws(DocumentsError) -> [WorkspaceTask] {
+        do {
+            return try await myTasks(part: part == .all ? .all : .mine, status: .open).items
+        } catch .notSupported {
+            return try await openTasks()
+        }
+    }
+
     private func perform<Result: Sendable>(
         _ call: (DocumentScope) async throws -> Result
     ) async throws(DocumentsError) -> Result {

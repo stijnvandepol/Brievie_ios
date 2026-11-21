@@ -146,6 +146,22 @@ enum WorkspaceStrings {
         bundle: .module
     )
 
+    /// Under "Toon de omschrijving in de agenda": which tasks the calendar gets.
+    static let calendarTasksLabel = String(
+        localized: "workspaces.calendar.tasks.label", defaultValue: "Welke taken", bundle: .module
+    )
+    static let calendarTasksMine = String(
+        localized: "workspaces.calendar.tasks.mine", defaultValue: "Mijn taken", bundle: .module
+    )
+    static let calendarTasksAll = String(
+        localized: "workspaces.calendar.tasks.all", defaultValue: "Alle taken", bundle: .module
+    )
+    static let calendarTasksFooter = String(
+        localized: "workspaces.calendar.tasks.footer",
+        defaultValue: "Mijn taken: alleen taken die bij jou horen. Alle taken: elke taak die je mag zien.",
+        bundle: .module
+    )
+
     /// Asked before the calendar goes in an account that is not iCloud or this phone; `%@` is that account.
     static let calendarConsentFormat = String(
         localized: "workspaces.calendar.consent.question",
@@ -200,6 +216,10 @@ enum WorkspaceStrings {
         "workspaces.calendar.footer.neutral": calendarFooterNeutral,
         "workspaces.calendar.footer.detailed": calendarFooterDetailed,
         "workspaces.calendar.details.footer": calendarDetailsFooter,
+        "workspaces.calendar.tasks.label": calendarTasksLabel,
+        "workspaces.calendar.tasks.mine": calendarTasksMine,
+        "workspaces.calendar.tasks.all": calendarTasksAll,
+        "workspaces.calendar.tasks.footer": calendarTasksFooter,
         "workspaces.calendar.sourceGone": calendarSourceGone,
         "workspaces.calendar.noCalendarAccount": calendarNoCalendarAccount,
         "workspaces.calendar.keptForUserEvents": calendarKeptForUserEvents,
