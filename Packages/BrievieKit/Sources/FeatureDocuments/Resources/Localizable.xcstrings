@@ -2048,7 +2048,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose people"
+            "value": "Choose persons"
           }
         },
         "nl": {
@@ -3308,7 +3308,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel"
+            "value": "Cancel contract"
           }
         },
         "nl": {
@@ -3326,7 +3326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "File tax return"
+            "value": "File a return"
           }
         },
         "nl": {
@@ -3362,7 +3362,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Object"
+            "value": "File an objection"
           }
         },
         "nl": {
@@ -3542,7 +3542,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Demand notice"
+            "value": "Payment demand"
           }
         },
         "nl": {
