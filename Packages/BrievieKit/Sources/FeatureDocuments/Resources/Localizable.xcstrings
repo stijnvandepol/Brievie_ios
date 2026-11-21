@@ -4327,6 +4327,486 @@
         }
       }
     },
+    "tasks.done.by": {
+      "comment": "Mijn taken, Afgerond: who ticked the task off (%1$@) and on which day (%2$@).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticked off by %1$@ on %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afgevinkt door %1$@ op %2$@"
+          }
+        }
+      }
+    },
+    "tasks.done.on": {
+      "comment": "Mijn taken, Afgerond: the day the task was ticked off (%@).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticked off on %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afgevinkt op %@"
+          }
+        }
+      }
+    },
+    "tasks.for.handedBy": {
+      "comment": "Mijn taken: someone handed the task to the reader; %@ is their name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handed to you by %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aan jou gegeven door %@"
+          }
+        }
+      }
+    },
+    "tasks.for.mine": {
+      "comment": "Mijn taken: the reader took the task on themselves.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are doing this"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jij doet dit"
+          }
+        }
+      }
+    },
+    "tasks.for.noName": {
+      "comment": "Mijn taken: the letter is addressed to nobody.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No name"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonder naam"
+          }
+        }
+      }
+    },
+    "tasks.for.others": {
+      "comment": "Mijn taken: the task is for other people or a department; %@ is their names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor %@"
+          }
+        }
+      }
+    },
+    "tasks.for.with": {
+      "comment": "Mijn taken: someone else does the task; %@ is their name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bij %@"
+          }
+        }
+      }
+    },
+    "tasks.for.you": {
+      "comment": "Mijn taken: the letter is addressed to the reader.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For you"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor jou"
+          }
+        }
+      }
+    },
+    "tasks.for.youAnd": {
+      "comment": "Mijn taken: the letter is addressed to the reader and others; %@ is their names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For you and %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor jou en %@"
+          }
+        }
+      }
+    },
+    "tasks.from": {
+      "comment": "Mijn taken: who sent the letter of the task; %@ is the sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Van %@"
+          }
+        }
+      }
+    },
+    "tasks.group.later": {
+      "comment": "Mijn taken: heading of the tasks due later.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        }
+      }
+    },
+    "tasks.group.noDate": {
+      "comment": "Mijn taken: heading of the tasks without a deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No date"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zonder datum"
+          }
+        }
+      }
+    },
+    "tasks.group.overdue": {
+      "comment": "Mijn taken: heading of the group of overdue tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overdue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te laat"
+          }
+        }
+      }
+    },
+    "tasks.group.withinWeek": {
+      "comment": "Mijn taken: heading of the tasks due in the next 7 days (never 'this week').",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Within 7 days"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Binnen 7 dagen"
+          }
+        }
+      }
+    },
+    "tasks.needsDate": {
+      "comment": "Mijn taken: badge of a task whose letter names a term but no date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs a date"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum nodig"
+          }
+        }
+      }
+    },
+    "tasks.needsDate.noTerm": {
+      "comment": "Mijn taken: under 'Datum nodig' when the term's words are unknown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill in the date."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vul de datum in."
+          }
+        }
+      }
+    },
+    "tasks.needsDate.term": {
+      "comment": "Mijn taken: under 'Datum nodig'; %@ is the term the letter names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The letter names a deadline: ‘%@’. Fill in the date."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief noemt een termijn: ‘%@’. Vul de datum in."
+          }
+        }
+      }
+    },
+    "tasks.tick": {
+      "comment": "Mijn taken: VoiceOver name of a task's tick box; %@ is what to do.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar: %@"
+          }
+        }
+      }
+    },
+    "tasks.when.daysLeft": {
+      "comment": "Mijn taken: days until the deadline (%lld) and its day (%@, e.g. 1 dec).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day left (%@)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days left (%@)"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Nog %lld dag (%@)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Nog %lld dagen (%@)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tasks.when.late": {
+      "comment": "Mijn taken: days past the deadline (%lld) and its day (%@). Always in words, not colour alone.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day overdue (%@)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days overdue (%@)"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dag te laat (%@)"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dagen te laat (%@)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tasks.when.today": {
+      "comment": "Mijn taken: a task whose deadline is today.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vandaag"
+          }
+        }
+      }
+    },
+    "tasks.when.tomorrow": {
+      "comment": "Mijn taken: a task whose deadline is tomorrow.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tomorrow"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morgen"
+          }
+        }
+      }
+    },
+    "tasks.why.letter": {
+      "comment": "Mijn taken: where the deadline came from; %@ is the words in the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From the letter: ‘%@’"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uit de brief: ‘%@’"
+          }
+        }
+      }
+    },
+    "tasks.why.manual": {
+      "comment": "Mijn taken: the deadline was typed in by a person.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date filled in by hand"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum zelf ingevuld"
+          }
+        }
+      }
+    },
     "trash.cap": {
       "comment": "Under the trash when the server lists only the newest letters; %lld is how many are shown.",
       "extractionState": "manual",
