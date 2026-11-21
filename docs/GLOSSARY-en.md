@@ -3,7 +3,8 @@
 The app speaks Dutch and English; it follows the iPhone's language. The Dutch text is the source
 (`developmentLanguage: nl`); this list fixes the English words so every screen uses the same one.
 English is plain and friendly, in sentence case, and reads fine for British and American readers.
-Keep this list in step with the web interface and the host's `docs/GLOSSARY.md`.
+The host's `docs/GLOSSARY.md` (section "English in the interface") is the shared source; this list holds the
+same terms the app uses plus the app-only ones. When they differ, the host's glossary wins.
 
 | Dutch | English | Note |
 |---|---|---|
@@ -33,6 +34,10 @@ Keep this list in step with the web interface and the host's `docs/GLOSSARY.md`.
 | toegangscode | passcode | |
 | scan | scan | Verb and noun. "Rotate" for draaien. |
 | BSN | BSN (citizen service number) | Explained once, in the search notice. |
+| Taak: betalen, reageren, bezwaar maken, aanvragen, keuring, opzeggen, verlengen, aangifte | Pay, Respond, File an objection, Apply, Inspection, Cancel contract, Renew, File a return | "Object" and "Cancel" alone read as a noun and a button. |
+| Soort: factuur, aanslag, beschikking, rekening, herinnering, aanmaning, polis, jaaropgave, loonstrook, bonnetje | Invoice, Tax assessment, Decision, Bill, Reminder, Payment demand, Policy, Annual statement, Payslip, Receipt | |
+| persoon | person | "Choose persons"; never "people" for the list of persons. |
+| App koppelen (page on the web) | Pair the app | As an action in a sentence; the web page itself is called Devices. |
 
 ## Rules
 
