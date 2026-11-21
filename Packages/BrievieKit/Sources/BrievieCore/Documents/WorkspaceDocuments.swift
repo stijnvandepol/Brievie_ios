@@ -27,6 +27,10 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case inTrash
     /// The member's role may not do this (a viewer).
     case forbidden
+    /// Someone already chose for this duplicate pair (merged or dismissed elsewhere).
+    case alreadyDecided
+    /// The two letters of a pair are not visible to the same people: they cannot be merged.
+    case visibilityDiffers
     case cancelled
     case failed
 }
@@ -139,6 +143,26 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.trashList(in: $0) }
     }
 
+    public func duplicates() async throws(DocumentsError) -> [DuplicatePair] {
+        try await perform { try await server.duplicates(in: $0) }
+    }
+
+    public func duplicate(_ id: UUID) async throws(DocumentsError) -> DuplicatePair {
+        try await perform { try await server.duplicate(id, in: $0) }
+    }
+
+    public func mergeDuplicate(
+        _ id: UUID, keep: UUID, completeTwinTasks: Bool
+    ) async throws(DocumentsError) -> DocumentDetail {
+        try await perform {
+            try await server.mergeDuplicate(id, keep: keep, completeTwinTasks: completeTwinTasks, in: $0)
+        }
+    }
+
+    public func dismissDuplicate(_ id: UUID) async throws(DocumentsError) {
+        try await perform { try await server.dismissDuplicate(id, in: $0) }
+    }
+
     private func perform<Result: Sendable>(
         _ call: (DocumentScope) async throws -> Result
     ) async throws(DocumentsError) -> Result {
@@ -190,18 +214,23 @@ public struct WorkspaceDocuments: Sendable {
     }
 
     private static func verdict(_ code: String) -> DocumentsError {
-        switch code {
-        case "document_not_found", "page_not_found", "workspace_not_found", "person_not_found", "label_not_found",
-             "suggestion_not_found", "task_not_found": .notFound
-        case "document_not_reviewable", "document_not_failed": .conflict
-        case "validation_error": .invalid
-        case "person_exists": .nameTaken
-        case "document_processing": .busy
-        case "document_in_trash": .inTrash
-        case "forbidden": .forbidden
         // Our own codes all pass through; a 404 without one is the server's catch-all for a path it lacks.
-        case "http_404": .notSupported
-        default: .failed
-        }
+        verdicts[code] ?? .failed
     }
+
+    private static let verdicts: [String: DocumentsError] = [
+        "document_not_found": .notFound, "page_not_found": .notFound, "workspace_not_found": .notFound,
+        "person_not_found": .notFound, "label_not_found": .notFound, "suggestion_not_found": .notFound,
+        "task_not_found": .notFound, "duplicate_not_found": .notFound,
+        "document_not_reviewable": .conflict, "document_not_failed": .conflict,
+        "validation_error": .invalid,
+        "person_exists": .nameTaken,
+        "document_processing": .busy,
+        "document_in_trash": .inTrash,
+        "forbidden": .forbidden,
+        "duplicate_not_open": .alreadyDecided,
+        "duplicate_visibility_differs": .visibilityDiffers,
+        "http_404": .notSupported
+    ]
+
 }

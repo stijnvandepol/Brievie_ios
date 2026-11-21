@@ -79,7 +79,7 @@ private extension TrashedDocument {
                     confirmedByAI: trashed.confirmedByAi, labelIDs: trashed.autoLabelIds,
                     addresseeIDs: trashed.autoAddresseeIds
                 ),
-                proposedSender: trashed.proposedSender
+                proposedSender: trashed.proposedSender, openDuplicateCount: trashed.openDuplicateCount
             ),
             trashedAt: trashed.trashedAt, trashedByName: trashed.trashedByName ?? "", purgeAfter: trashed.purgeAfter
         )

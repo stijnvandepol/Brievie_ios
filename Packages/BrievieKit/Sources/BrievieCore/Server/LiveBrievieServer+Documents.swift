@@ -68,7 +68,10 @@ extension LiveBrievieServer: DocumentServer {
             switch try await client.getInboxCounts(path: .init(workspaceId: scope.workspaceID.apiString)) {
             case let .ok(response):
                 let counts = try response.body.json
-                return InboxCounts(new: counts.new, review: counts.review, unassigned: counts.unassigned)
+                return InboxCounts(
+                    new: counts.new, review: counts.review, unassigned: counts.unassigned,
+                    duplicate: counts.duplicate ?? 0
+                )
             case let .unauthorized(response):
                 throw ServerError(status: 401, code: try? response.body.json.code)
             case let .notFound(response):
@@ -233,7 +236,7 @@ private extension DocumentSearchHit {
                 automatic: AutomaticMarks(
                     confirmedByAI: hit.confirmedByAi, labelIDs: hit.autoLabelIds, addresseeIDs: hit.autoAddresseeIds
                 ),
-                proposedSender: hit.proposedSender
+                proposedSender: hit.proposedSender, openDuplicateCount: hit.openDuplicateCount
             ),
             snippet: (hit.snippet ?? []).map { SnippetPart(text: $0.text, isHit: $0.hit) }
         )
@@ -241,7 +244,7 @@ private extension DocumentSearchHit {
 }
 
 extension DocumentSummary {
-    fileprivate init(summary: Components.Schemas.DocumentSummaryOut) throws(ServerError) {
+    init(summary: Components.Schemas.DocumentSummaryOut) throws(ServerError) {
         try self.init(
             apiID: summary.id, clientID: summary.clientId, status: summary.status, pageCount: summary.pageCount,
             createdAt: summary.createdAt, sender: summary.sender, documentType: summary.documentType,
@@ -251,7 +254,7 @@ extension DocumentSummary {
                 confirmedByAI: summary.confirmedByAi, labelIDs: summary.autoLabelIds,
                 addresseeIDs: summary.autoAddresseeIds
             ),
-            proposedSender: summary.proposedSender
+            proposedSender: summary.proposedSender, openDuplicateCount: summary.openDuplicateCount
         )
     }
 
@@ -260,7 +263,8 @@ extension DocumentSummary {
     init(
         apiID: String, clientID: String, status: String, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: String?, inboxState: String?, addresseeIDs: [String]?,
-        labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks, proposedSender: String?
+        labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks, proposedSender: String?,
+        openDuplicateCount: Int?
     ) throws(ServerError) {
         guard let id = UUID(uuidString: apiID), let clientID = UUID(uuidString: clientID) else {
             throw .incompatible
@@ -275,7 +279,7 @@ extension DocumentSummary {
             confirmedByAI: automatic.confirmedByAI ?? false,
             autoLabelIDs: try uuids(automatic.labelIDs ?? []),
             autoAddresseeIDs: try uuids(automatic.addresseeIDs ?? []),
-            proposedSender: proposedSender ?? ""
+            proposedSender: proposedSender ?? "", openDuplicateCount: openDuplicateCount ?? 0
         )
     }
 }
@@ -319,7 +323,7 @@ extension DocumentDetail {
                 confirmedByAI: document.confirmedByAi, labelIDs: document.autoLabelIds,
                 addresseeIDs: document.autoAddresseeIds
             ),
-            proposedSender: document.proposedSender
+            proposedSender: document.proposedSender, openDuplicateCount: document.openDuplicateCount
         )
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {
