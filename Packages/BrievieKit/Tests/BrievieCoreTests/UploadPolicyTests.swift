@@ -96,4 +96,9 @@ import Testing
         // A proxy page, a redirect that was refused: not our server's verdict on the document.
         #expect(decide(.status(302, code: nil)) == .retry(urlIndex: 0, after: .seconds(30)))
     }
+
+    /// The letter is in the trash: the scan stays in the queue with its own sentence until the user removes it.
+    @Test func anUploadOfATrashedLetterStopsWithItsCode() {
+        #expect(decide(.status(409, code: "document_trashed")) == .failed(code: "document_trashed"))
+    }
 }

@@ -249,7 +249,8 @@ private struct DocumentsScreen: View {
         ) { documentID in
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
-                deviceID: deviceID, onTasksChanged: onTasksChanged
+                deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: model.hasTrash,
+                onTrashed: { [model] id in Task { await model.didTrash(id) } }
             )
         }
         // A tapped reminder of this workspace opens its letter, once the app is open (never behind the lock).
@@ -271,17 +272,21 @@ private struct ReviewScreen: View {
 
     init(
         documentID: UUID, documents: WorkspaceDocuments, canEdit: Bool, appModel: AppModel, deviceID: UUID,
-        onTasksChanged: @escaping @MainActor () -> Void
+        onTasksChanged: @escaping @MainActor () -> Void, trashAvailable: Bool,
+        onTrashed: @escaping @MainActor (UUID) -> Void
     ) {
         let model = ReviewModel(
             documentID: documentID,
             documents: documents,
             canEdit: canEdit,
+            trashAvailable: trashAvailable,
             onRevoked: { appModel.sessionRevoked(deviceID: deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
         )
         // After a confirm and after ticking off a task (also of the confirmed letter): the calendar follows.
         model.onTasksChanged = onTasksChanged
+        // In the trash now: the post list offers the undo.
+        model.onTrashed = onTrashed
         _model = State(initialValue: model)
     }
 

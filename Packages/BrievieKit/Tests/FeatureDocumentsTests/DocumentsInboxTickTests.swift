@@ -156,10 +156,10 @@ import Testing
         gated.close(gate: .inbox(.review))
         let atStart = server.calls.count
         let pull = Task { await model.load() }
-        // Every other request of the pull is recorded ("new", "unassigned", counts, persons, labels); the
-        // review list waits at its gate and is recorded only when it opens.
-        while !gated.isWaiting(gate: .inbox(.review)) || server.calls.count < atStart + 5 { await Task.yield() }
-        #expect(server.calls.count == atStart + 5)
+        // Every other request of the pull is recorded ("new", "unassigned", counts, persons, labels, the trash);
+        // the review list waits at its gate and is recorded only when it opens.
+        while !gated.isWaiting(gate: .inbox(.review)) || server.calls.count < atStart + 6 { await Task.yield() }
+        #expect(server.calls.count == atStart + 6)
         // Only the held list answers after this change: the others have answered already.
         let freshReview = Self.document(.review, status: .needsReview)
         let secondReview = Self.document(.review, status: .needsReview)

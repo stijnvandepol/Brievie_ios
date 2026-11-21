@@ -11,6 +11,8 @@ final class GatedDocumentServer: DocumentServer {
         case inbox(InboxState)
         /// A search for this exact term.
         case search(String)
+        /// Putting a letter in the trash.
+        case trash
     }
 
     private struct State {
@@ -188,5 +190,18 @@ final class GatedDocumentServer: DocumentServer {
     func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask {
         await waitIfTasksHeld()
         return try await inner.reopenTask(id, in: scope)
+    }
+
+    func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument {
+        await wait(at: .trash)
+        return try await inner.trash(id, in: scope)
+    }
+
+    func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
+        try await inner.restore(id, in: scope)
+    }
+
+    func trashList(in scope: DocumentScope) async throws -> TrashList {
+        try await inner.trashList(in: scope)
     }
 }

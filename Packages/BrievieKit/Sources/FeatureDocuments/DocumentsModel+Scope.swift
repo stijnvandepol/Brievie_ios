@@ -209,12 +209,34 @@ extension DocumentsModel.Row {
 extension DocumentsModel {
     // Texts of rows and errors
 
+    /// A letter's row in the words of the list; the search shows its hits with the same row.
+    static func row(for document: DocumentSummary, persons: [Person], labels: [DocumentLabel]) -> Row {
+        let addressees = Set(document.addresseeIDs)
+        let labelIDs = Set(document.labelIDs)
+        let status = Self.status(of: document)
+        let (title, isProposal) = Self.title(of: document, status: status)
+        return Row(
+            id: document.id, documentID: document.id, title: title,
+            subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
+            status: status,
+            addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
+            labels: labels.filter { labelIDs.contains($0.id) },
+            hasSuggestions: document.openSuggestionCount > 0,
+            isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
+            date: document.createdAt
+        )
+    }
+
+    /// Upload failures that a retry cannot fix: the scan can only be deleted.
+    static let finalUploadCodes: Set<String> = ["server_changed", "document_trashed"]
+
     static func uploadMessage(for code: String?) -> String {
         switch code {
         case "untrusted": DocumentStrings.notVerified
         case "workspace_not_found": DocumentStrings.workspaceGone
         case "server_changed": DocumentStrings.otherServer
         case "payload_too_large": DocumentStrings.tooLarge
+        case "document_trashed": DocumentStrings.uploadTrashed
         default: DocumentStrings.uploadFailed
         }
     }
@@ -224,6 +246,9 @@ extension DocumentsModel {
         case .unreachable: DocumentStrings.unreachable
         case .notVerified: DocumentStrings.notVerified
         case .notFound: DocumentStrings.notFound
+        case .forbidden: DocumentStrings.forbidden
+        case .busy: DocumentStrings.busy
+        case .inTrash: DocumentStrings.inTrash
         default: DocumentStrings.generic
         }
     }

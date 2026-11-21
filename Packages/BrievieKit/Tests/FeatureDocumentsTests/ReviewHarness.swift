@@ -18,7 +18,10 @@ struct ReviewHarness {
         timeZone: { TimeZone(identifier: "Europe/Amsterdam") ?? .gmt }
     )
 
-    func model(canEdit: Bool = true, clock: TodayClock = ReviewHarness.clock) throws -> ReviewModel {
+    func model(
+        canEdit: Bool = true, clock: TodayClock = ReviewHarness.clock, trashAvailable: Bool = false,
+        server documentServer: (any DocumentServer)? = nil
+    ) throws -> ReviewModel {
         let connection = ServerConnection(
             urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn"
         )
@@ -26,9 +29,10 @@ struct ReviewHarness {
         return ReviewModel(
             documentID: documentID,
             documents: WorkspaceDocuments(
-                workspaceID: UUID(), connection: connection, store: store, server: server
+                workspaceID: UUID(), connection: connection, store: store, server: documentServer ?? server
             ),
             canEdit: canEdit,
+            trashAvailable: trashAvailable,
             onRevoked: { [events] in events.add("revoked") },
             onMissingPairing: { [events] in events.add("missing") },
             clock: clock

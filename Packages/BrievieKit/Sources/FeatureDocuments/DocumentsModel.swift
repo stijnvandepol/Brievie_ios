@@ -68,16 +68,21 @@ public final class DocumentsModel {
     public private(set) var removedNotice: String?
     /// A letter opened from outside the list (a tapped reminder): the screen pushes it.
     public var openedDocument: UUID?
+    /// The server has a trash: "Prullenbak", "Verwijderen". False until a whole load found out (`probeTrash`).
+    public internal(set) var hasTrash = false
+    public internal(set) var undo: UndoNotice?
+    public var isShowingTrash = false
+    @ObservationIgnored var isUndoing = false
     /// Search in "Alle post"; forgotten when the user leaves it (and with this model, on a workspace switch or when
     /// the session ends).
     public let search: DocumentSearchModel
 
-    private let documents: WorkspaceDocuments
+    let documents: WorkspaceDocuments
     private let uploads: any UploadQueue
     private let camera: any ScanCameraAccess
     private let settingsOpener: @MainActor () -> Void
-    private let onRevoked: @MainActor () -> Void
-    private let onMissingPairing: @MainActor () -> Void
+    let onRevoked: @MainActor () -> Void
+    let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
 
     private var serverDocuments: [DocumentSummary] = []
@@ -125,12 +130,15 @@ public final class DocumentsModel {
     /// Reads the queue, the server's list and the workspace's persons and labels. A list that is already on
     /// screen stays when the server cannot be reached. For the first load, pull-to-refresh and retry.
     public func load() async {
+        async let probe = Self.probeTrash(documents)
         await load(organisation: true)
+        if let found = await probe { hasTrash = found }
     }
 
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
         guard scope != self.scope else { return }
+        undo = nil
         if scope != .all { search.forget() }
         if Self.source(for: scope) != Self.source(for: self.scope) {
             serverDocuments = []
@@ -283,24 +291,6 @@ public final class DocumentsModel {
             }
     }
 
-    /// A letter's row in the words of the list; the search shows its hits with the same row.
-    static func row(for document: DocumentSummary, persons: [Person], labels: [DocumentLabel]) -> Row {
-        let addressees = Set(document.addresseeIDs)
-        let labelIDs = Set(document.labelIDs)
-        let status = Self.status(of: document)
-        let (title, isProposal) = Self.title(of: document, status: status)
-        return Row(
-            id: document.id, documentID: document.id, title: title,
-            subtitle: Self.subtitle(date: document.createdAt, pages: document.pageCount),
-            status: status,
-            addressees: persons.filter { addressees.contains($0.id) }.map(\.displayName),
-            labels: labels.filter { labelIDs.contains($0.id) },
-            hasSuggestions: document.openSuggestionCount > 0,
-            isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
-            date: document.createdAt
-        )
-    }
-
     private func status(of item: UploadItem) -> RowStatus {
         switch item.state {
         case .waiting: .waitingForUpload
@@ -309,7 +299,8 @@ public final class DocumentsModel {
             progress[item.id].map { .uploading(progress: $0) } ?? .waitingForUpload
         case .failed:
             .uploadFailed(
-                message: Self.uploadMessage(for: item.failureCode), canRetry: item.failureCode != "server_changed"
+                message: Self.uploadMessage(for: item.failureCode),
+                canRetry: !Self.finalUploadCodes.contains(item.failureCode ?? "")
             )
         }
     }

@@ -22,6 +22,8 @@ public struct DocumentsView<Destination: View>: View {
     @State private var showsScanner = false
     @State private var showsPhotoPicker = false
     @State private var pickedPhotos: [PhotosPickerItem] = []
+    /// Made once per push of the Prullenbak screen.
+    @State private var trashModel: TrashModel?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(
@@ -96,7 +98,10 @@ public struct DocumentsView<Destination: View>: View {
             ) {
                 ScanFlowView(model: scanModel)
             }
-            // A letter opened by a tapped reminder.
+            .navigationDestination(isPresented: $model.isShowingTrash) {
+                if let trashModel { TrashView(model: trashModel) }
+            }
+            // A letter opened by a tapped reminder (or again after "Ongedaan maken").
             .navigationDestination(item: $model.openedDocument) { documentID in
                 destination(documentID)
             }
@@ -128,7 +133,9 @@ public struct DocumentsView<Destination: View>: View {
             ),
             notices: DocumentsList.Notices(
                 warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
-                openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true }
+                undo: model.undo,
+                openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true },
+                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() }
             ),
             retryLoad: { Task { await model.load() } },
             retryUpload: { id in Task { await model.retryUpload(id) } },
@@ -145,8 +152,8 @@ public struct DocumentsView<Destination: View>: View {
         )
     }
 
-    /// "Te doen", "Alle post", or the post of one person; the current one is ticked.
-    private var scopeMenu: some View {
+    /// "Te doen", "Alle post", or the post of one person; the current one is ticked. Then "Prullenbak".
+    @ViewBuilder private var scopeMenu: some View {
         Section(title) {
             Picker(
                 selection: Binding(get: { model.scope }, set: { scope in Task { await model.select(scope) } })
@@ -158,6 +165,14 @@ public struct DocumentsView<Destination: View>: View {
                 Text(model.scopeTitle)
             }
             .pickerStyle(.inline)
+        }
+        if model.hasTrash {
+            Section {
+                Button(DocumentStrings.trashTitle, systemImage: "trash") {
+                    trashModel = model.makeTrashModel()
+                    model.isShowingTrash = true
+                }
+            }
         }
     }
 

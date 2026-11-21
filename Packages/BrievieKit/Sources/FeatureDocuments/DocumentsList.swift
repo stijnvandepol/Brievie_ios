@@ -10,8 +10,12 @@ struct DocumentsList<Destination: View>: View {
         var warning: String?
         var camera: DocumentsModel.CameraNotice?
         var removed: String?
+        /// After a letter went to the trash: "Ongedaan maken" and "Sluiten".
+        var undo: DocumentsModel.UndoNotice?
         var openSettings: () -> Void = {}
         var importPhotos: () -> Void = {}
+        var undoAction: () -> Void = {}
+        var closeUndo: () -> Void = {}
     }
 
     /// What the list says without rows: depends on the scope.
@@ -64,7 +68,7 @@ struct DocumentsList<Destination: View>: View {
     }
 
     @ViewBuilder private var noticeSection: some View {
-        if notices.warning != nil || notices.camera != nil || notices.removed != nil {
+        if notices.warning != nil || notices.camera != nil || notices.removed != nil || notices.undo != nil {
             Section {
                 if let warning = notices.warning {
                     ErrorBanner(warning, style: .warning)
@@ -87,6 +91,9 @@ struct DocumentsList<Destination: View>: View {
                 }
                 if let removed = notices.removed {
                     ErrorBanner(removed, style: .warning)
+                }
+                if let undo = notices.undo {
+                    UndoRow(notice: undo, undo: notices.undoAction, close: notices.closeUndo)
                 }
             }
         }
@@ -195,6 +202,37 @@ struct DocumentsList<Destination: View>: View {
         if row.status.canDelete {
             SecondaryButton(DocumentStrings.delete) { deleteUpload(row.id) }
         }
+    }
+}
+
+/// "De brief staat in de prullenbak." with "Ongedaan maken" and "Sluiten"; why the undo failed under it. The
+/// buttons stand side by side, or one under the other when the text is large.
+private struct UndoRow: View {
+    let notice: DocumentsModel.UndoNotice
+    let undo: () -> Void
+    let close: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(notice.message, systemImage: "trash")
+                .fixedSize(horizontal: false, vertical: true)
+            if let failure = notice.failure {
+                ErrorBanner(failure)
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) { buttons }
+                VStack(alignment: .leading, spacing: 8) { buttons }
+            }
+        }
+    }
+
+    @ViewBuilder private var buttons: some View {
+        Button(DocumentStrings.undoAction, action: undo)
+            .buttonStyle(.borderless)
+            .frame(minHeight: 44)
+        Button(DocumentStrings.undoClose, action: close)
+            .buttonStyle(.borderless)
+            .frame(minHeight: 44)
     }
 }
 

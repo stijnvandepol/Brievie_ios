@@ -973,6 +973,78 @@
         }
       }
     },
+    "documents.undo.action": {
+      "comment": "Button on the notice after deleting: restore the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongedaan maken"
+          }
+        }
+      }
+    },
+    "documents.undo.close": {
+      "comment": "Button on the notice after deleting: close the notice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sluiten"
+          }
+        }
+      }
+    },
+    "documents.undo.failed": {
+      "comment": "Undo after deleting did not work: the letter is gone or no longer visible.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The letter can no longer be restored."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief kan niet meer worden teruggezet."
+          }
+        }
+      }
+    },
+    "documents.undo.trashed": {
+      "comment": "Notice in the post list after a letter went to the trash, with an undo button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The letter is in the trash."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief staat in de prullenbak."
+          }
+        }
+      }
+    },
     "documents.unknownSender": {
       "comment": "Title of a letter that was read without a sender.",
       "extractionState": "manual",
@@ -1045,6 +1117,24 @@
         }
       }
     },
+    "documents.upload.trashed": {
+      "comment": "A queued scan whose letter is already in the trash on the server; it cannot be uploaded again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This letter is already in the trash. Restore it there if you want to see it again."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief staat al in de prullenbak. Zet hem daar terug als je hem weer wilt zien."
+          }
+        }
+      }
+    },
     "documents.upload.unreadableRemoved": {
       "comment": "Shown once when scans in the upload queue could not be read and were removed; %lld is their number.",
       "extractionState": "manual",
@@ -1101,6 +1191,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Deze werkruimte bestaat niet meer op de server."
+          }
+        }
+      }
+    },
+    "error.busy": {
+      "comment": "The server is still reading the letter (409 document_processing).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This letter is still being read. Try again in a moment."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief wordt nog gelezen. Probeer het zo opnieuw."
+          }
+        }
+      }
+    },
+    "error.forbidden": {
+      "comment": "The server refused: the member's role may not do this (403 forbidden). The host's sentence.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are not allowed to do this in this workspace."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je mag dit niet doen in deze werkruimte."
           }
         }
       }
@@ -1677,6 +1803,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Het verwerken is niet gelukt. Je kunt de gegevens zelf invullen of het opnieuw laten proberen."
+          }
+        }
+      }
+    },
+    "review.inTrash": {
+      "comment": "A letter that was opened (a reminder, a stale list) is in the trash.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This letter is in the trash."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief staat in de prullenbak."
           }
         }
       }
@@ -2581,6 +2725,96 @@
         }
       }
     },
+    "review.trash.button": {
+      "comment": "Destructive button at the end of a letter: put it in the trash (asks first).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderen"
+          }
+        }
+      }
+    },
+    "review.trash.cancel": {
+      "comment": "Answer to the delete question: keep the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "review.trash.confirm": {
+      "comment": "Destructive answer to the delete question: the letter goes to the trash.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to trash"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naar de prullenbak"
+          }
+        }
+      }
+    },
+    "review.trash.message": {
+      "comment": "Text of the question before a letter goes to the trash.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The letter goes to the trash. It stays there for 30 days. During that time you can restore it. After that it is erased for good."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief gaat naar de prullenbak. Daar blijft hij 30 dagen. Zo lang kun je hem terugzetten. Daarna wordt hij voorgoed gewist."
+          }
+        }
+      }
+    },
+    "review.trash.title": {
+      "comment": "Title of the question before a letter goes to the trash.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete letter?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief verwijderen?"
+          }
+        }
+      }
+    },
     "review.type": {
       "comment": "Field label: the kind of document.",
       "extractionState": "manual",
@@ -3441,6 +3675,246 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reageren"
+          }
+        }
+      }
+    },
+    "trash.cap": {
+      "comment": "Under the trash when the server lists only the newest letters; %lld is how many are shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the newest %lld are shown."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen de nieuwste %lld worden getoond."
+          }
+        }
+      }
+    },
+    "trash.daysLeft": {
+      "comment": "A row in the trash: days until the letter is erased for good.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day left"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days left"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Nog %lld dag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Nog %lld dagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "trash.deleted": {
+      "comment": "A row in the trash without a name (Brievie itself deleted it); %@ is the day.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted on %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderd op %@"
+          }
+        }
+      }
+    },
+    "trash.deleted.by": {
+      "comment": "A row in the trash: %1$@ is the day, %2$@ the person who deleted the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted on %1$@ by %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verwijderd op %1$@ door %2$@"
+          }
+        }
+      }
+    },
+    "trash.empty": {
+      "comment": "The trash has no letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The trash is empty."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De prullenbak is leeg."
+          }
+        }
+      }
+    },
+    "trash.erasedToday": {
+      "comment": "A row in the trash whose letter is erased today.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erased today"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wordt vandaag gewist"
+          }
+        }
+      }
+    },
+    "trash.intro": {
+      "comment": "Above the trash; %lld is the number of days the server keeps a letter in the trash.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters in the trash are erased for good after %lld days. Until then you can restore them."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brieven in de prullenbak worden na %lld dagen voorgoed gewist. Tot die tijd kun je ze terugzetten."
+          }
+        }
+      }
+    },
+    "trash.restore": {
+      "comment": "Button on a row in the trash: take the letter out of the trash.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terugzetten"
+          }
+        }
+      }
+    },
+    "trash.restore.accessibility": {
+      "comment": "VoiceOver label of the restore button; %@ is the sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terugzetten: %@"
+          }
+        }
+      }
+    },
+    "trash.restored": {
+      "comment": "Notice on the trash screen after a letter was restored.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The letter has been restored."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief is teruggezet."
+          }
+        }
+      }
+    },
+    "trash.title": {
+      "comment": "Menu item and title of the trash screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trash"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prullenbak"
+          }
+        }
+      }
+    },
+    "trash.webOnly": {
+      "comment": "Under the trash: the app cannot delete for good.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting for good and emptying the trash can only be done in the web interface."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definitief verwijderen en de prullenbak legen kan alleen in de webinterface."
           }
         }
       }
