@@ -81,4 +81,16 @@ import Testing
         let pages = object?["pages"] as? [[String: String]]
         #expect(pages == [["sha256": String(repeating: "a", count: 64), "text": "tekst"]])
     }
+
+    /// Deleting for good and emptying the trash are web-session only: the app must not even have a client for them.
+    @Test func sessionOnlyOperationsAreNotGenerated() throws {
+        let config = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appending(path: "Sources/BrievieAPI/openapi-generator-config.yaml")
+        let text = try String(contentsOf: config, encoding: .utf8)
+
+        #expect(text.contains("listTrash"))
+        #expect(!text.contains("purgeDocument"))
+        #expect(!text.contains("emptyTrash"))
+    }
 }

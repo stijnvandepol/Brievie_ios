@@ -242,11 +242,29 @@ public protocol DocumentServer: Sendable {
     func reopenTask(_ id: UUID, in scope: DocumentScope) async throws -> WorkspaceTask
     /// One page of a search in the letters of the workspace (a server before host PR #27 answers 404).
     func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage
+    /// Puts a letter in the trash (a server before host PR #32 answers 404).
+    func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument
+    /// Takes a letter out of the trash; the answer is the letter as it is now.
+    func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail
+    func trashList(in scope: DocumentScope) async throws -> TrashList
 }
 
 public extension DocumentServer {
     /// For servers that predate search (the test servers): the 404 of a server without the endpoint.
     func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {
+        throw ServerError.other("http_404")
+    }
+
+    /// For servers that predate the trash: the 404 of a server without the endpoint.
+    func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument {
+        throw ServerError.other("http_404")
+    }
+
+    func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
+        throw ServerError.other("http_404")
+    }
+
+    func trashList(in scope: DocumentScope) async throws -> TrashList {
         throw ServerError.other("http_404")
     }
 

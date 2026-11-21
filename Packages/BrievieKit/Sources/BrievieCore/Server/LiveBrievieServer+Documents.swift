@@ -240,8 +240,8 @@ private extension DocumentSearchHit {
     }
 }
 
-private extension DocumentSummary {
-    init(summary: Components.Schemas.DocumentSummaryOut) throws(ServerError) {
+extension DocumentSummary {
+    fileprivate init(summary: Components.Schemas.DocumentSummaryOut) throws(ServerError) {
         try self.init(
             apiID: summary.id, clientID: summary.clientId, status: summary.status, pageCount: summary.pageCount,
             createdAt: summary.createdAt, sender: summary.sender, documentType: summary.documentType,
@@ -281,7 +281,7 @@ private extension DocumentSummary {
 }
 
 /// What the AI did by itself; a server before the autopilot leaves all three out, which reads as nothing.
-private struct AutomaticMarks {
+struct AutomaticMarks {
     let confirmedByAI: Bool?
     let labelIDs: [String]?
     let addresseeIDs: [String]?

@@ -160,7 +160,8 @@ import Testing
         (404, "workspace_not_found", ServerError.other("workspace_not_found")),
         (409, "document_not_reviewable", ServerError.other("document_not_reviewable")),
         (422, "validation_error", ServerError.other("validation_error")),
-        (403, "forbidden", ServerError.other("http_403")),
+        (403, "forbidden", ServerError.other("forbidden")),
+        (403, "not_ours", ServerError.other("http_403")),
         (500, "internal_error", ServerError.other("http_500"))
     ])
     func refusalsAreMapped(status: Int, code: String, expected: ServerError) async throws {

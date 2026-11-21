@@ -23,6 +23,10 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case notSupported
     /// HTTP 429: too many requests in a short time (searches: 30 a minute). Wait a moment.
     case tooManyRequests
+    /// The letter is in the trash: it cannot be read until it is restored.
+    case inTrash
+    /// The member's role may not do this (a viewer).
+    case forbidden
     case cancelled
     case failed
 }
@@ -123,6 +127,18 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.reopenTask(id, in: $0) }
     }
 
+    public func trash(_ id: UUID) async throws(DocumentsError) -> TrashedDocument {
+        try await perform { try await server.trash(id, in: $0) }
+    }
+
+    public func restore(_ id: UUID) async throws(DocumentsError) -> DocumentDetail {
+        try await perform { try await server.restore(id, in: $0) }
+    }
+
+    public func trashList() async throws(DocumentsError) -> TrashList {
+        try await perform { try await server.trashList(in: $0) }
+    }
+
     private func perform<Result: Sendable>(
         _ call: (DocumentScope) async throws -> Result
     ) async throws(DocumentsError) -> Result {
@@ -181,6 +197,8 @@ public struct WorkspaceDocuments: Sendable {
         case "validation_error": .invalid
         case "person_exists": .nameTaken
         case "document_processing": .busy
+        case "document_in_trash": .inTrash
+        case "forbidden": .forbidden
         // Our own codes all pass through; a 404 without one is the server's catch-all for a path it lacks.
         case "http_404": .notSupported
         default: .failed

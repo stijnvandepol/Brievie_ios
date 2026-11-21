@@ -195,4 +195,32 @@ import Testing
         await #expect(throws: DocumentsError.nameTaken) { try await documents().persons() }
         #expect(server.calls == [.persons(Self.local), .persons(Self.remote)])
     }
+
+    @Test func trashCallsGoThroughTheSameRules() async throws {
+        let id = Self.documentID
+        server.onTrash { url, id in
+            if url == Self.local { throw ServerError.unreachable }
+            return DocumentFixtures.trashed(id: id, sender: "CAK", by: "Anna")
+        }
+
+        let trashed = try await documents().trash(id)
+        let restored = try await documents().restore(id)
+        let list = try await documents().trashList()
+
+        #expect(trashed.id == id)
+        #expect(trashed.trashedByName == "Anna")
+        #expect(restored.summary.id == id)
+        #expect(list == TrashList(items: [], retentionDays: 30, total: 0))
+        #expect(server.calls == [
+            .trash(Self.local, id), .trash(Self.remote, id), .restore(Self.local, id), .trashList(Self.local)
+        ])
+    }
+
+    @Test func aTrashedLetterAndAForbiddenChangeAreTheirOwnErrors() async throws {
+        server.onDetail { _, _ in throw ServerError.other("document_in_trash") }
+        server.onRestore { _, _ in throw ServerError.other("forbidden") }
+
+        await #expect(throws: DocumentsError.inTrash) { try await documents().detail(Self.documentID) }
+        await #expect(throws: DocumentsError.forbidden) { try await documents().restore(Self.documentID) }
+    }
 }

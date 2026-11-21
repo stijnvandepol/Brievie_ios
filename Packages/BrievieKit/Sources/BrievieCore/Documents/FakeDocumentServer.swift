@@ -22,6 +22,9 @@ public final class FakeDocumentServer: DocumentServer {
         case completeTask(URL, UUID)
         case reopenTask(URL, UUID)
         case search(URL, DocumentSearchQuery)
+        case trash(URL, UUID)
+        case restore(URL, UUID)
+        case trashList(URL)
     }
 
     private struct State {
@@ -52,6 +55,9 @@ public final class FakeDocumentServer: DocumentServer {
         var search: @Sendable (URL, DocumentSearchQuery) throws -> DocumentSearchPage = { _, _ in
             DocumentSearchPage(hits: [])
         }
+        var trash: @Sendable (URL, UUID) throws -> TrashedDocument = { _, id in DocumentFixtures.trashed(id: id) }
+        var restore: @Sendable (URL, UUID) throws -> DocumentDetail = { _, id in DocumentFixtures.detail(id: id) }
+        var trashList: @Sendable (URL) throws -> TrashList = { _ in TrashList(items: []) }
     }
 
     private let state: Mutex<State>
@@ -122,6 +128,30 @@ public final class FakeDocumentServer: DocumentServer {
 
     public func onSearch(_ answer: @escaping @Sendable (URL, DocumentSearchQuery) throws -> DocumentSearchPage) {
         state.withLock { $0.search = answer }
+    }
+
+    public func onTrash(_ answer: @escaping @Sendable (URL, UUID) throws -> TrashedDocument) {
+        state.withLock { $0.trash = answer }
+    }
+
+    public func onRestore(_ answer: @escaping @Sendable (URL, UUID) throws -> DocumentDetail) {
+        state.withLock { $0.restore = answer }
+    }
+
+    public func onTrashList(_ answer: @escaping @Sendable (URL) throws -> TrashList) {
+        state.withLock { $0.trashList = answer }
+    }
+
+    public func trash(_ id: UUID, in scope: DocumentScope) async throws -> TrashedDocument {
+        try record(.trash(scope.url, id), scope) { $0.trash }(scope.url, id)
+    }
+
+    public func restore(_ id: UUID, in scope: DocumentScope) async throws -> DocumentDetail {
+        try record(.restore(scope.url, id), scope) { $0.restore }(scope.url, id)
+    }
+
+    public func trashList(in scope: DocumentScope) async throws -> TrashList {
+        try record(.trashList(scope.url), scope) { $0.trashList }(scope.url)
     }
 
     public func search(_ query: DocumentSearchQuery, in scope: DocumentScope) async throws -> DocumentSearchPage {

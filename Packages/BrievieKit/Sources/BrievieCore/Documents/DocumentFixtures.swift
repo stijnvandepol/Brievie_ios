@@ -101,4 +101,15 @@ public enum DocumentFixtures {
             tasks: tasks
         )
     }
+
+    /// A letter in the trash, trashed on 2026-11-21 10:00 UTC; `purgeAfter` defaults to 30 days later.
+    public static func trashed(
+        id: UUID = UUID(), sender: String = "", by name: String = "",
+        purgeAfter: Date = Date(timeIntervalSince1970: 1_797_847_200)
+    ) -> TrashedDocument {
+        TrashedDocument(
+            summary: summary(id: id, status: .done, sender: sender),
+            trashedAt: Date(timeIntervalSince1970: 1_795_255_200), trashedByName: name, purgeAfter: purgeAfter
+        )
+    }
 }

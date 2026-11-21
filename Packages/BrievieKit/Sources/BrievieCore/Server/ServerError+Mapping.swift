@@ -12,7 +12,8 @@ extension ServerError {
     static let passThroughCodes: Set<String> = [
         "no_private_ca", "validation_error", "workspace_not_found", "document_not_found", "page_not_found",
         "document_not_reviewable", "document_not_failed", "device_not_found", "person_not_found",
-        "label_not_found", "suggestion_not_found", "person_exists", "document_processing", "task_not_found"
+        "label_not_found", "suggestion_not_found", "person_exists", "document_processing", "task_not_found",
+        "document_in_trash", "forbidden"
     ]
 
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.
@@ -39,6 +40,13 @@ extension ServerError {
     /// `ClientError` is unwrapped, and `URLError`s are sorted into unreachable and untrusted.
     /// Callers check for task cancellation first (see `throwingCancellation(_:)`).
     init(requestError error: any Error) {
+        if Self.isNotFoundWithoutOurBody(error) {
+            // A 404 whose body is not Brievie's `{code, message}` (a proxy, or a framework's own answer for a path
+            // the server lacks): the same fixed form as a 404 without a code this app knows. Only 404: another
+            // status with an unreadable body stays `incompatible` (a 401 must not even look like a refusal).
+            self = .other("http_404")
+            return
+        }
         switch Self.unwrapped(error) {
         case let error as ServerError:
             self = error
@@ -62,6 +70,12 @@ extension ServerError {
             return CancellationError()
         }
         return ServerError(requestError: error)
+    }
+
+    /// A 404 answer whose error body could not be read.
+    private static func isNotFoundWithoutOurBody(_ error: any Error) -> Bool {
+        guard let error = error as? ClientError else { return false }
+        return error.underlyingError is DecodingError && error.response?.status.code == 404
     }
 
     private static func unwrapped(_ error: any Error) -> any Error {
