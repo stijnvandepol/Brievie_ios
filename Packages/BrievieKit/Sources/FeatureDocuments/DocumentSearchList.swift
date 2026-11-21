@@ -146,6 +146,10 @@ struct SearchField: ViewModifier {
                     text: $search.query, placement: .navigationBarDrawer(displayMode: .automatic),
                     prompt: DocumentStrings.searchPrompt
                 )
+                // While searching, the bar stays: a hit opened from a hidden bar came back with neither the bar nor
+                // the search field, with no way out but a restart. (A search field that iOS 26 puts at the bottom
+                // still goes after a hit and back; the title menu, which now stays, brings it back.)
+                .searchPresentationToolbarBehavior(.avoidHidingContent)
                 // The keyboard does not learn what is searched for in letters.
                 .autocorrectionDisabled()
                 .onSubmit(of: .search) { search.submit() }
