@@ -76,12 +76,13 @@ extension DocumentsModel {
         )
     }
 
-    /// "<sender>, <letter date>"; "Onbekende afzender" without a sender, "Gescand op …" without a letter date.
+    /// "<sender>, <letter date>"; "Onbekende afzender" without a sender, "Gescand op …" without a letter date. The
+    /// scan carries its time: two scans of one letter on one day are told apart by it.
     private func pairLine(_ letter: DocumentSummary) -> String {
         let sender = letter.sender.isEmpty ? DocumentStrings.unknownSender : letter.sender
         let day = letter.letterDate?.display(locale: locale) ?? String(
             format: DocumentStrings.duplicateScannedFormat,
-            letter.createdAt.formatted(Date.FormatStyle(date: .long, time: .omitted, locale: locale))
+            letter.createdAt.formatted(Date.FormatStyle(date: .long, time: .shortened, locale: locale))
         )
         return "\(sender), \(day)"
     }

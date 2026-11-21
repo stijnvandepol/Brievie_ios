@@ -65,6 +65,17 @@ import Testing
         #expect(!(model.twinNotes.first?.contains("''") ?? true))
     }
 
+    @Test func eachColumnSaysWhenItsLetterWasScannedToTheMinute() async throws {
+        let model = try model(pair())
+
+        await model.load()
+
+        let time = first.createdAt.formatted(
+            Date.FormatStyle(date: .omitted, time: .shortened, locale: Locale(identifier: "nl_NL"))
+        )
+        #expect(model.letters.first?.scanned.contains(time) == true)
+    }
+
     @Test func theSuggestedLetterIsPreselected() async throws {
         let model = try model(pair())
 

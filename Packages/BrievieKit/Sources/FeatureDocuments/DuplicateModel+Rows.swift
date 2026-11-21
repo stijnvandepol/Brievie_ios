@@ -132,8 +132,9 @@ extension DuplicateModel {
         .joined(separator: "\n")
     }
 
+    /// With the time: two scans of one letter are usually made on the same day.
     private func longDate(_ date: Date) -> String {
-        date.formatted(Date.FormatStyle(date: .long, time: .omitted, locale: locale))
+        date.formatted(Date.FormatStyle(date: .long, time: .shortened, locale: locale))
     }
 
     private static func pages(_ count: Int) -> String {

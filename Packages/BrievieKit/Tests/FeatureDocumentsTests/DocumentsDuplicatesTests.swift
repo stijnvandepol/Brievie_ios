@@ -183,6 +183,25 @@ import Testing
         #expect(row.accessibilityLabel.contains("Lijkt op elkaar voor 92%"))
     }
 
+    @Test func twoUnconfirmedScansOfOneDayTellApartByTheirTime() async throws {
+        let first = Self.letter("")
+        let later = first.createdAt.addingTimeInterval(25 * 60)
+        let second = DocumentSummary(
+            id: UUID(), clientID: UUID(), status: .needsReview, pageCount: 1, createdAt: later, sender: "",
+            documentType: "", letterDate: nil, inboxState: .review
+        )
+        server.onDuplicates { _ in [DocumentFixtures.pair(first: first, second: second)] }
+        countPairs(1)
+        let model = try model()
+
+        await model.load()
+
+        let row = try #require(model.duplicates.first)
+        #expect(row.first != row.second)
+        let time = later.formatted(Date.FormatStyle(date: .omitted, time: .shortened, locale: Self.dutch))
+        #expect(row.second.contains(time))
+    }
+
     @Test func rowsWithAnOpenPairCarryTheChip() async throws {
         let marked = DocumentSummary(
             id: UUID(), clientID: UUID(), status: .done, pageCount: 1, createdAt: .now, sender: "CAK",
