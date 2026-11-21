@@ -93,4 +93,12 @@ import Testing
         #expect(!text.contains("purgeDocument"))
         #expect(!text.contains("emptyTrash"))
     }
+
+    @Test func theMyTasksOperationsAreGenerated() {
+        let operations: [Any.Type] = [
+            Operations.ListMyTasks.self, Operations.CountMyTasks.self, Operations.AssignTask.self,
+            Operations.ListTaskAssignees.self, Operations.SetTaskDeadline.self, Operations.GetMe.self
+        ]
+        #expect(operations.count == 6)
+    }
 }

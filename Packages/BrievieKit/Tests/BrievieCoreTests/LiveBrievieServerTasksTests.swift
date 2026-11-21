@@ -39,11 +39,12 @@ import Testing
             WorkspaceTask(
                 id: Self.taskID, type: "pay", description: "Betaal de aanslag",
                 deadline: CalendarDate(year: 2026, month: 12, day: 1), isDone: false,
-                documentID: UUID(uuidString: Self.documentID), sender: "Belastingdienst"
+                documentID: UUID(uuidString: Self.documentID), sender: "Belastingdienst",
+                deadlineSource: "in_document"
             ),
             WorkspaceTask(
                 id: Self.taskID, type: "pay", description: "Betaal de aanslag", deadline: nil, isDone: false,
-                documentID: nil, sender: "Belastingdienst"
+                documentID: nil, sender: "Belastingdienst", deadlineSource: "in_document"
             )
         ])
         let request = try #require(StubURLProtocol.requests(to: url).first)
@@ -122,5 +123,70 @@ import Testing
         let detail = try await server.document(documentID, in: scope(url))
 
         #expect(detail.tasks.map(\.isDone) == [true, false])
+    }
+
+    private static let assigneeID = "5f1e2d3c-4b5a-4968-8776-655443322110"
+
+    private static func myTaskJSON(group: String = "overdue") -> String {
+        """
+        {"id":"2b4c6d8e-0f1a-4b3c-9d5e-7f8a9b0c1d2e","type":"pay","description":"Betaal de aanslag",
+         "deadline":"2026-11-18","deadline_source":"in_document","status":"open","completed_at":null,
+         "document_id":"\(documentID)","sender":"Belastingdienst","updated_at":"2026-11-16T10:00:00Z",
+         "amount":"1234.56","days_left":-3,"group":"\(group)","reason":"assigned","for_names":["Piet"],
+         "assigned_to_id":"\(assigneeID)","assigned_to_name":"Anne","assigned_by_name":"Stijn",
+         "completed_by_name":"","term_quote":"","needs_deadline":false,"deadline_quote":"vóór 1 december",
+         "document_type":"tax_assessment","can_edit":true,"created_by_ai":false}
+        """
+    }
+
+    @Test func openTasksDecodeTheMyTasksFields() async throws {
+        let url = try StubURLProtocol.serve(.response(status: 200, json: "[\(Self.myTaskJSON())]"))
+
+        let task = try #require(try await server.openTasks(in: scope(url)).first)
+
+        #expect(task.amount == Decimal(string: "1234.56", locale: Locale(identifier: "en_US_POSIX")))
+        #expect(task.daysLeft == -3)
+        #expect(task.group == .overdue)
+        #expect(task.reason == .assigned)
+        #expect(task.forNames == ["Piet"])
+        #expect(task.assignedToID == UUID(uuidString: Self.assigneeID))
+        #expect(task.assignedToName == "Anne")
+        #expect(task.assignedByName == "Stijn")
+        #expect(task.completedByName.isEmpty)
+        #expect(task.termQuote.isEmpty && !task.needsDeadline)
+        #expect(task.deadlineSource == "in_document")
+        #expect(task.deadlineQuote == "vóór 1 december")
+        #expect(task.documentType == "tax_assessment")
+        #expect(task.canEdit == true)
+        #expect(!task.createdByAI)
+    }
+
+    @Test func openTasksFromAnOlderServerKeepTheDefaults() async throws {
+        let json = "[\(Self.taskJSON(status: "open", deadline: nil))]"
+        let url = try StubURLProtocol.serve(.response(status: 200, json: json))
+
+        let task = try #require(try await server.openTasks(in: scope(url)).first)
+
+        #expect(task.amount == nil)
+        #expect(task.group == TaskGroup.none)
+        #expect(task.reason == TaskReason.none)
+        #expect(task.forNames.isEmpty)
+        #expect(task.canEdit == nil)
+        #expect(task.assignedToID == nil)
+    }
+
+    @Test func aGroupThisAppDoesNotKnowIsUnknown() async throws {
+        let url = try StubURLProtocol.serve(.response(status: 200, json: "[\(Self.myTaskJSON(group: "next_month"))]"))
+
+        let task = try #require(try await server.openTasks(in: scope(url)).first)
+
+        #expect(task.group == .unknown)
+    }
+
+    @Test func anAssigneeThatIsNoIDIsIncompatible() async throws {
+        let json = Self.myTaskJSON().replacingOccurrences(of: Self.assigneeID, with: "anne")
+        let url = try StubURLProtocol.serve(.response(status: 200, json: "[\(json)]"))
+
+        await #expect(throws: ServerError.incompatible) { try await server.openTasks(in: scope(url)) }
     }
 }

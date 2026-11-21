@@ -30,6 +30,13 @@ filter:
     - listTasks
     - completeTask
     - reopenTask
+    # Mijn taken (host PR #36)
+    - listMyTasks
+    - countMyTasks
+    - assignTask
+    - listTaskAssignees
+    - setTaskDeadline
+    - getMe
     - trashDocument
     - restoreDocument
     - listTrash

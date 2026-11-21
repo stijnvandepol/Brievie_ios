@@ -138,10 +138,38 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
     /// The letter the task belongs to; `nil` for a task without one.
     public let documentID: UUID?
     public let sender: String
+    // What "Mijn taken" adds (host PR #36); an older server leaves every one at its default.
+    /// `in_document` (the letter names the date, `deadlineQuote` holds the words) or `manual`.
+    public let deadlineSource: String
+    public let deadlineQuote: String
+    /// The letter names a term without a date ("binnen zes weken"): the words, for "Datum nodig".
+    public let termQuote: String
+    public let needsDeadline: Bool
+    /// The amount of a payment; `nil` when unknown.
+    public let amount: Decimal?
+    /// Days until the deadline, by the server's today (negative: overdue).
+    public let daysLeft: Int?
+    public let group: TaskGroup
+    public let reason: TaskReason
+    /// The other people the task is for (the addressees or the department), names only.
+    public let forNames: [String]
+    public let assignedToID: UUID?
+    public let assignedToName: String
+    public let assignedByName: String
+    public let completedByName: String
+    public let completedAt: Date?
+    public let documentType: String
+    /// Whether this member may tick the task off; `nil` when the server did not say (fall back to the role).
+    public let canEdit: Bool?
+    public let createdByAI: Bool
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, isDone: Bool, documentID: UUID?,
-        sender: String
+        sender: String, deadlineSource: String = "", deadlineQuote: String = "", termQuote: String = "",
+        needsDeadline: Bool = false, amount: Decimal? = nil, daysLeft: Int? = nil, group: TaskGroup = .none,
+        reason: TaskReason = .none, forNames: [String] = [], assignedToID: UUID? = nil, assignedToName: String = "",
+        assignedByName: String = "", completedByName: String = "", completedAt: Date? = nil,
+        documentType: String = "", canEdit: Bool? = nil, createdByAI: Bool = false
     ) {
         self.id = id
         self.type = type
@@ -150,5 +178,22 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
         self.isDone = isDone
         self.documentID = documentID
         self.sender = sender
+        self.deadlineSource = deadlineSource
+        self.deadlineQuote = deadlineQuote
+        self.termQuote = termQuote
+        self.needsDeadline = needsDeadline
+        self.amount = amount
+        self.daysLeft = daysLeft
+        self.group = group
+        self.reason = reason
+        self.forNames = forNames
+        self.assignedToID = assignedToID
+        self.assignedToName = assignedToName
+        self.assignedByName = assignedByName
+        self.completedByName = completedByName
+        self.completedAt = completedAt
+        self.documentType = documentType
+        self.canEdit = canEdit
+        self.createdByAI = createdByAI
     }
 }
