@@ -674,6 +674,24 @@
         }
       }
     },
+    "pairing.ownPhone": {
+      "comment": "Under the scan button of the pairing screen: each person pairs their own phone with their own account.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only pair your own phone. Someone who uses another phone pairs it with their own account."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppel alleen je eigen telefoon. Wie een andere telefoon gebruikt, koppelt die met een eigen account."
+          }
+        }
+      }
+    },
     "pairing.paste.show": {
       "comment": "Button that shows the manual code field.",
       "extractionState": "manual",

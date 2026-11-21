@@ -245,6 +245,11 @@ import Testing
         }
     }
 
+    @Test func ownPhoneSentenceHasADutchValue() throws {
+        #expect(try CatalogParity.dutchValue(forKey: "pairing.ownPhone", target: "FeaturePairing")
+            == "Koppel alleen je eigen telefoon. Wie een andere telefoon gebruikt, koppelt die met een eigen account.")
+    }
+
     @Test func catalogAndCodeAgree() throws {
         for (key, resolved) in PairingStrings.all {
             #expect(try CatalogParity.dutchValue(forKey: key, target: "FeaturePairing") == resolved, "\(key)")
