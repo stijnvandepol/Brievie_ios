@@ -138,6 +138,51 @@ extension DocumentStrings {
     static let myTasksStateDone = String(localized: "tasks.done.state", defaultValue: "Klaar", bundle: .module)
     static let myTasksStateOpen = String(localized: "tasks.open.state", defaultValue: "Open", bundle: .module)
 
+    // "Mijn taken": picking up, handing over and dating a task
+    static let myTasksTakeOn = String(localized: "tasks.takeOn", defaultValue: "Ik doe dit", bundle: .module)
+    static let myTasksRelease = String(localized: "tasks.release", defaultValue: "Niet meer aan mij", bundle: .module)
+    static let myTasksHandOver = String(localized: "tasks.handOver", defaultValue: "Geef aan…", bundle: .module)
+    static let myTasksHandOverTitle = String(
+        localized: "tasks.handOver.title", defaultValue: "Aan wie geef je deze taak?", bundle: .module
+    )
+    static let myTasksHandOverIntro = String(
+        localized: "tasks.handOver.intro", defaultValue: "Alleen wie deze brief mag lezen, staat in de lijst.",
+        bundle: .module
+    )
+    static let myTasksHandOverNobody = String(
+        localized: "tasks.handOver.nobody", defaultValue: "Er is niemand anders die deze brief mag lezen.",
+        bundle: .module
+    )
+    static let myTasksSetDate = String(localized: "tasks.setDate", defaultValue: "Datum invullen", bundle: .module)
+    static let myTasksSetDateTitle = String(
+        localized: "tasks.setDate.title", defaultValue: "Welke datum noemt de brief?", bundle: .module
+    )
+    static let myTasksSetDateSave = String(localized: "tasks.setDate.save", defaultValue: "Opslaan", bundle: .module)
+    static let myTasksSetDateCancel = String(
+        localized: "tasks.setDate.cancel", defaultValue: "Annuleren", bundle: .module
+    )
+    static let myTasksSetDateRemove = String(
+        localized: "tasks.setDate.remove", defaultValue: "Datum weghalen", bundle: .module
+    )
+    static let myTasksCannotRead = String(
+        localized: "tasks.error.cannotRead", defaultValue: "Deze persoon mag de brief niet lezen. Kies iemand anders.",
+        bundle: .module
+    )
+    static let myTasksWithoutLetter = String(
+        localized: "tasks.error.withoutLetter",
+        defaultValue: "Deze taak hoort niet bij een brief en kan niet worden gegeven.",
+        bundle: .module
+    )
+    static let myTasksDateBeforeLetter = String(
+        localized: "tasks.error.dateBeforeLetter", defaultValue: "Die datum ligt voor de datum van de brief.",
+        bundle: .module
+    )
+    static let myTasksTaken = String(
+        localized: "tasks.error.taken",
+        defaultValue: "Iemand anders doet deze taak al. Vraag die persoon of een beheerder om hem door te geven.",
+        bundle: .module
+    )
+
     /// The plain keys of "Mijn taken" with the text the code resolves, for the catalog parity test.
     static var myTasksAll: [String: String] {
         [
@@ -162,7 +207,14 @@ extension DocumentStrings {
             "tasks.undo": myTasksUndo, "tasks.notDone": myTasksNotDone,
             "tasks.announce.done": myTasksAnnounceDoneFormat, "tasks.announce.open": myTasksAnnounceOpenFormat,
             "tasks.notSupported": myTasksNotSupported, "tasks.done.state": myTasksStateDone,
-            "tasks.open.state": myTasksStateOpen
+            "tasks.open.state": myTasksStateOpen, "tasks.takeOn": myTasksTakeOn, "tasks.release": myTasksRelease,
+            "tasks.handOver": myTasksHandOver, "tasks.handOver.title": myTasksHandOverTitle,
+            "tasks.handOver.intro": myTasksHandOverIntro, "tasks.handOver.nobody": myTasksHandOverNobody,
+            "tasks.setDate": myTasksSetDate, "tasks.setDate.title": myTasksSetDateTitle,
+            "tasks.setDate.save": myTasksSetDateSave, "tasks.setDate.cancel": myTasksSetDateCancel,
+            "tasks.setDate.remove": myTasksSetDateRemove, "tasks.error.cannotRead": myTasksCannotRead,
+            "tasks.error.withoutLetter": myTasksWithoutLetter, "tasks.error.dateBeforeLetter": myTasksDateBeforeLetter,
+            "tasks.error.taken": myTasksTaken
         ]
     }
 }

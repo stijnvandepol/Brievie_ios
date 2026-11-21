@@ -4489,6 +4489,78 @@
         }
       }
     },
+    "tasks.error.cannotRead": {
+      "comment": "Mijn taken: the chosen person may not read the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This person may not read the letter. Choose someone else."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze persoon mag de brief niet lezen. Kies iemand anders."
+          }
+        }
+      }
+    },
+    "tasks.error.dateBeforeLetter": {
+      "comment": "Mijn taken: the chosen deadline lies before the letter's date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That date is before the date of the letter."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die datum ligt voor de datum van de brief."
+          }
+        }
+      }
+    },
+    "tasks.error.taken": {
+      "comment": "Mijn taken: someone else does the task already.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Someone else is already doing this task. Ask that person or an admin to hand it on."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iemand anders doet deze taak al. Vraag die persoon of een beheerder om hem door te geven."
+          }
+        }
+      }
+    },
+    "tasks.error.withoutLetter": {
+      "comment": "Mijn taken: a task without a letter cannot be handed to anyone.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This task does not belong to a letter and cannot be handed over."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze taak hoort niet bij een brief en kan niet worden gegeven."
+          }
+        }
+      }
+    },
     "tasks.filter.all": {
       "comment": "Mijn taken: choice that shows every task the member may see.",
       "extractionState": "manual",
@@ -4759,6 +4831,78 @@
         }
       }
     },
+    "tasks.handOver": {
+      "comment": "Mijn taken: hand a task to someone else who may read the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hand over…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geef aan…"
+          }
+        }
+      }
+    },
+    "tasks.handOver.intro": {
+      "comment": "Mijn taken: above the names in the hand-over sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only people who may read this letter are in the list."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen wie deze brief mag lezen, staat in de lijst."
+          }
+        }
+      }
+    },
+    "tasks.handOver.nobody": {
+      "comment": "Mijn taken: the hand-over sheet has no names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is nobody else who may read this letter."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is niemand anders die deze brief mag lezen."
+          }
+        }
+      }
+    },
+    "tasks.handOver.title": {
+      "comment": "Mijn taken: title of the sheet to hand a task over.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who do you hand this task to?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aan wie geef je deze taak?"
+          }
+        }
+      }
+    },
     "tasks.needsDate": {
       "comment": "Mijn taken: badge of a task whose letter names a term but no date.",
       "extractionState": "manual",
@@ -4921,6 +5065,114 @@
         }
       }
     },
+    "tasks.release": {
+      "comment": "Mijn taken: give back a task the member has.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not mine any more"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet meer aan mij"
+          }
+        }
+      }
+    },
+    "tasks.setDate": {
+      "comment": "Mijn taken: fill in the deadline the letter names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a date"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum invullen"
+          }
+        }
+      }
+    },
+    "tasks.setDate.cancel": {
+      "comment": "Mijn taken: closes a sheet without a change.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "tasks.setDate.remove": {
+      "comment": "Mijn taken: takes a filled-in deadline away again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the date"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum weghalen"
+          }
+        }
+      }
+    },
+    "tasks.setDate.save": {
+      "comment": "Mijn taken: saves the chosen deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opslaan"
+          }
+        }
+      }
+    },
+    "tasks.setDate.title": {
+      "comment": "Mijn taken: title of the sheet to fill in a deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which date does the letter name?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welke datum noemt de brief?"
+          }
+        }
+      }
+    },
     "tasks.showInbox": {
       "comment": "Mijn taken: button to the Inbox under the waiting letters line.",
       "extractionState": "manual",
@@ -4989,6 +5241,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open"
+          }
+        }
+      }
+    },
+    "tasks.takeOn": {
+      "comment": "Mijn taken: take a task nobody has yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I'll do it"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik doe dit"
           }
         }
       }

@@ -58,6 +58,10 @@ public final class MyTasksModel {
     @ObservationIgnored private var loads = 0
     /// The signed-in user's id, read once for "Ik doe dit".
     @ObservationIgnored var currentUserID: UUID?
+    /// The hand-over or date sheet that is open.
+    public var sheet: Sheet?
+    /// Why the change in the open sheet did not work.
+    public internal(set) var sheetError: String?
 
     /// - Parameters:
     ///   - canEdit: the role may change tasks (not a viewer).
@@ -261,10 +265,6 @@ public final class MyTasksModel {
         case .cancelled: break
         default: otherwise(error)
         }
-    }
-
-    func actionFlags(for task: WorkspaceTask, isTicked: Bool) -> ActionFlags {
-        ActionFlags()
     }
 
     // MARK: - Private
