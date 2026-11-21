@@ -14,8 +14,11 @@ public enum APIClient {
     ///   - token: the device token; when given, every request carries `Authorization: Bearer <token>`.
     ///   - maxJSONBytes: the largest JSON answer read; a longer one throws `ResponseTooLargeError`.
     ///   - appVersion: when given, every request carries it in `AppVersionHeader.name`.
+    ///   - acceptLanguage: the `Accept-Language` of every request, read when the request is made; the default is
+    ///     the user's preferred languages (`AcceptLanguageHeader`).
     public static func make(
-        baseURL: URL, session: URLSession, token: String?, maxJSONBytes: Int, appVersion: String? = nil
+        baseURL: URL, session: URLSession, token: String?, maxJSONBytes: Int, appVersion: String? = nil,
+        acceptLanguage: @escaping @Sendable () -> String? = { AcceptLanguageHeader.current() }
     ) -> Client {
         let cap = ResponseSizeMiddleware(maxJSONBytes: maxJSONBytes)
         return Client(
@@ -25,6 +28,7 @@ public enum APIClient {
             middlewares: [ForeignUnauthorizedMiddleware(), cap]
                 + (token.map { [BearerTokenMiddleware(token: $0)] } ?? [])
                 + (appVersion.map { [AppVersionMiddleware(value: $0)] } ?? [])
+                + [AcceptLanguageMiddleware(value: acceptLanguage)]
         )
     }
 }
@@ -116,6 +120,23 @@ struct AppVersionMiddleware: ClientMiddleware {
         if let name = HTTPField.Name(AppVersionHeader.name) {
             request.headerFields[name] = value
         }
+        return try await next(request, body, baseURL)
+    }
+}
+
+/// Adds `Accept-Language` to every request.
+struct AcceptLanguageMiddleware: ClientMiddleware {
+    let value: @Sendable () -> String?
+
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        var request = request
+        if let language = value() { request.headerFields[.acceptLanguage] = language }
         return try await next(request, body, baseURL)
     }
 }

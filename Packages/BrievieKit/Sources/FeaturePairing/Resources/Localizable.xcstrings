@@ -5,6 +5,12 @@
       "comment": "Generic error; never shows server diagnostics.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -16,6 +22,12 @@
     "pairing.brand": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -28,6 +40,12 @@
       "comment": "Shown when camera access was refused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie isn't allowed to use the camera. Turn this on in Settings, or paste the pairing details."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -40,6 +58,12 @@
       "comment": "Button that opens the app's page in the Settings app.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -52,6 +76,12 @@
       "comment": "Shown when the device forbids camera use (Screen Time, MDM).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The camera is turned off on this device. Paste the pairing details."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -64,6 +94,12 @@
       "comment": "Connection dropped after the code was sent.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection dropped while pairing. Create a new code and try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -76,6 +112,12 @@
       "comment": "Incompatible API version.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server and the app don't match. Update the app or the server."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -88,6 +130,12 @@
       "comment": "QR code is broken.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Brievie code isn't valid. Create a new code."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -100,6 +148,12 @@
       "comment": "Pairing code rejected.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code has expired or has already been used. Create a new code."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -112,6 +166,12 @@
       "comment": "QR code is not a Brievie code.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This isn't a Brievie code. In the web interface, open 'Pair app' and scan the code there."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -124,6 +184,12 @@
       "comment": "Server could not be verified.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't check that this is your Brievie server. Create a new code and try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -136,6 +202,12 @@
       "comment": "Server throttled pairing.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There have been too many attempts. Wait a moment and try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -148,6 +220,12 @@
       "comment": "No server reachable.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We can't reach your Brievie server. Are you on the same network?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -160,6 +238,12 @@
       "comment": "QR code has a newer format.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This code comes from a newer version of Brievie. Update the app and try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -172,6 +256,12 @@
       "comment": "Pairing screen instructions.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the web interface, open Devices and create a pairing code."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -184,6 +274,12 @@
       "comment": "Under the server address: nothing is sent before the user taps Koppel.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isn't this your server's address? Then close this screen. Nothing has been sent."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -195,6 +291,12 @@
     "pairing.link.address.label": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server address"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -206,6 +308,12 @@
     "pairing.link.close": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -217,6 +325,12 @@
     "pairing.link.code.footer": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type the code shown on the web page. Capital letters and the hyphen don't matter. The code itself doesn't travel over the network."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -229,6 +343,12 @@
       "comment": "VoiceOver hint of the pairing code field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type the eight characters of the pairing code."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -240,6 +360,12 @@
     "pairing.link.code.label": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing code"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -252,6 +378,12 @@
       "comment": "Placeholder of the pairing code field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8 characters"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -263,6 +395,12 @@
     "pairing.link.error.alreadyPaired": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone is already paired with a Brievie server. Want to use a different server? In Brievie, tap the gear and then Unpair. Then open the link again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -274,6 +412,12 @@
     "pairing.link.error.invalid": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link doesn't work. Create a new pairing code on the web page and open the link again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -286,6 +430,12 @@
       "comment": "Link sheet: a wrong or used code, or the attempt took too long. One sentence for all of them.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This pairing code is wrong or has expired. Type the code again, or create a new code on the web page."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -297,6 +447,12 @@
     "pairing.link.error.unsupportedVersion": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link comes from a newer version of Brievie. Update the app and try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -308,6 +464,12 @@
     "pairing.link.intro": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You opened a link from your Brievie server. You can use it to pair this phone."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -320,6 +482,12 @@
       "comment": "Under the phone's name field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is how the server names this phone, under Devices. That way you'll know later which phone is which."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -332,6 +500,12 @@
       "comment": "Header and label of the field with the name the server shows for this phone.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name of this phone"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -344,6 +518,12 @@
       "comment": "Placeholder of the phone's name field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For example, Jesse's iPhone"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -356,6 +536,12 @@
       "comment": "Link sheet: shown when a link opens; nothing has been contacted yet.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do you want to pair this phone with a Brievie server?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -368,6 +554,12 @@
       "comment": "Link sheet button: only this tap makes the app contact the addresses in the link.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find server"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -380,6 +572,12 @@
       "comment": "Link sheet: the app looks for the server the link names before it asks for the code.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding server…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -391,6 +589,12 @@
     "pairing.link.submit": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -403,6 +607,12 @@
       "comment": "Title of the sheet opened by a brievie://server link.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair with your server"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -415,6 +625,12 @@
       "comment": "Label and placeholder of the manual code field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the pairing details"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -426,6 +642,12 @@
     "pairing.manual.header": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste pairing details"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -438,6 +660,12 @@
       "comment": "Button that pairs with the pasted code.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -450,6 +678,12 @@
       "comment": "Button that shows the manual code field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste pairing details"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -461,6 +695,12 @@
     "pairing.prerequisite.code": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code valid for"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -472,6 +712,12 @@
     "pairing.prerequisite.code.value": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 minutes"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -483,6 +729,12 @@
     "pairing.prerequisite.network": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -494,6 +746,12 @@
     "pairing.prerequisite.network.value": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Same Wi-Fi as the server"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -505,6 +763,12 @@
     "pairing.prerequisites.footer": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app only trusts your own server's certificate."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -516,6 +780,12 @@
     "pairing.prerequisites.header": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before you start"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -528,6 +798,12 @@
       "comment": "Shown while pairing.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing..."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -540,6 +816,12 @@
       "comment": "Retry button after a failed pairing.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -551,6 +833,12 @@
     "pairing.scan": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan QR code"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -562,6 +850,12 @@
     "pairing.scanner.cancel": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -574,6 +868,12 @@
       "comment": "VoiceOver label of the camera view.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera for scanning the QR code"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -586,6 +886,12 @@
       "comment": "Pairing screen title.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair with your server"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",

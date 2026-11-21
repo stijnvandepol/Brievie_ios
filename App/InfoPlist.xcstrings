@@ -1,0 +1,74 @@
+{
+  "sourceLanguage": "nl",
+  "strings": {
+    "NSCalendarsFullAccessUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie puts your deadlines in a calendar of its own and updates it when you complete a task."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie zet je deadlines in een eigen agenda en werkt die bij als je een taak afrondt."
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie uses the camera to scan the pairing code and your mail."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie gebruikt de camera om de koppelcode en je post te scannen."
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie uses Face ID to keep your mail private."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie gebruikt Face ID om je post af te schermen."
+          }
+        }
+      }
+    },
+    "NSLocalNetworkUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie looks for your Brievie server on your home network."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie zoekt je Brievie-server op je thuisnetwerk."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

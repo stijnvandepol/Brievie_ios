@@ -181,8 +181,10 @@ private struct SummaryPart {
 }
 
 extension DocumentsModel.Row {
-    private static let listStyle = ListFormatStyle<StringStyle, [String]>.list(type: .and)
-        .locale(Locale(identifier: "nl_NL"))
+    /// "Papa and Mama" or "Papa en Mama": the list word follows the user's language.
+    private static var listStyle: ListFormatStyle<StringStyle, [String]> {
+        .list(type: .and).locale(.autoupdatingCurrent)
+    }
 
     /// "Op naam van Papa en Mama"; `nil` without addressees.
     public var addresseeLine: String? {
@@ -226,9 +228,10 @@ extension DocumentsModel {
         }
     }
 
-    static let dateStyle = Date.FormatStyle(
-        date: .abbreviated, time: .omitted, locale: Locale(identifier: "nl_NL")
-    )
+    /// The letter's date in the user's language and region ("12 nov 2026", "12 Nov 2026", "Nov 12, 2026").
+    static var dateStyle: Date.FormatStyle {
+        Date.FormatStyle(date: .abbreviated, time: .omitted, locale: .autoupdatingCurrent)
+    }
 
     /// A letter the server read but nobody checked yet has no sender in the list (the AI's proposal is only in
     /// the detail): it is named by the time it came in, so letters of one day can be told apart.

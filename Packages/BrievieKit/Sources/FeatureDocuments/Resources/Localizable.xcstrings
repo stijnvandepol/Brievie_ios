@@ -5,6 +5,12 @@
       "comment": "A change to a confirmed letter (name, label, suggestion, task) did not reach the server.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That didn't work. Try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -17,6 +23,12 @@
       "comment": "Button on an open proposal of a confirmed letter: take it.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -29,6 +41,12 @@
       "comment": "Button on an open proposal of a confirmed letter: drop it.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -41,6 +59,12 @@
       "comment": "VoiceOver label of the dismiss button on a proposal, e.g. 'Papa negeren'.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -53,6 +77,12 @@
       "comment": "VoiceOver value of a task's tick box when it is ticked off.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "completed"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -65,6 +95,12 @@
       "comment": "VoiceOver value of a task's tick box when it still has to be done.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "open"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -77,6 +113,12 @@
       "comment": "Header above the tasks of a confirmed letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -89,6 +131,12 @@
       "comment": "Title of the screen of a confirmed letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -101,6 +149,12 @@
       "comment": "Toolbar menu: add a letter by scanning or from photos.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add mail"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -113,6 +167,12 @@
       "comment": "Under a letter in the list: the persons it is addressed to, e.g. 'Papa en Mama'.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Addressed to %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -125,6 +185,12 @@
       "comment": "Under the list of Alle post: what the place is for.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All your letters, including the ones you've dealt with. What still needs you is under To do."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -137,6 +203,12 @@
       "comment": "Mark on a letter or task the AI handled by itself (the web's wording).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatically by AI"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -149,6 +221,12 @@
       "comment": "Under labels or names the AI or a rule put on a letter by itself. %@ is the list of names.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added automatically: %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -161,6 +239,12 @@
       "comment": "Under the mark on a letter the AI confirmed by itself.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The AI confirmed this letter by itself. Nobody has checked it."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -173,6 +257,12 @@
       "comment": "Deletes a scan that is still on the phone.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -185,6 +275,12 @@
       "comment": "Shown when the workspace has no documents.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mail yet. Scan your first letter."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -197,6 +293,12 @@
       "comment": "The document was removed on the server.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This document no longer exists."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -209,6 +311,12 @@
       "comment": "Server certificate refused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't check that this is your Brievie server. Pair the app again if this keeps happening."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -221,6 +329,12 @@
       "comment": "Server unreachable.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We can't reach your Brievie server. Are you on the same network?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -233,6 +347,12 @@
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose photos"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -245,6 +365,12 @@
       "comment": "Te doen without letters.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're all caught up. There's nothing to do."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -257,6 +383,12 @@
       "comment": "Under the empty Te doen, for a viewer (no scan button).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll find earlier letters under All mail."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -269,6 +401,12 @@
       "comment": "Under the empty Te doen, for someone who may scan.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan a new letter with the + button at the top. You'll find earlier letters under All mail."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -281,6 +419,12 @@
       "comment": "Under the list of Te doen: what the place is for. Same sentence as the web.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters you still need to do something with. All your letters, including the ones you've dealt with, are under All mail."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -293,6 +437,12 @@
       "comment": "Button under the empty Te doen: shows Alle post.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View All mail"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -305,6 +455,12 @@
       "comment": "Spoken by VoiceOver for a letter: its label names, comma separated.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels: %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -317,6 +473,12 @@
       "comment": "Shown while the first load runs.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading mail…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -329,6 +491,12 @@
       "comment": "Title of a scan still on the phone, or of a letter the server is still reading (no sender yet).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -341,6 +509,12 @@
       "comment": "Page count; %d is the number of pages (2 or more).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d pages"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -353,6 +527,12 @@
       "comment": "Page count of a document with one page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 page"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -365,6 +545,12 @@
       "comment": "Shown when no letter is addressed to the chosen person.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No mail is addressed to this person yet."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -377,6 +563,12 @@
       "comment": "Footer under the persons to choose from: a person is not a member. Same sentence as the web's Personen page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The people letters are addressed to, including people without an account, such as a child."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -389,6 +581,12 @@
       "comment": "Retry button.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -401,6 +599,12 @@
       "comment": "Title of a letter to check that has no sender yet. %@ is the time it came in, like 14:32.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrived at %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -413,6 +617,12 @@
       "comment": "After a sender the AI proposed and nobody confirmed (as in the web).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(suggestion)"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -425,6 +635,12 @@
       "comment": "Button that opens the document scanner.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan a letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -437,6 +653,12 @@
       "comment": "Scope menu in the post list: every letter of the workspace.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All mail"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -449,6 +671,12 @@
       "comment": "The place with the letters that still need the person (route and API: inbox). Same name as the web.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To do"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -461,6 +689,12 @@
       "comment": "Title of a person's post while that person is not known (yet).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -473,6 +707,12 @@
       "comment": "The document was confirmed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -485,6 +725,12 @@
       "comment": "Row status of a letter the server could not read: it is checked like any other (the note says why).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -497,6 +743,12 @@
       "comment": "Row status (inbox_state unassigned, or a read letter on nobody's name): choose on whose name it is.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a name"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -509,6 +761,12 @@
       "comment": "Row status (inbox_state review): the person checks the letter. Same word as the web.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -521,6 +779,12 @@
       "comment": "Under the row status Controleren for a letter the server could not read.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie couldn't read this letter properly."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -533,6 +797,12 @@
       "comment": "Under the row status Bezig….",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't need to do anything."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -545,6 +815,12 @@
       "comment": "Row status: the server is reading the letter; nothing to do. Same word as the web.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -557,6 +833,12 @@
       "comment": "A scan whose upload failed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload failed"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -569,6 +851,12 @@
       "comment": "A scan that is being uploaded.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -581,6 +869,12 @@
       "comment": "A scan that waits for the server.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for connection"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -593,6 +887,12 @@
       "comment": "Marker on a letter with open proposals, and the tag next to a proposed person or label.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestion"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -605,6 +905,12 @@
       "comment": "One part of the line above Te doen: the row word, then how many.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$d"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -617,6 +923,12 @@
       "comment": "One part of the line above Te doen when only the newest are listed: word, total, number shown.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$d (newest %3$d)"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -629,6 +941,12 @@
       "comment": "Word for letters and scans on their way in the line above Te doen, as in 'Bezig: 3'.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -641,6 +959,12 @@
       "comment": "Title of the post list before iOS 26 when the user has more than one workspace: %1$@ is the scope (\"Inbox\"), %2$@ the workspace (\"Thuis\").",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -653,6 +977,12 @@
       "comment": "Title of a letter that was read without a sender.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown sender"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -665,6 +995,12 @@
       "comment": "An upload the server refused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The upload failed."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -677,6 +1013,12 @@
       "comment": "A queued scan that belongs to a server the app is no longer paired with.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This scan was made for another server and won't be sent. Delete it, or pair with that server again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -689,6 +1031,12 @@
       "comment": "Scan above the server's size limit.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This scan is too large. Scan fewer pages at a time."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -701,6 +1049,24 @@
       "comment": "Shown once when scans in the upload queue could not be read and were removed; %lld is their number.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld scan couldn't be read and was removed."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld scans couldn't be read and were removed."
+                }
+              }
+            }
+          }
+        },
         "nl": {
           "variations": {
             "plural": {
@@ -725,6 +1091,12 @@
       "comment": "Upload to a workspace that no longer exists.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workspace no longer exists on the server."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -737,6 +1109,12 @@
       "comment": "Generic error; never shows server diagnostics.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -749,6 +1127,12 @@
       "comment": "Label of the switch between the page image and the recognised text in the reader.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -761,6 +1145,12 @@
       "comment": "Reader mode: the image of the page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -773,6 +1163,12 @@
       "comment": "Reader mode: the recognised text of the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -785,6 +1181,12 @@
       "comment": "Reader button: go to the next page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next page"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -797,6 +1199,12 @@
       "comment": "Button under the pages of a letter: open the letter on the whole screen.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -809,6 +1217,12 @@
       "comment": "VoiceOver hint of the button and the pages that open the full-screen reader.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the letter full screen. You can zoom in or read the text."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -821,6 +1235,12 @@
       "comment": "VoiceOver hint on a page image in the reader.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Text at the top to have the letter read aloud."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -833,6 +1253,12 @@
       "comment": "Reader button: go to the previous page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous page"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -845,6 +1271,12 @@
       "comment": "Reader text mode: the app has no recognised text for this page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app has no text for this page."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -857,6 +1289,12 @@
       "comment": "Title of the full-screen reader (read by VoiceOver; the bar shows the mode switch).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -869,6 +1307,12 @@
       "comment": "Shown above a review that was pre-filled by AI (EU AI Act transparency).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filled in by AI. Check that it's right before you confirm."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -881,6 +1325,12 @@
       "comment": "Label on a value the AI is not sure about.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check this carefully"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -893,6 +1343,12 @@
       "comment": "Confirms the review.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -905,6 +1361,12 @@
       "comment": "Adds a date to a field that has none.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add date"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -917,6 +1379,12 @@
       "comment": "Removes the date from a field.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove date"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -929,6 +1397,12 @@
       "comment": "Closes the termijn calendar without a date.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -941,6 +1415,12 @@
       "comment": "Under the calendar of a termijn that is being chosen.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a day. Until then the deadline stays empty."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -953,6 +1433,12 @@
       "comment": "Sets the termijn to today.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -965,6 +1451,12 @@
       "comment": "Destructive button: throw away the user's changes and process the letter again.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard and process again"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -977,6 +1469,12 @@
       "comment": "Cancel button: keep what the user filled in.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't discard"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -989,6 +1487,12 @@
       "comment": "Message of the question before processing again replaces a review the user changed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing again replaces what you filled in with new suggestions."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1001,6 +1505,12 @@
       "comment": "Title of the question before processing again replaces a review the user changed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard what you filled in?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1013,6 +1523,12 @@
       "comment": "A deadline the user typed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filled in by you"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1025,6 +1541,12 @@
       "comment": "A task without a deadline.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No date"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1037,6 +1559,12 @@
       "comment": "A confirmed document without tasks.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tasks"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1049,6 +1577,12 @@
       "comment": "The words in the letter a deadline was read from.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source: “%@”"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1061,6 +1595,12 @@
       "comment": "Line under a confirmed task: %1$@ is the task type, %2$@ the deadline (or 'Geen datum').",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1073,6 +1613,12 @@
       "comment": "The server refused the confirmation for now (409) while the document still waits for review.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That didn't work just now. What you filled in is still there. Try again in a moment."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1085,6 +1631,12 @@
       "comment": "The server refused the review.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server couldn't save this. Check what you filled in."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1097,6 +1649,12 @@
       "comment": "A task has no description.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give every task a description."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1109,6 +1667,12 @@
       "comment": "Processing failed on the server.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing failed. You can fill in the details yourself or have it try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1121,6 +1685,12 @@
       "comment": "Field label: the date on the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter date"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1133,6 +1703,12 @@
       "comment": "Under the letter date in the review when the app filled in today because the letter date was empty.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is today's date. Is there a different date on the letter? Then change it."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1145,6 +1721,12 @@
       "comment": "Shown while the document loads.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading letter…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1157,6 +1739,12 @@
       "comment": "A proposed person or label in the review, e.g. 'Papa toevoegen'.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1169,6 +1757,12 @@
       "comment": "Review section: the persons a letter is addressed to.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Addressed to"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1181,6 +1775,12 @@
       "comment": "VoiceOver: a chosen label in the review.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Label %@. Tap to remove"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1193,6 +1793,12 @@
       "comment": "VoiceOver: a chosen person in the review.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Addressed to %@. Tap to remove."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1205,6 +1811,12 @@
       "comment": "Person or label picker: closes the list.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1217,6 +1829,12 @@
       "comment": "Review: a chosen person or label was deleted meanwhile.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A person or label no longer exists. Check your choice and confirm again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1229,6 +1847,12 @@
       "comment": "Review section: the labels of a letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1241,6 +1865,12 @@
       "comment": "Label picker footer: labels cannot be made in the app.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You create new labels in the web interface."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1253,6 +1883,12 @@
       "comment": "Person picker: a person with this name exists already.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Someone with this name already exists."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1265,6 +1901,12 @@
       "comment": "Person picker: section to add a person.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New person"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1277,6 +1919,12 @@
       "comment": "Person picker: button that adds the new person.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1289,6 +1937,12 @@
       "comment": "Person picker: placeholder of the new person's name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1301,6 +1955,12 @@
       "comment": "In review: the letter is on nobody's name yet (the lists say Naam kiezen).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose who this letter is addressed to."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1313,6 +1973,12 @@
       "comment": "Under a person or label in the review: the AI proposed it.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested by AI"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1325,6 +1991,12 @@
       "comment": "Under a person in the review: their name was found in the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Found in the letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1337,6 +2009,12 @@
       "comment": "Under a person or label in the review: the rule that proposed it, by name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rule: %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1349,6 +2027,12 @@
       "comment": "Review: opens the list of labels to choose from.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose labels"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1361,6 +2045,12 @@
       "comment": "Review: opens the list of persons to choose from.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose people"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1373,6 +2063,12 @@
       "comment": "Shown while a page image loads.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading page…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1385,6 +2081,12 @@
       "comment": "A page image that cannot be decoded.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This page can't be shown."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1397,6 +2099,12 @@
       "comment": "Page position; page number and page count.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %1$d of %2$d"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1409,6 +2117,12 @@
       "comment": "Above the pages when a letter has more pages than the review shows; %1$d is all pages, %2$d the pages shown.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This letter has %1$d pages. You only see the first %2$d here."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1421,6 +2135,12 @@
       "comment": "A letter still being read (the lists say Bezig…).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie is still reading this letter. You don't need to do anything."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1433,6 +2153,12 @@
       "comment": "Above Bevestigen: several proposals are not taken and will be dismissed on confirm. %1$d is the number, %2$@ their names.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d suggestions are still open: %2$@. If you don't accept them, they expire when you confirm."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1445,6 +2171,12 @@
       "comment": "Above Bevestigen: one proposal (a person or label) is not taken and will be dismissed on confirm. %@ is its name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 suggestion is still open: %@. If you don't accept it, it expires when you confirm."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1457,6 +2189,12 @@
       "comment": "Shown to a viewer, who cannot confirm.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have view-only access to this workspace."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1469,6 +2207,12 @@
       "comment": "Asks the server to process the document again.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Process again"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1481,6 +2225,12 @@
       "comment": "Shown while the review is saved.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1493,6 +2243,12 @@
       "comment": "Field label: who sent the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sender"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1505,6 +2261,12 @@
       "comment": "Button that shows where in the letter a value was read.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where is this?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1517,6 +2279,12 @@
       "comment": "The quote could not be located in the letter text.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't find this sentence in the text of the letter."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1529,6 +2297,12 @@
       "comment": "Title of the sheet that shows the source.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source in the letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1541,6 +2315,12 @@
       "comment": "Field label: the plain-language explanation.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explanation"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1553,6 +2333,12 @@
       "comment": "Label on AI-written text (EU AI Act transparency).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Made by AI. Check that it's right."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1565,6 +2351,12 @@
       "comment": "Adds a task.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add task"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1577,6 +2369,12 @@
       "comment": "Label of a task's date: the last day it has to be done. One word for this everywhere: termijn.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deadline"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1589,6 +2387,12 @@
       "comment": "VoiceOver hint of a task's Termijn.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last day it has to be done."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1601,6 +2405,12 @@
       "comment": "Field label: what has to be done.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1613,6 +2423,12 @@
       "comment": "Description of a payment task made from an invoice due date.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay the bill"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1625,6 +2441,12 @@
       "comment": "Removes a task.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove task"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1637,6 +2459,12 @@
       "comment": "Removes the task.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1649,6 +2477,12 @@
       "comment": "Keeps the task.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1661,6 +2495,12 @@
       "comment": "Explains what removing a task does.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The task and its deadline are removed from this letter."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1673,6 +2513,12 @@
       "comment": "Question before a task is removed from the review.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this task?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1685,6 +2531,12 @@
       "comment": "Field label: the kind of task.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task type"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1697,6 +2549,12 @@
       "comment": "Header of the tasks.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you need to do"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1709,6 +2567,12 @@
       "comment": "Title of the review screen.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1721,6 +2585,12 @@
       "comment": "Field label: the kind of document.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type of letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1733,6 +2603,12 @@
       "comment": "Picker option: no document type chosen.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not chosen"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1745,6 +2621,12 @@
       "comment": "Label on a value the app filled in itself (not read from the letter): there is no source or confidence.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1757,6 +2639,12 @@
       "comment": "An AI value that was not found in the letter; %@ is the value.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested by AI, not found in the letter: %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1769,6 +2657,12 @@
       "comment": "Shown when camera access was refused and the user wanted to scan a letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie isn't allowed to use the camera. Turn this on in Settings, or choose photos of the letter."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1781,6 +2675,12 @@
       "comment": "Button that opens the app's page in the Settings app.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1793,6 +2693,12 @@
       "comment": "Shown when the device forbids camera use (Screen Time, MDM) and the user wanted to scan a letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The camera is turned off on this device. Choose photos of the letter."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1805,6 +2711,12 @@
       "comment": "Leaves the scan preview.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1817,6 +2729,12 @@
       "comment": "Closes the scan sheet after an error.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1829,6 +2747,12 @@
       "comment": "Throws the scan away.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1841,6 +2765,12 @@
       "comment": "Asked before a checked scan is thrown away.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this scan?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1853,6 +2783,12 @@
       "comment": "Phone storage is full.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There isn't enough space on your phone to save the scan."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1865,6 +2801,12 @@
       "comment": "Saving the scan failed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The scan couldn't be saved. Try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1877,6 +2819,12 @@
       "comment": "The scanner returned no pages.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pages were scanned."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1889,6 +2837,12 @@
       "comment": "More pages than the server accepts.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can scan up to 30 pages at a time."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1901,6 +2855,12 @@
       "comment": "A page image could not be decoded.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page couldn't be read. Scan the letter again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1913,6 +2873,12 @@
       "comment": "Above the pages of a new scan, before saving.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check that every page is upright. Is a page crooked or upside down? Tap Rotate."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1925,6 +2891,12 @@
       "comment": "Progress of text recognition; page number and page count.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading text: page %1$d of %2$d"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1937,6 +2909,12 @@
       "comment": "Saves the checked scan to the upload queue.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1949,6 +2927,12 @@
       "comment": "While the scan is written to the upload queue.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving scan…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1961,6 +2945,12 @@
       "comment": "Title of the sheet shown while a scan is prepared.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save scan"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1973,6 +2963,12 @@
       "comment": "Button under a scanned page: turns it a quarter clockwise.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotate"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1985,6 +2981,12 @@
       "comment": "VoiceOver hint of the turn button.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotates the page a quarter turn clockwise and reads the text again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -1997,6 +2999,12 @@
       "comment": "VoiceOver label of the turn button; %1$d is the page number.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotate page %1$d"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2009,6 +3017,12 @@
       "comment": "Under a page the app turned upright from its text.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app turned this page upright."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2021,6 +3035,12 @@
       "comment": "Shown on a page while it is turned and read again.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rotating page…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2033,6 +3053,12 @@
       "comment": "The server removed a citizen service number (BSN) from the search term.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't search by BSN (citizen service number): Brievie doesn't store BSNs. We removed the number from your search."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2045,6 +3071,12 @@
       "comment": "What can be searched for, before anything is typed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search by sender, subject, a word from the letter, a label or a name. The start of a word is enough."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2057,6 +3089,12 @@
       "comment": "Above the search results before anything is typed.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search for a letter"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2069,6 +3107,12 @@
       "comment": "The server is older than search.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Brievie server can't search yet. Ask the admin to update the server."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2081,6 +3125,12 @@
       "comment": "The server refused the search: too many searches in a minute.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've searched a lot in a short time. Wait a minute and try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2093,6 +3143,12 @@
       "comment": "Above results that match only approximately.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No exact match. This looks similar."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2105,6 +3161,12 @@
       "comment": "Button under the search results that loads the next page.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2117,6 +3179,12 @@
       "comment": "The next step when nothing was found.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use fewer words, or try a different spelling or the start of a word."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2129,6 +3197,12 @@
       "comment": "No letter matched the search term.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing found"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2141,6 +3215,12 @@
       "comment": "The placeholder of the search field in \"Alle post\".",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search your mail"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2153,6 +3233,12 @@
       "comment": "Accessibility name of the list of search results.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search results"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2165,6 +3251,12 @@
       "comment": "While the server searches.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Searching…"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2177,6 +3269,12 @@
       "comment": "The search term has one character.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type at least two characters."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2189,6 +3287,12 @@
       "comment": "Task type apply.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2201,6 +3305,12 @@
       "comment": "Task type cancel.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2213,6 +3323,12 @@
       "comment": "Task type file_tax.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File tax return"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2225,6 +3341,12 @@
       "comment": "Task type inspection.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspection"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2237,6 +3359,12 @@
       "comment": "Task type object.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Object"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2249,6 +3377,12 @@
       "comment": "Task type other.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2261,6 +3395,12 @@
       "comment": "Task type pay.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pay"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2273,6 +3413,12 @@
       "comment": "Task type renew.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renew"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2285,6 +3431,12 @@
       "comment": "Task type respond.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respond"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2297,6 +3449,12 @@
       "comment": "Document type annual_statement.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annual statement"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2309,6 +3467,12 @@
       "comment": "Document type assessment.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tax assessment"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2321,6 +3485,12 @@
       "comment": "Document type bill.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bill"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2333,6 +3503,12 @@
       "comment": "Document type contract.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contract"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2345,6 +3521,12 @@
       "comment": "Document type decision.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decision"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2357,6 +3539,12 @@
       "comment": "Document type demand.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demand notice"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2369,6 +3557,12 @@
       "comment": "Document type information.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2381,6 +3575,12 @@
       "comment": "Document type inspection.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspection"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2393,6 +3593,12 @@
       "comment": "Document type invoice.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2405,6 +3611,12 @@
       "comment": "Document type other.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2417,6 +3629,12 @@
       "comment": "Document type payslip.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payslip"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2429,6 +3647,12 @@
       "comment": "Document type policy.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Policy"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2441,6 +3665,12 @@
       "comment": "Document type receipt.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receipt"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -2453,6 +3683,12 @@
       "comment": "Document type reminder.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",

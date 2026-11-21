@@ -5,6 +5,12 @@
       "comment": "Generic error; never shows server diagnostics.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -17,6 +23,12 @@
       "comment": "Title of the start screen while the workspaces load, could not be loaded, or there are none.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -29,6 +41,12 @@
       "comment": "Notifications were refused (in the prompt or in Settings).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie isn't allowed to send notifications. Turn on notifications for Brievie in Settings."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -41,6 +59,12 @@
       "comment": "Footer sentence while a calendar switch is on: its alarms come too.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Is 'Put deadlines in my calendar' on as well? Then the calendar also alerts you about deadlines."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -53,6 +77,12 @@
       "comment": "Footer, first sentence, lead time one day.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll get a notification at 9 am, the day before a deadline and on the day itself."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -65,6 +95,12 @@
       "comment": "Footer, first sentence; %d is the lead time in days (at least 2).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll get a notification at 9 am, %d days before a deadline and on the day itself."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -77,6 +113,12 @@
       "comment": "Footer: reminders only know what the app last read (no background fetch).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie reminds you of deadlines the app knows about. Open the app now and then to keep that up to date."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -89,6 +131,12 @@
       "comment": "Footer: what a reminder shows by default (on the lock screen).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The notification only says that a deadline is due, nothing from the letter."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -101,6 +149,12 @@
       "comment": "Footer, first sentence, lead time 0 (on the day only).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You'll get a notification at 9 am on the day a deadline is due."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -113,6 +167,12 @@
       "comment": "Footer while the sender is shown.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The notification also shows the sender. It can then be read on the Lock Screen."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -125,6 +185,12 @@
       "comment": "Header of the settings section with the deadline reminders.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -137,6 +203,12 @@
       "comment": "Picker: how long before the deadline the first reminder comes.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First notification"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -149,6 +221,12 @@
       "comment": "Lead time option: only on the day of the deadline.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the day itself"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -161,6 +239,12 @@
       "comment": "Lead time option.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 day before"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -173,6 +257,12 @@
       "comment": "Lead time option.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 days before"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -185,6 +275,12 @@
       "comment": "Lead time option (the default).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 days before"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -197,6 +293,12 @@
       "comment": "Lead time option.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 week before"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -209,6 +311,12 @@
       "comment": "Button that opens the app's page in the Settings app.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -221,6 +329,12 @@
       "comment": "Under the sender switch: what never shows.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An amount or what you need to do is never in the notification."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -233,6 +347,12 @@
       "comment": "Switch, off by default: the notification names the sender.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the sender in notifications"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -245,6 +365,12 @@
       "comment": "Switch: local notifications for task deadlines on this phone. Off by default. Not \"Herinneringen\" (Apple's Reminders app, the letter type).",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deadline notifications"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -257,6 +383,12 @@
       "comment": "Title of the settings screen, and the accessibility label of the gear that opens it.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -269,6 +401,12 @@
       "comment": "VoiceOver hint on a workspace in the settings that is not the one shown: tapping shows its post.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the letters in this workspace."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -281,6 +419,12 @@
       "comment": "Answer to the account question: leave the switch off.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't turn on"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -293,6 +437,12 @@
       "comment": "Asked before the calendar goes in an account that is not iCloud or this phone; %@ is the account's name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie puts your tasks in the calendar of %@. Whoever manages that account can read them."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -305,6 +455,12 @@
       "comment": "Answer to the account question: make the calendar in that account.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes, put them there"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -317,6 +473,12 @@
       "comment": "Under the description switch: who can read the text when it is on.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The description and the sender will then appear in the calendar. That text can be read on the Lock Screen and by other apps that may read your calendar."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -329,6 +491,12 @@
       "comment": "Second switch under a calendar switch that is on: put the task's description and sender in the events.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the description in the calendar"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -341,6 +509,12 @@
       "comment": "Under a calendar switch that is off: where its calendar will go; %@ is the calendar's name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your tasks with a deadline go in their own calendar '%@' in iCloud or on this iPhone. Brievie only uses another account if you agree."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -353,6 +527,12 @@
       "comment": "Last sentence under a calendar switch while events show the description and sender.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The description and the sender appear in the calendar. They can also be read on the Lock Screen."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -365,6 +545,12 @@
       "comment": "Under a calendar switch whose calendar is in iCloud; %@ is the calendar's name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your tasks with a deadline are in their own calendar '%@' in iCloud. That calendar also appears on your other devices with iCloud."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -377,6 +563,12 @@
       "comment": "Under a calendar switch whose calendar is on this phone only; %@ is the calendar's name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your tasks with a deadline are in their own calendar '%@' on this iPhone."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -389,6 +581,12 @@
       "comment": "Last sentence under a calendar switch while events show no description.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The calendar and Lock Screen notifications only show the kind of task, such as 'Pay (Brievie)'."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -401,6 +599,12 @@
       "comment": "Under a calendar switch whose calendar is in another account the user agreed to; %1$@ is the calendar's name, %2$@ the account's.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your tasks with a deadline are in their own calendar '%1$@' in the account %2$@. Whoever manages that account can read them."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -413,6 +617,12 @@
       "comment": "Answer: turn the switch off and keep the calendar.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -425,6 +635,12 @@
       "comment": "Under a calendar switch that was turned off with 'Verwijderen' while the calendar also held the user's own events.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This calendar also holds your own events. The calendar stays; Brievie's events are gone."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -437,6 +653,12 @@
       "comment": "Under the calendar switch when calendar access is refused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give Brievie access to your calendar in Settings."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -449,6 +671,12 @@
       "comment": "Under a calendar switch: the phone has no account a calendar can be made in.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone has no account in which Brievie can create a calendar."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -461,6 +689,12 @@
       "comment": "Button that opens the app's page in Settings, after calendar access was refused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -473,6 +707,12 @@
       "comment": "Answer: turn the switch off and delete the calendar.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -485,6 +725,12 @@
       "comment": "Asked when the calendar switch is turned off; %@ is the calendar's name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete calendar '%@' too?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -497,6 +743,12 @@
       "comment": "Under a calendar switch that went off because its calendar's account is no longer on the phone.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account of this calendar is no longer on your phone, so this is now off. Turn it on again to create a new calendar."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -509,6 +761,12 @@
       "comment": "Under the calendar switch when the server cannot list tasks yet; the switch stays off.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server can't pass on tasks yet. Update the server."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -521,6 +779,12 @@
       "comment": "Switch under a workspace: put its tasks with a termijn (deadline) in a calendar on this phone.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put deadlines in my calendar"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -533,6 +797,12 @@
       "comment": "Shown when the list is empty.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't have any workspaces yet."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -545,6 +815,12 @@
       "comment": "Server certificate refused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't check that this is your Brievie server. Pair the app again if this keeps happening."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -557,6 +833,12 @@
       "comment": "Server unreachable.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We can't reach your Brievie server. Are you on the same network?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -569,6 +851,12 @@
       "comment": "Kind of workspace: business.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Business"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -581,6 +869,12 @@
       "comment": "Kind of workspace: home.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -593,6 +887,12 @@
       "comment": "Kind of workspace the app does not know.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -605,6 +905,12 @@
       "comment": "Shown while loading.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading workspaces..."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -617,6 +923,12 @@
       "comment": "Retry button after a failed load.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -629,6 +941,12 @@
       "comment": "Role badge.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Admin"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -641,6 +959,12 @@
       "comment": "Role badge.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -653,6 +977,12 @@
       "comment": "Role badge.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viewer"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -664,6 +994,12 @@
     "workspaces.section.server": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -675,6 +1011,12 @@
     "workspaces.section.workspaces": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your workspaces"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -686,6 +1028,12 @@
     "workspaces.server.address": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Address"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -697,6 +1045,12 @@
     "workspaces.server.connection": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connection"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -708,6 +1062,12 @@
     "workspaces.server.footer": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app only talks to this server and checks its certificate on every connection."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -719,6 +1079,12 @@
     "workspaces.server.secure": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -730,6 +1096,12 @@
     "workspaces.server.user": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in as"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -742,6 +1114,12 @@
       "comment": "Destructive button at the bottom of the settings: forget the pairing with the server.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpair"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -754,6 +1132,12 @@
       "comment": "Cancel button in the unpair confirmation.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -766,6 +1150,12 @@
       "comment": "Destructive button in the unpair confirmation.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpair"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -778,6 +1168,12 @@
       "comment": "Second destructive button in the unpair confirmation, shown when a calendar switch is on: also delete Brievie's calendars.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpair and delete calendars"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -790,6 +1186,12 @@
       "comment": "Unpair confirmation message when no scans wait in the upload queue.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone forgets its pairing with your Brievie server. You can then pair again with a new QR code."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -802,6 +1204,24 @@
       "comment": "Unpair confirmation message when scans still wait in the upload queue; %lld is their number.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld scan is still waiting to be sent. It will be removed from this phone. You can then pair again with a new QR code."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld scans are still waiting to be sent. They will be removed from this phone. You can then pair again with a new QR code."
+                }
+              }
+            }
+          }
+        },
         "nl": {
           "variations": {
             "plural": {
@@ -826,6 +1246,12 @@
       "comment": "Title of the confirmation before unpairing.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unpair this phone?"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
