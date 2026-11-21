@@ -252,6 +252,18 @@ private struct DocumentsScreen: View {
                 deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: model.hasTrash,
                 onTrashed: { [model] id in Task { await model.didTrash(id) } }
             )
+        } compare: { pairID in
+            DuplicateScreen(
+                pairID: pairID, documents: documents, canEdit: canEdit, persons: model.persons, labels: model.labels,
+                appModel: appModel, deviceID: deviceID,
+                onMerged: { [model, onTasksChanged] otherID in
+                    // A twin task may be completed and the other letter's tasks left: the calendar follows.
+                    onTasksChanged()
+                    Task { await model.didMerge(trashed: otherID) }
+                },
+                onDismissed: { [model] in Task { await model.didDismissDuplicate() } },
+                onDecidedElsewhere: { [model] in Task { await model.didFindPairDecided() } }
+            )
         }
         // A tapped reminder of this workspace opens its letter, once the app is open (never behind the lock).
         .onChange(of: reminderRouter.target, initial: true) { openTappedLetter() }
@@ -292,6 +304,28 @@ private struct ReviewScreen: View {
 
     var body: some View {
         ReviewView(model: model)
+    }
+}
+
+/// The compare screen of a pair in "Dubbel?". A merge or dismiss is reported to the post list, which reloads.
+private struct DuplicateScreen: View {
+    @State private var model: DuplicateModel
+
+    init(
+        pairID: UUID, documents: WorkspaceDocuments, canEdit: Bool, persons: [Person], labels: [DocumentLabel],
+        appModel: AppModel, deviceID: UUID, onMerged: @escaping @MainActor (UUID) -> Void,
+        onDismissed: @escaping @MainActor () -> Void, onDecidedElsewhere: @escaping @MainActor () -> Void
+    ) {
+        _model = State(initialValue: DuplicateModel(
+            pairID: pairID, documents: documents, canEdit: canEdit, persons: persons, labels: labels,
+            onMerged: onMerged, onDismissed: onDismissed, onDecidedElsewhere: onDecidedElsewhere,
+            onRevoked: { appModel.sessionRevoked(deviceID: deviceID) },
+            onMissingPairing: { appModel.connectionMissing() }
+        ))
+    }
+
+    var body: some View {
+        DuplicateView(model: model)
     }
 }
 

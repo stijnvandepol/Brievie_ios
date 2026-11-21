@@ -7,7 +7,7 @@ import SwiftUI
 
 /// The post of one workspace, with a button to scan a new letter. The app's root screen: the app adds the
 /// settings button to its navigation bar.
-public struct DocumentsView<Destination: View>: View {
+public struct DocumentsView<Destination: View, Compare: View>: View {
     private let model: DocumentsModel
     private let scanModel: ScanFlowModel
     /// The workspace's name: the header of the scope menu.
@@ -18,6 +18,8 @@ public struct DocumentsView<Destination: View>: View {
     private let warning: String?
     /// What a document on the server opens (the review screen).
     private let destination: (UUID) -> Destination
+    /// What a pair in "Dubbel?" opens (the compare screen).
+    private let compare: (UUID) -> Compare
 
     @State private var showsScanner = false
     @State private var showsPhotoPicker = false
@@ -32,7 +34,8 @@ public struct DocumentsView<Destination: View>: View {
         title: String,
         workspaceName: String? = nil,
         warning: String? = nil,
-        @ViewBuilder destination: @escaping (UUID) -> Destination
+        @ViewBuilder destination: @escaping (UUID) -> Destination,
+        @ViewBuilder compare: @escaping (UUID) -> Compare
     ) {
         self.model = model
         self.scanModel = scanModel
@@ -40,6 +43,7 @@ public struct DocumentsView<Destination: View>: View {
         self.workspaceName = workspaceName
         self.warning = warning
         self.destination = destination
+        self.compare = compare
     }
 
     public var body: some View {
@@ -127,20 +131,23 @@ public struct DocumentsView<Destination: View>: View {
             rows: model.rows,
             summary: model.summary,
             footer: model.footer,
+            duplicates: model.duplicates,
             empty: DocumentsList.Empty(
                 text: model.emptyText, hint: model.emptyHint,
                 showAllPost: model.emptyOffersAllPost ? { Task { await model.select(.all) } } : nil
             ),
             notices: DocumentsList.Notices(
                 warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
-                undo: model.undo,
+                undo: model.undo, duplicate: model.duplicateNotice,
                 openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true },
-                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() }
+                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
+                closeDuplicate: { model.closeDuplicateNotice() }
             ),
             retryLoad: { Task { await model.load() } },
             retryUpload: { id in Task { await model.retryUpload(id) } },
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
-            destination: destination
+            destination: destination,
+            compare: compare
         )
     }
 

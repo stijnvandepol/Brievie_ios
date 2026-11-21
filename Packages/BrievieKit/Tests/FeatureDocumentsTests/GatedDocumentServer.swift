@@ -13,6 +13,8 @@ final class GatedDocumentServer: DocumentServer {
         case search(String)
         /// Putting a letter in the trash.
         case trash
+        /// Merging a duplicate pair.
+        case merge
     }
 
     private struct State {
@@ -203,5 +205,24 @@ final class GatedDocumentServer: DocumentServer {
 
     func trashList(in scope: DocumentScope) async throws -> TrashList {
         try await inner.trashList(in: scope)
+    }
+
+    func duplicates(in scope: DocumentScope) async throws -> [DuplicatePair] {
+        try await inner.duplicates(in: scope)
+    }
+
+    func duplicate(_ id: UUID, in scope: DocumentScope) async throws -> DuplicatePair {
+        try await inner.duplicate(id, in: scope)
+    }
+
+    func mergeDuplicate(
+        _ id: UUID, keep: UUID, completeTwinTasks: Bool, in scope: DocumentScope
+    ) async throws -> DocumentDetail {
+        await wait(at: .merge)
+        return try await inner.mergeDuplicate(id, keep: keep, completeTwinTasks: completeTwinTasks, in: scope)
+    }
+
+    func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws {
+        try await inner.dismissDuplicate(id, in: scope)
     }
 }

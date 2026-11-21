@@ -1195,6 +1195,654 @@
         }
       }
     },
+    "duplicates.chip": {
+      "comment": "Group heading in Te doen and the chip on a letter that may be scanned twice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicate?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dubbel?"
+          }
+        }
+      }
+    },
+    "duplicates.decided": {
+      "comment": "The pair was decided on another device meanwhile.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A choice has already been made about these two letters."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Over deze twee brieven is al gekozen."
+          }
+        }
+      }
+    },
+    "duplicates.description": {
+      "comment": "Introduction on the compare screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These two letters look alike. Is it the same letter, scanned twice? See what is the same and what differs."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze twee brieven lijken op elkaar. Is het dezelfde brief, twee keer gescand? Kijk wat hetzelfde is en wat verschilt."
+          }
+        }
+      }
+    },
+    "duplicates.differs": {
+      "comment": "Mark on a compare row whose values differ.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Differs"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschilt"
+          }
+        }
+      }
+    },
+    "duplicates.dismissed": {
+      "comment": "Notice in Te doen after They are two letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK. We won't ask again about these two letters."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goed. We vragen het niet meer voor deze twee brieven."
+          }
+        }
+      }
+    },
+    "duplicates.field.addressees": {
+      "comment": "Compare row: the persons the letter is addressed to.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Addressed to"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op naam van"
+          }
+        }
+      }
+    },
+    "duplicates.field.amount": {
+      "comment": "Compare row: the amount (only when it differs).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedrag"
+          }
+        }
+      }
+    },
+    "duplicates.field.date": {
+      "comment": "Compare row: the letter date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum"
+          }
+        }
+      }
+    },
+    "duplicates.field.invoiceNumber": {
+      "comment": "Compare row: the invoice number (only when it differs).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice number"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Factuurnummer"
+          }
+        }
+      }
+    },
+    "duplicates.field.kind": {
+      "comment": "Compare row: the kind of letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kind"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soort"
+          }
+        }
+      }
+    },
+    "duplicates.field.labels": {
+      "comment": "Compare row: the labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        }
+      }
+    },
+    "duplicates.field.pages": {
+      "comment": "Compare row: the number of pages.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pages"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pagina's"
+          }
+        }
+      }
+    },
+    "duplicates.field.reference": {
+      "comment": "Compare row: the payment reference (only when it differs).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kenmerk"
+          }
+        }
+      }
+    },
+    "duplicates.field.sender": {
+      "comment": "Compare row: the sender.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sender"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afzender"
+          }
+        }
+      }
+    },
+    "duplicates.field.tasks": {
+      "comment": "Compare row: the tasks of the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
+          }
+        }
+      }
+    },
+    "duplicates.firstPage": {
+      "comment": "VoiceOver label of a letter's first page on the compare screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First page of letter %lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eerste pagina van brief %lld"
+          }
+        }
+      }
+    },
+    "duplicates.gone": {
+      "comment": "The pair no longer exists.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These duplicate letters are not here (any more)."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze dubbele brieven zijn er niet (meer)."
+          }
+        }
+      }
+    },
+    "duplicates.group.note": {
+      "comment": "Explanation under the Dubbel? group heading.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These letters seem to have been scanned twice. Check if it is the same letter."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brieven lijken twee keer gescand. Kijk of het dezelfde brief is."
+          }
+        }
+      }
+    },
+    "duplicates.keep.accessibility": {
+      "comment": "VoiceOver label of one choice of the letter to keep.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this letter: letter %lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief houden: brief %lld"
+          }
+        }
+      }
+    },
+    "duplicates.keep.question": {
+      "comment": "The choice of the letter to keep.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which letter do you keep?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welke brief houd je?"
+          }
+        }
+      }
+    },
+    "duplicates.letter": {
+      "comment": "Heading of one letter of a pair: Brief 1, Brief 2.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter %lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief %lld"
+          }
+        }
+      }
+    },
+    "duplicates.mayDiffer": {
+      "comment": "Mark on a compare row the server could not read well.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "May differ (hard to read)"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verschilt misschien (slecht leesbaar)"
+          }
+        }
+      }
+    },
+    "duplicates.merge.cancel": {
+      "comment": "Closes the merge question without merging.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleren"
+          }
+        }
+      }
+    },
+    "duplicates.merge.completeTask": {
+      "comment": "Switch in the merge question: complete the task that is done on the other scan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also complete the task"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taak ook afronden"
+          }
+        }
+      }
+    },
+    "duplicates.merge.confirm": {
+      "comment": "Button in the merge question.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Samenvoegen"
+          }
+        }
+      }
+    },
+    "duplicates.merge.message": {
+      "comment": "What a merge does.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The letter you keep gets the labels and persons of both. The other letter goes to the trash. You can restore it from there for 30 days."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De brief die je houdt, krijgt de labels en personen van allebei. De andere brief gaat naar de prullenbak. Daar kun je hem 30 dagen terugzetten."
+          }
+        }
+      }
+    },
+    "duplicates.merge.title": {
+      "comment": "Title of the merge question.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Samenvoegen?"
+          }
+        }
+      }
+    },
+    "duplicates.merge.twinNote": {
+      "comment": "Under the switch: a task done on the other scan; the argument is its description.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On the other scan, '%@' is already completed."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op de andere scan is '%@' al afgerond."
+          }
+        }
+      }
+    },
+    "duplicates.none": {
+      "comment": "A compare row without a value.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen"
+          }
+        }
+      }
+    },
+    "duplicates.same": {
+      "comment": "Button: merge the pair.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It is the same letter"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het is dezelfde brief"
+          }
+        }
+      }
+    },
+    "duplicates.scanned": {
+      "comment": "When a letter of a pair was scanned; the argument is a date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanned on %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gescand op %@"
+          }
+        }
+      }
+    },
+    "duplicates.similarity": {
+      "comment": "How alike the texts of a pair are, in percent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld%% alike"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lijkt op elkaar voor %lld%%"
+          }
+        }
+      }
+    },
+    "duplicates.taskDone": {
+      "comment": "A task on the compare screen that is done; the argument is its description.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, completed"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, afgerond"
+          }
+        }
+      }
+    },
+    "duplicates.title": {
+      "comment": "Title of the compare screen of a duplicate pair.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Possible duplicate"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mogelijk dubbel"
+          }
+        }
+      }
+    },
+    "duplicates.two": {
+      "comment": "Button: the pair is not a duplicate.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They are two letters"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het zijn twee brieven"
+          }
+        }
+      }
+    },
+    "duplicates.visibilityDiffers": {
+      "comment": "Why a pair cannot be merged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These two letters are not visible to the same people, so you can't merge them. Choose 'They are two letters', or first make them visible to the same people."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze twee brieven zijn niet voor dezelfde mensen zichtbaar. Daarom kun je ze niet samenvoegen. Kies 'Het zijn twee brieven', of laat ze eerst voor dezelfde mensen zichtbaar zijn."
+          }
+        }
+      }
+    },
     "error.busy": {
       "comment": "The server is still reading the letter (409 document_processing).",
       "extractionState": "manual",

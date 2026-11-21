@@ -72,6 +72,11 @@ public final class DocumentsModel {
     public internal(set) var hasTrash = false
     public internal(set) var undo: UndoNotice?
     public var isShowingTrash = false
+    /// "Dubbel?" in "Te doen": the open pairs, asked on a whole load when the server counts them (see `+Duplicates`).
+    public internal(set) var duplicates: [DuplicateRow] = []
+    /// "Goed. We vragen het niet meer…" after a pair was dismissed; gone on "Sluiten" or another scope.
+    public internal(set) var duplicateNotice: String?
+    @ObservationIgnored var pairCount = 0 // counted by the last whole inbox load (0 from a server without pairs)
     @ObservationIgnored var isUndoing = false
     /// Search in "Alle post"; forgotten when the user leaves it (and with this model, on a workspace switch or when
     /// the session ends).
@@ -84,6 +89,7 @@ public final class DocumentsModel {
     let onRevoked: @MainActor () -> Void
     let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
+    let locale: Locale
 
     private var serverDocuments: [DocumentSummary] = []
     /// In the inbox: per state, the number its header names (more than shown when only the newest are listed).
@@ -107,7 +113,8 @@ public final class DocumentsModel {
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void,
         refreshInterval: Duration = .seconds(3),
-        searchDelay: Duration = DocumentSearchModel.typingPause
+        searchDelay: Duration = DocumentSearchModel.typingPause,
+        locale: Locale = .autoupdatingCurrent
     ) {
         self.documents = documents
         self.uploads = uploads
@@ -117,6 +124,7 @@ public final class DocumentsModel {
         self.onRevoked = onRevoked
         self.onMissingPairing = onMissingPairing
         self.refreshInterval = refreshInterval
+        self.locale = locale
         search = DocumentSearchModel(
             documents: documents, onRevoked: onRevoked, onMissingPairing: onMissingPairing, delay: searchDelay
         )
@@ -133,12 +141,15 @@ public final class DocumentsModel {
         async let probe = Self.probeTrash(documents)
         await load(organisation: true)
         if let found = await probe { hasTrash = found }
+        await loadDuplicates()
     }
 
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
         guard scope != self.scope else { return }
         undo = nil
+        duplicateNotice = nil
+        if scope != .inbox { duplicates = [] }
         if scope != .all { search.forget() }
         if Self.source(for: scope) != Self.source(for: self.scope) {
             serverDocuments = []
@@ -243,6 +254,7 @@ public final class DocumentsModel {
         }
         serverDocuments = kept
         state = .loaded
+        if withCounts { pairCount = answer.counts?.duplicate ?? 0 }
         guard states != Self.inboxStates else { return false }
         let isNew = Set(kept.filter { $0.inboxState == .new }.map(\.id))
         let leftQueue = wasQueued.subtracting(queued.map(\.id))

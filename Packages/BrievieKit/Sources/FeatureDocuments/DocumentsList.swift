@@ -4,7 +4,7 @@ import BrievieUI
 import SwiftUI
 
 /// The rendering of `DocumentsView`, free of the models so that previews can feed it plain values.
-struct DocumentsList<Destination: View>: View {
+struct DocumentsList<Destination: View, Compare: View>: View {
     /// Messages above the list: no passcode, no camera access, scans the queue could not read.
     struct Notices {
         var warning: String?
@@ -12,10 +12,15 @@ struct DocumentsList<Destination: View>: View {
         var removed: String?
         /// After a letter went to the trash: "Ongedaan maken" and "Sluiten".
         var undo: DocumentsModel.UndoNotice?
+        /// After a choice on the compare screen: "Goed. We vragen het niet meer…", with "Sluiten".
+        var duplicate: String?
         var openSettings: () -> Void = {}
         var importPhotos: () -> Void = {}
         var undoAction: () -> Void = {}
         var closeUndo: () -> Void = {}
+        var closeDuplicate: () -> Void = {}
+
+        var isEmpty: Bool { warning == nil && camera == nil && removed == nil && undo == nil && duplicate == nil }
     }
 
     /// What the list says without rows: depends on the scope.
@@ -33,12 +38,16 @@ struct DocumentsList<Destination: View>: View {
     var summary: String?
     /// Under the rows: what this place is for.
     var footer: String?
+    /// "Dubbel?" above the rows ("Te doen" only): each pair opens the compare screen.
+    var duplicates: [DocumentsModel.DuplicateRow] = []
     let empty: Empty
     var notices = Notices()
     let retryLoad: () -> Void
     let retryUpload: (UUID) -> Void
     let deleteUpload: (UUID) -> Void
     let destination: (UUID) -> Destination
+    /// What a pair opens (the compare screen).
+    let compare: (UUID) -> Compare
 
     var body: some View {
         List {
@@ -48,9 +57,15 @@ struct DocumentsList<Destination: View>: View {
                     ErrorBanner(message, actionTitle: DocumentStrings.retry, action: retryLoad)
                 }
             }
+            if !duplicates.isEmpty {
+                DuplicatesSection(duplicates: duplicates, compare: compare)
+            }
             if rows.isEmpty {
-                Section {
-                    placeholder
+                // "Te doen" is not empty while it has pairs.
+                if duplicates.isEmpty {
+                    Section {
+                        placeholder
+                    }
                 }
             } else {
                 Section {
@@ -68,7 +83,7 @@ struct DocumentsList<Destination: View>: View {
     }
 
     @ViewBuilder private var noticeSection: some View {
-        if notices.warning != nil || notices.camera != nil || notices.removed != nil || notices.undo != nil {
+        if !notices.isEmpty {
             Section {
                 if let warning = notices.warning {
                     ErrorBanner(warning, style: .warning)
@@ -94,6 +109,9 @@ struct DocumentsList<Destination: View>: View {
                 }
                 if let undo = notices.undo {
                     UndoRow(notice: undo, undo: notices.undoAction, close: notices.closeUndo)
+                }
+                if let duplicate = notices.duplicate {
+                    DuplicateNoticeRow(message: duplicate, close: notices.closeDuplicate)
                 }
             }
         }
@@ -236,6 +254,61 @@ private struct UndoRow: View {
     }
 }
 
+/// "Dubbel?" with its count, one row per pair (both letters and how alike they are), and what to do.
+private struct DuplicatesSection<Compare: View>: View {
+    let duplicates: [DocumentsModel.DuplicateRow]
+    let compare: (UUID) -> Compare
+
+    var body: some View {
+        Section {
+            ForEach(duplicates) { pair in
+                NavigationLink {
+                    compare(pair.id)
+                } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(pair.first)
+                            .font(.headline)
+                        Text(pair.second)
+                            .font(.headline)
+                        Text(pair.similarity)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(pair.accessibilityLabel)
+                }
+            }
+        } header: {
+            HStack {
+                Text(DocumentStrings.duplicateChip)
+                Spacer(minLength: 8)
+                Text(duplicates.count, format: .number)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
+        } footer: {
+            Text(DocumentStrings.duplicateGroupNote)
+        }
+    }
+}
+
+/// A notice after a choice on the compare screen, with "Sluiten".
+private struct DuplicateNoticeRow: View {
+    let message: String
+    let close: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(message, systemImage: "checkmark.circle")
+                .fixedSize(horizontal: false, vertical: true)
+            Button(DocumentStrings.undoClose, action: close)
+                .buttonStyle(.borderless)
+                .frame(minHeight: 44)
+        }
+    }
+}
+
 #if DEBUG
 private var previewRows: [DocumentsModel.Row] {
     [
@@ -266,7 +339,7 @@ private var previewRows: [DocumentsModel.Row] {
     ]
 }
 
-private var previewEmpty: DocumentsList<EmptyView>.Empty {
+private var previewEmpty: DocumentsList<EmptyView, EmptyView>.Empty {
     .init(
         text: "Je bent klaar. Er is niets te doen.",
         hint: "Een nieuwe brief scan je met de knop + bovenaan. Eerdere brieven vind je bij Alle post.",
@@ -281,7 +354,7 @@ private var previewEmpty: DocumentsList<EmptyView>.Empty {
             summary: "Controleren: 1 · Naam kiezen: 1 · Upload mislukt: 1 · Bezig: 2",
             footer: "Brieven waar jij nog iets mee moet doen. Al je brieven, ook de afgehandelde, staan bij Alle post.",
             empty: previewEmpty, retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in },
-            destination: { _ in EmptyView() }
+            destination: { _ in EmptyView() }, compare: { _ in EmptyView() }
         )
         .navigationTitle("Te doen")
         .workspaceSubtitle("Thuis")
@@ -295,7 +368,8 @@ private var previewEmpty: DocumentsList<EmptyView>.Empty {
         DocumentsList(
             state: .loaded, rows: [], empty: previewEmpty,
             notices: .init(warning: "Dit apparaat heeft geen toegangscode. Stel een toegangscode in."),
-            retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in }, destination: { _ in EmptyView() }
+            retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in }, destination: { _ in EmptyView() },
+            compare: { _ in EmptyView() }
         )
         .navigationTitle("Te doen")
         .navigationBarTitleDisplayMode(.inline)

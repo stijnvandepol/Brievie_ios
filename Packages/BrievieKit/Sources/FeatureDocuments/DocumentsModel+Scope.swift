@@ -20,13 +20,16 @@ extension DocumentsModel {
         public let titleIsProposal: Bool
         /// The AI confirmed the letter, or put a label or name on it, by itself: "Automatisch door AI".
         public let isAutomatic: Bool
+        /// The letter is in an open duplicate pair: the chip "Dubbel?".
+        public let isPossibleDuplicate: Bool
         /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
         let date: Date
 
         init(
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
             addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
-            isAutomatic: Bool = false, titleIsProposal: Bool = false, date: Date = .distantPast
+            isAutomatic: Bool = false, titleIsProposal: Bool = false, isPossibleDuplicate: Bool = false,
+            date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -38,6 +41,7 @@ extension DocumentsModel {
             self.hasSuggestions = hasSuggestions
             self.isAutomatic = isAutomatic
             self.titleIsProposal = titleIsProposal
+            self.isPossibleDuplicate = isPossibleDuplicate
             self.date = date
         }
     }
@@ -79,6 +83,9 @@ extension DocumentsModel {
         case let .person(id): persons.first { $0.id == id }?.displayName ?? DocumentStrings.section
         }
     }
+
+    /// The list shows its empty text: no rows and, in "Te doen", no pairs either.
+    public var showsEmpty: Bool { rows.isEmpty && duplicates.isEmpty }
 
     /// What the list says when the current scope has no rows.
     public var emptyText: String {
@@ -202,6 +209,7 @@ extension DocumentsModel.Row {
         }
         if hasSuggestions { parts.append(DocumentStrings.suggestion) }
         if isAutomatic { parts.append(DocumentStrings.automaticByAI) }
+        if isPossibleDuplicate { parts.append(DocumentStrings.duplicateChip) }
         return parts.joined(separator: ", ")
     }
 }
@@ -223,7 +231,7 @@ extension DocumentsModel {
             labels: labels.filter { labelIDs.contains($0.id) },
             hasSuggestions: document.openSuggestionCount > 0,
             isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
-            date: document.createdAt
+            isPossibleDuplicate: document.isPossibleDuplicate, date: document.createdAt
         )
     }
 
