@@ -188,13 +188,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All your letters, including the ones you've dealt with. What still needs you is under To do."
+            "value": "All your letters, including the ones you've dealt with. What still needs you is in your Inbox."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat bij Te doen."
+            "value": "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat in je Inbox."
           }
         }
       }
@@ -674,13 +674,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To do"
+            "value": "Inbox"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te doen"
+            "value": "Inbox"
           }
         }
       }

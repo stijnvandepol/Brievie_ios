@@ -1,7 +1,7 @@
 import Foundation
 
 extension DocumentStrings {
-    // The post list: "Te doen" as one list, what each row needs, the lines above and under the list
+    // The post list: "Inbox" as one list, what each row needs, the lines above and under the list
 
     /// A letter on the server whose sender is not known (read without one, or not read yet).
     static let unknownSender = String(
@@ -26,9 +26,9 @@ extension DocumentStrings {
         defaultValue: "Brievie kon deze brief niet goed lezen.",
         bundle: .module
     )
-    /// The word for letters and scans on their way in the line above "Te doen" ("Bezig: 3").
+    /// The word for letters and scans on their way in the line above "Inbox" ("Bezig: 3").
     static let summaryUnderway = String(localized: "documents.summary.underway", defaultValue: "Bezig", bundle: .module)
-    /// One part of the line above "Te doen": the row's word and how many.
+    /// One part of the line above "Inbox": the row's word and how many.
     static let summaryCountFormat = String(
         localized: "documents.summary.count",
         defaultValue: "%1$@: %2$d",
@@ -49,7 +49,7 @@ extension DocumentStrings {
     )
     static let allFooter = String(
         localized: "documents.all.footer",
-        defaultValue: "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat bij Te doen.",
+        defaultValue: "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat in je Inbox.",
         bundle: .module
     )
     /// Under "Je bent klaar. Er is niets te doen." for someone who may scan.

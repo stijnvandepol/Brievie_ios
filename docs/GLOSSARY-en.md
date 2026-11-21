@@ -11,7 +11,7 @@ same terms the app uses plus the app-only ones. When they differ, the host's glo
 | post (all letters together) | mail | "All mail", "Add mail", "Search your mail". One choice everywhere: not "post". |
 | brief | letter | A single item. "Scan a letter", "Letter date". |
 | Alle post | All mail | Scope of the list. |
-| Te doen | To do | Scope of the list; the same name as the web. |
+| Inbox | Inbox | Scope of the list; the same name as the web. |
 | termijn | deadline | Never "term" or "due date". "Deadline" is also the field of a task. |
 | taak / taken | task / tasks | |
 | werkruimte | workspace | |

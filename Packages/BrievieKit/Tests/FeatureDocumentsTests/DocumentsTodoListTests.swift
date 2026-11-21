@@ -3,7 +3,7 @@ import BrievieCore
 import Foundation
 import Testing
 
-/// "Te doen": one list, each row saying what it needs, what needs the person first and what is on its way last.
+/// "Inbox": one list, each row saying what it needs, what needs the person first and what is on its way last.
 @MainActor
 @Suite struct DocumentsTodoListTests {
     private static let url = URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")
@@ -196,7 +196,7 @@ import Testing
             """)
 
         await model.select(.all)
-        #expect(model.footer == "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat bij Te doen.")
+        #expect(model.footer == "Al je brieven, ook de afgehandelde. Wat nog op jou wacht, staat in je Inbox.")
     }
 
     // MARK: Nothing to do
@@ -243,8 +243,8 @@ import Testing
         let model = try model()
         await model.load()
 
-        #expect(model.scopeTitles.prefix(2).map(\.1) == ["Te doen", "Alle post"])
-        #expect(model.scopeTitle == "Te doen")
+        #expect(model.scopeTitles.prefix(2).map(\.1) == ["Inbox", "Alle post"])
+        #expect(model.scopeTitle == "Inbox")
     }
 
     @Test func aLetterWithoutSenderIsNamedByWhereItIs() async throws {

@@ -277,8 +277,8 @@ import Testing
 /// the user has one workspace.
 @Suite struct DocumentsTitleTests {
     @Test func withOneWorkspaceTheTitleIsTheScope() {
-        #expect(DocumentStrings.navigationTitle(scope: "Te doen", workspace: nil, hasSubtitle: false) == "Te doen")
-        #expect(DocumentStrings.navigationTitle(scope: "Te doen", workspace: nil, hasSubtitle: true) == "Te doen")
+        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: false) == "Inbox")
+        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: true) == "Inbox")
     }
 
     @Test func withASubtitleTheWorkspaceGoesThere() {
@@ -287,7 +287,7 @@ import Testing
     }
 
     @Test func withoutASubtitleTheTitleNamesTheWorkspace() {
-        #expect(DocumentStrings.navigationTitle(scope: "Te doen", workspace: "Thuis", hasSubtitle: false)
-            == "Te doen · Thuis")
+        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: "Thuis", hasSubtitle: false)
+            == "Inbox · Thuis")
     }
 }
