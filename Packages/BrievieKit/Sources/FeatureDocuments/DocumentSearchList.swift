@@ -98,7 +98,7 @@ struct DocumentSearchList<Destination: View>: View {
         }
     }
 
-    /// A centred title and hint, as the empty "Te doen" shows them.
+    /// A centred title and hint, as the empty "Inbox" shows them.
     private func explanation(_ title: String, _ hint: String) -> some View {
         VStack(spacing: 8) {
             Text(title)

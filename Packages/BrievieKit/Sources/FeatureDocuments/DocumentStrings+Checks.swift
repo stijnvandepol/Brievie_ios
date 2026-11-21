@@ -51,7 +51,7 @@ extension DocumentStrings {
     )
 
     // The post list: scopes, names, labels
-    static let scopeInbox = String(localized: "documents.scope.inbox", defaultValue: "Te doen", bundle: .module)
+    static let scopeInbox = String(localized: "documents.scope.inbox", defaultValue: "Inbox", bundle: .module)
     static let scopeAll = String(localized: "documents.scope.all", defaultValue: "Alle post", bundle: .module)
     /// The title before iOS 26 with more than one workspace: `%1$@` is the scope, `%2$@` the workspace.
     static let titleInWorkspaceFormat = String(

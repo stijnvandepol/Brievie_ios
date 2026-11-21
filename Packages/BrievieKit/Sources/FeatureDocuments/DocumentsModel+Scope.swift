@@ -48,7 +48,7 @@ extension DocumentsModel {
 
     /// Which post the list shows.
     public enum Scope: Hashable, Sendable {
-        /// "Te doen": what still needs the person (to check, a name to choose), and what is on its way.
+        /// "Inbox": what still needs the person (to check, a name to choose), and what is on its way.
         case inbox
         case all
         /// The post addressed to one person.
@@ -69,7 +69,7 @@ extension DocumentsModel.Scope {
 }
 
 extension DocumentsModel {
-    /// The scopes for the menu: "Te doen", "Alle post", then each person who is not archived.
+    /// The scopes for the menu: "Inbox", "Alle post", then each person who is not archived.
     public var scopeTitles: [(Scope, String)] {
         [(.inbox, DocumentStrings.scopeInbox), (.all, DocumentStrings.scopeAll)]
             + persons.filter { !$0.isArchived }.map { (.person($0.id), $0.displayName) }
@@ -96,7 +96,7 @@ extension DocumentsModel {
         }
     }
 
-    /// Under the empty "Te doen": what to do next. A viewer is not told to scan.
+    /// Under the empty "Inbox": what to do next. A viewer is not told to scan.
     public var emptyHint: String? {
         guard scope == .inbox else { return nil }
         return canScan ? DocumentStrings.todoEmptyHintScan : DocumentStrings.todoEmptyHint
@@ -105,7 +105,7 @@ extension DocumentsModel {
     /// Search belongs to "Alle post": the other scopes are short lists of their own.
     public var searchIsAvailable: Bool { scope == .all }
 
-    /// The empty "Te doen" offers a way to "Alle post".
+    /// The empty "Inbox" offers a way to "Alle post".
     public var emptyOffersAllPost: Bool { scope == .inbox }
 
     /// Under a list with rows: what this place is for, and where the rest is. `nil` for a person's post.
@@ -139,7 +139,7 @@ extension DocumentsModel {
         return try? await documents.labels()
     }
 
-    /// The rows in the order of the scope. "Te doen": what needs the person first (to check, a name to choose, a
+    /// The rows in the order of the scope. "Inbox": what needs the person first (to check, a name to choose, a
     /// failed upload), then what is on its way (scans still on the phone, letters being read), each part newest
     /// first. Any other scope: the scans on the phone, then the server's letters, each newest first.
     func arrange(waiting: [Row], onServer: [Row]) -> [Row] {
@@ -154,7 +154,7 @@ extension DocumentsModel {
             + all.filter(\.status.isUnderway).sorted(by: newestFirst)
     }
 
-    /// The line above "Te doen", in the rows' words: "Controleren: 2 · Naam kiezen: 1 · Bezig: 3". `totals` is
+    /// The line above "Inbox", in the rows' words: "Controleren: 2 · Naam kiezen: 1 · Bezig: 3". `totals` is
     /// the number per state the server counted; a part with more letters than shown says it shows the newest.
     /// `nil` without rows.
     static func todoSummary(waiting: [Row], onServer: [InboxState], totals: [InboxState: Int]) -> String? {
@@ -180,7 +180,7 @@ extension DocumentsModel {
     }
 }
 
-/// One part of the line above "Te doen": a row word, how many there are and how many the list shows.
+/// One part of the line above "Inbox": a row word, how many there are and how many the list shows.
 private struct SummaryPart {
     let word: String
     let total: Int

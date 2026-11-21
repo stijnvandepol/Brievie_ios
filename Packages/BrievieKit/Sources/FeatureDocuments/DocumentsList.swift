@@ -28,15 +28,15 @@ struct DocumentsList<Destination: View, Compare: View>: View {
     /// What the list says without rows: depends on the scope.
     struct Empty {
         var text: String
-        /// What to do next ("Te doen" only).
+        /// What to do next ("Inbox" only).
         var hint: String?
-        /// "Bekijk Alle post" ("Te doen" only); `nil` shows no button.
+        /// "Bekijk Alle post" ("Inbox" only); `nil` shows no button.
         var showAllPost: (() -> Void)?
     }
 
     let state: DocumentsModel.State
     let rows: [DocumentsModel.Row]
-    /// Above the rows: how many need what ("Te doen" only).
+    /// Above the rows: how many need what ("Inbox" only).
     var summary: String?
     /// Under the rows: what this place is for.
     var footer: String?
@@ -146,7 +146,7 @@ struct DocumentsList<Destination: View, Compare: View>: View {
             }
             .accessibilityElement(children: .combine)
         case .loaded where empty.hint != nil:
-            // "Te doen" is empty: done, with what to do next and the way to the rest of the post. Not
+            // "Inbox" is empty: done, with what to do next and the way to the rest of the post. Not
             // `ContentUnavailableView`: it cuts its title to one line.
             VStack(spacing: 12) {
                 Image(systemName: "checkmark.circle")
@@ -336,7 +336,7 @@ private var previewEmpty: DocumentsList<EmptyView, EmptyView>.Empty {
     )
 }
 
-#Preview("Te doen") {
+#Preview("Inbox") {
     NavigationStack {
         DocumentsList(
             state: .loaded, rows: previewRows,
@@ -345,7 +345,7 @@ private var previewEmpty: DocumentsList<EmptyView, EmptyView>.Empty {
             empty: previewEmpty, retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in },
             destination: { _ in EmptyView() }, compare: { _ in EmptyView() }
         )
-        .navigationTitle("Te doen")
+        .navigationTitle("Inbox")
         .workspaceSubtitle("Thuis")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -360,7 +360,7 @@ private var previewEmpty: DocumentsList<EmptyView, EmptyView>.Empty {
             retryLoad: {}, retryUpload: { _ in }, deleteUpload: { _ in }, destination: { _ in EmptyView() },
             compare: { _ in EmptyView() }
         )
-        .navigationTitle("Te doen")
+        .navigationTitle("Inbox")
         .navigationBarTitleDisplayMode(.inline)
     }
     .tint(BrievieColor.brand)

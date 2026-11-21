@@ -24,7 +24,7 @@ public final class DocumentsModel {
         case needsName
         case done
 
-        /// Something will change by itself: keep refreshing. The same rows close "Te doen".
+        /// Something will change by itself: keep refreshing. The same rows close "Inbox".
         var isMoving: Bool { isUnderway }
 
         /// On its way, nothing for the person to do: an upload that is waiting or running, a letter being read.
@@ -54,7 +54,7 @@ public final class DocumentsModel {
     public private(set) var scope: Scope = .inbox
     /// The rows of the current scope, in one list (see `arrange(waiting:onServer:)` for the order).
     public private(set) var rows: [Row] = []
-    /// The line above "Te doen": how many rows need what. `nil` in the other scopes and without rows.
+    /// The line above "Inbox": how many rows need what. `nil` in the other scopes and without rows.
     public private(set) var summary: String?
     /// The persons and labels of the workspace, to name a row's addressees and labels. Empty against a
     /// server without them (phase 1b answers 404); that does not fail the screen.
@@ -169,7 +169,7 @@ public final class DocumentsModel {
         await load()
     }
 
-    /// The automatic refresh while something moves: one list, not the persons and labels. In a loaded "Te doen"
+    /// The automatic refresh while something moves: one list, not the persons and labels. In a loaded "Inbox"
     /// only the letters on their way ("Bezig…"); the whole of it once when a letter left that list or a scan
     /// left the upload queue without showing up in it (read by the server within one tick), so it shows up with
     /// its new status. An inbox that is not loaded (still loading, or failed) is loaded whole.

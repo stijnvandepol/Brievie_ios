@@ -167,7 +167,7 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
         )
     }
 
-    /// "Te doen", "Alle post", or the post of one person; the current one is ticked. Then "Prullenbak".
+    /// "Inbox", "Alle post", or the post of one person; the current one is ticked. Then "Prullenbak".
     @ViewBuilder private var scopeMenu: some View {
         Section(title) {
             Picker(
