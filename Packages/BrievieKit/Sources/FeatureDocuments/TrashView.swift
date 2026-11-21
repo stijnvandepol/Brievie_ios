@@ -13,11 +13,26 @@ public struct TrashView: View {
     }
 
     public var body: some View {
+        // The restored row leaves the list; with large text its notice is far above: scroll up to it and say it.
+        ScrollViewReader { proxy in
+            list
+                .onChange(of: model.notice) { _, notice in
+                    guard let notice else { return }
+                    withAnimation { proxy.scrollTo(Self.noticeID, anchor: .top) }
+                    AccessibilityNotification.Announcement(notice).post()
+                }
+        }
+    }
+
+    private static var noticeID: String { "notice" }
+
+    private var list: some View {
         List {
             if let notice = model.notice {
                 Section {
                     Label(notice, systemImage: "info.circle")
                 }
+                .id(Self.noticeID)
             }
             switch model.state {
             case .loading:
