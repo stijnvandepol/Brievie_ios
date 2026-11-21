@@ -143,7 +143,10 @@ public final class DuplicateModel {
     /// afronden" shows only when there is one.
     public var twinNotes: [String] {
         (pair?.taskTwins ?? []).filter { $0.openDocumentID == keepID }.map {
-            String(format: DocumentStrings.duplicateTwinNoteFormat, $0.description)
+            String(
+                format: DocumentStrings.duplicateTwinNoteFormat,
+                $0.description.isEmpty ? DocumentTypes.taskTypeLabel($0.type) : $0.description
+            )
         }
     }
 

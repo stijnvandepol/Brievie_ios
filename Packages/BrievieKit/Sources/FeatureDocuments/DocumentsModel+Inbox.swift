@@ -14,6 +14,18 @@ extension DocumentsModel {
     /// The inbox states in the order of their groups.
     static let inboxStates: [InboxState] = [.review, .unassigned, .new]
 
+    /// What a letter on the server needs. A read letter on nobody's name says "Naam kiezen" in every scope, as
+    /// in the web: "Klaar" only when nothing waits.
+    static func status(of document: DocumentSummary) -> RowStatus {
+        switch document.status {
+        case .processing: .processing
+        case .needsReview: .needsReview
+        case .failed: .failed
+        // A status this app does not know yet is at least a document that can be opened.
+        case .done, .unknown: document.inboxState == .unassigned ? .needsName : .done
+        }
+    }
+
     static func source(for scope: Scope) -> Source {
         switch scope {
         case .inbox: .inbox

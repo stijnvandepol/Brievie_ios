@@ -109,6 +109,10 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             .navigationDestination(item: $model.openedDocument) { documentID in
                 destination(documentID)
             }
+            // The undo row appears while the letter screen closes: VoiceOver says so, or it is easily missed.
+            .onChange(of: model.undo?.documentID) { _, id in
+                if id != nil { AccessibilityNotification.Announcement(DocumentStrings.undoTrashed).post() }
+            }
             .onChange(of: scanModel.phase) { _, phase in
                 guard phase == .finished else { return }
                 scanModel.reset()
@@ -138,7 +142,7 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             ),
             notices: DocumentsList.Notices(
                 warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
-                undo: model.undo, duplicate: model.duplicateNotice,
+                undo: model.undo, isUndoing: model.isUndoing, duplicate: model.duplicateNotice,
                 openSettings: { model.openSettings() }, importPhotos: { showsPhotoPicker = true },
                 undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
                 closeDuplicate: { model.closeDuplicateNotice() }

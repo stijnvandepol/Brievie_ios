@@ -159,6 +159,146 @@ import Testing
         #expect(server.calls.contains(.restore(Self.url, id)))
     }
 
+    // MARK: - The calendar and the reminders follow (the server hides a trashed letter's tasks)
+
+    private func countingTasksChanged(_ model: DocumentsModel) {
+        model.onTasksChanged = { [events] in events.add("tasksChanged") }
+    }
+
+    private var tasksChangedCount: Int {
+        events.all.count { $0 == "tasksChanged" }
+    }
+
+    @Test func deletingUpdatesTheCalendarAndReminders() async throws {
+        let model = try model()
+        countingTasksChanged(model)
+        await model.load()
+
+        await model.didTrash(UUID())
+
+        #expect(tasksChangedCount == 1)
+    }
+
+    @Test func undoUpdatesTheCalendarAndRemindersAgain() async throws {
+        let model = try model()
+        countingTasksChanged(model)
+        await model.load()
+        await model.didTrash(UUID())
+
+        await model.undoTrash()
+
+        #expect(tasksChangedCount == 2)
+    }
+
+    @Test func aFailedUndoLeavesTheCalendarAlone() async throws {
+        server.onRestore { _, _ in throw ServerError.other("document_not_found") }
+        let model = try model()
+        countingTasksChanged(model)
+        await model.load()
+        await model.didTrash(UUID())
+
+        await model.undoTrash()
+
+        #expect(tasksChangedCount == 1)
+    }
+
+    @Test func aRestoreOnTheTrashScreenUpdatesTheCalendarAndReminders() async throws {
+        let id = UUID()
+        server.onTrashList { _ in TrashList(items: [DocumentFixtures.trashed(id: id)]) }
+        let model = try model()
+        countingTasksChanged(model)
+        let trash = model.makeTrashModel()
+        await trash.load()
+
+        await trash.restore(id)
+
+        #expect(tasksChangedCount == 1)
+    }
+
+    // MARK: - Minor fixes
+
+    @Test func aRestoreOnTheTrashScreenClearsTheUndoOfThatLetter() async throws {
+        let id = UUID()
+        server.onTrashList { _ in TrashList(items: [DocumentFixtures.trashed(id: id)]) }
+        let model = try model()
+        await model.load()
+        await model.didTrash(id)
+        let trash = model.makeTrashModel()
+        await trash.load()
+
+        await trash.restore(id)
+
+        #expect(model.undo == nil)
+    }
+
+    @Test func aRestoreOfAnotherLetterKeepsTheUndo() async throws {
+        let other = UUID()
+        server.onTrashList { _ in TrashList(items: [DocumentFixtures.trashed(id: other)]) }
+        let model = try model()
+        await model.load()
+        let id = UUID()
+        await model.didTrash(id)
+        let trash = model.makeTrashModel()
+        await trash.load()
+
+        await trash.restore(other)
+
+        #expect(model.undo?.documentID == id)
+    }
+
+    @Test func anUndoDoesNotOpenTheLetterOverTheTrashScreen() async throws {
+        let id = UUID()
+        let model = try model()
+        await model.load()
+        await model.didTrash(id)
+        model.isShowingTrash = true
+
+        await model.undoTrash()
+
+        #expect(server.calls.contains(.restore(Self.url, id)))
+        #expect(model.openedDocument == nil)
+    }
+
+    @Test func anUndoDoesNotReplaceAnotherOpenedLetter() async throws {
+        let id = UUID()
+        let other = UUID()
+        let model = try model()
+        await model.load()
+        await model.didTrash(id)
+        model.openedDocument = other
+
+        await model.undoTrash()
+
+        #expect(model.openedDocument == other)
+    }
+
+    @Test func aKnownTrashIsNotAskedForAgain() async throws {
+        let model = try model()
+        await model.load()
+        #expect(model.hasTrash)
+        #expect(trashListCalls == 1)
+
+        await model.load()
+        await model.didTrash(UUID())
+
+        #expect(trashListCalls == 1)
+        #expect(model.hasTrash)
+    }
+
+    @Test func deletingRunsAnOpenSearchAgain() async throws {
+        let model = try model()
+        await model.select(.all)
+        model.search.query = "aanslag"
+        await model.search.settle()
+        let searchesBefore = server.calls.count { if case .search = $0 { true } else { false } }
+        #expect(searchesBefore == 1)
+
+        await model.didTrash(UUID())
+        await model.search.settle()
+
+        #expect(server.calls.count { if case .search = $0 { true } else { false } } == 2)
+    }
+
     @Test func anUploadOfATrashedLetterCannotBeRetried() async throws {
         queue.set([FakeUploadQueue.item(workspaceID: workspaceID, state: .failed, failureCode: "document_trashed")])
         let model = try model()

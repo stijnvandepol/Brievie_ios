@@ -77,7 +77,13 @@ public final class DocumentsModel {
     /// "Goed. We vragen het niet meer…" after a pair was dismissed; gone on "Sluiten" or another scope.
     public internal(set) var duplicateNotice: String?
     @ObservationIgnored var pairCount = 0 // counted by the last whole inbox load (0 from a server without pairs)
-    @ObservationIgnored var isUndoing = false
+    /// The number of the latest pair load: only that one writes `duplicates`.
+    @ObservationIgnored var latestPairLoad = 0
+    /// "Ongedaan maken" is on its way: the button waits.
+    public internal(set) var isUndoing = false
+    /// The letters' open tasks changed on the server (a letter went to the trash or came back): the calendar
+    /// and the deadline reminders follow. Set by the screen that owns this model.
+    @ObservationIgnored public var onTasksChanged: @MainActor () -> Void = {}
     /// Search in "Alle post"; forgotten when the user leaves it (and with this model, on a workspace switch or when
     /// the session ends).
     public let search: DocumentSearchModel
@@ -138,7 +144,9 @@ public final class DocumentsModel {
     /// Reads the queue, the server's list and the workspace's persons and labels. A list that is already on
     /// screen stays when the server cannot be reached. For the first load, pull-to-refresh and retry.
     public func load() async {
-        async let probe = Self.probeTrash(documents)
+        // Once the server is known to have a trash, it keeps it: no need to ask again.
+        let knowsTrash = hasTrash
+        async let probe = knowsTrash ? true : Self.probeTrash(documents)
         await load(organisation: true)
         if let found = await probe { hasTrash = found }
         await loadDuplicates()
@@ -167,7 +175,10 @@ public final class DocumentsModel {
     /// its new status. An inbox that is not loaded (still loading, or failed) is loaded whole.
     public func refreshIfNeeded() async {
         guard needsRefresh, wholeLoadsInFlight == 0 else { return }
+        let pairsBefore = pairCount
         await load(organisation: false, movingOnly: state == .loaded)
+        // A tick that loaded the inbox whole may learn of a new pair (or one decided elsewhere): only then the group.
+        if pairCount != pairsBefore { await loadDuplicates() }
     }
 
     /// Every write that belongs to one scope is checked against the scope after each wait: a slow answer
@@ -254,7 +265,8 @@ public final class DocumentsModel {
         }
         serverDocuments = kept
         state = .loaded
-        if withCounts { pairCount = answer.counts?.duplicate ?? 0 }
+        // Counts that failed say nothing about the pairs: keep the last number, so the group stays.
+        if withCounts, let counts = answer.counts { pairCount = counts.duplicate }
         guard states != Self.inboxStates else { return false }
         let isNew = Set(kept.filter { $0.inboxState == .new }.map(\.id))
         let leftQueue = wasQueued.subtracting(queued.map(\.id))
@@ -314,18 +326,6 @@ public final class DocumentsModel {
                 message: Self.uploadMessage(for: item.failureCode),
                 canRetry: !Self.finalUploadCodes.contains(item.failureCode ?? "")
             )
-        }
-    }
-
-    /// What a letter on the server needs. A read letter on nobody's name says "Naam kiezen" in every scope, as
-    /// in the web: "Klaar" only when nothing waits.
-    static func status(of document: DocumentSummary) -> RowStatus {
-        switch document.status {
-        case .processing: .processing
-        case .needsReview: .needsReview
-        case .failed: .failed
-        // A status this app does not know yet is at least a document that can be opened.
-        case .done, .unknown: document.inboxState == .unassigned ? .needsName : .done
         }
     }
 }

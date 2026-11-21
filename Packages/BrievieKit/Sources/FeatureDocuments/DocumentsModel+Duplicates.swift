@@ -27,9 +27,12 @@ extension DocumentsModel {
             if scope != .inbox || pairCount == 0 { duplicates = [] }
             return
         }
+        latestPairLoad += 1
+        let load = latestPairLoad
         do {
             let pairs = try await documents.duplicates()
-            guard scope == .inbox else { return }
+            // A newer load may have answered first: an older list never lands last.
+            guard scope == .inbox, load == latestPairLoad else { return }
             duplicates = pairs.map(duplicateRow(for:))
         } catch .revoked {
             onRevoked()
@@ -38,7 +41,7 @@ extension DocumentsModel {
         } catch .cancelled {
             return
         } catch {
-            if scope == .inbox { duplicates = [] }
+            if scope == .inbox, load == latestPairLoad { duplicates = [] }
         }
     }
 
@@ -48,7 +51,8 @@ extension DocumentsModel {
         await load()
     }
 
-    /// "Samenvoegen" was answered: the other letter is in the trash, so the same undo as after "Verwijderen".
+    /// "Samenvoegen" was answered: the other letter is in the trash, so the same undo as after "Verwijderen" (which
+    /// also lets the calendar follow: a twin task may be completed and the other letter's tasks left).
     public func didMerge(trashed otherID: UUID) async {
         await didTrash(otherID)
     }

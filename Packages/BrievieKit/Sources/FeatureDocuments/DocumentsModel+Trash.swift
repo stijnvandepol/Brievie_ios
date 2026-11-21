@@ -24,13 +24,17 @@ extension DocumentsModel {
         }
     }
 
-    /// The letter screen put `id` in the trash: offer the undo and load the list without it.
+    /// The letter screen put `id` in the trash: offer the undo and load the list without it. Its tasks left the
+    /// server's list, so the calendar and reminders follow; an open search runs again without it.
     public func didTrash(_ id: UUID) async {
         undo = UndoNotice(documentID: id, message: DocumentStrings.undoTrashed)
+        onTasksChanged()
+        if search.isActive { search.retry() }
         await load()
     }
 
-    /// "Ongedaan maken": the letter comes back and opens again. A failure stays on the notice.
+    /// "Ongedaan maken": the letter comes back (its tasks too, so the calendar follows) and opens again, unless
+    /// the user went elsewhere meanwhile (another letter, the Prullenbak). A failure stays on the notice.
     public func undoTrash() async {
         guard let notice = undo, !isUndoing else { return }
         isUndoing = true
@@ -38,8 +42,9 @@ extension DocumentsModel {
         do {
             _ = try await documents.restore(notice.documentID)
             if undo?.documentID == notice.documentID { undo = nil }
+            onTasksChanged()
             await load()
-            openedDocument = notice.documentID
+            if openedDocument == nil, !isShowingTrash { openedDocument = notice.documentID }
         } catch .revoked {
             onRevoked()
         } catch .missingPairing {
@@ -56,12 +61,15 @@ extension DocumentsModel {
         undo = nil
     }
 
-    /// The Prullenbak screen of this workspace; a restore loads the post list again.
+    /// The Prullenbak screen of this workspace; a restore loads the post list again, lets the calendar follow and
+    /// ends an undo of that letter (it is back already).
     public func makeTrashModel() -> TrashModel {
         TrashModel(
             documents: documents, canRestore: canScan,
-            onRestored: { [weak self] in
+            onRestored: { [weak self] id in
                 guard let self else { return }
+                if undo?.documentID == id { undo = nil }
+                onTasksChanged()
                 Task { await self.load() }
             },
             onRevoked: onRevoked, onMissingPairing: onMissingPairing

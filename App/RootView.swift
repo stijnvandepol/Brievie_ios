@@ -220,7 +220,9 @@ private struct DocumentsScreen: View {
             server: environment.documents, onRevoked: environment.revocations.revoked
         )
         let canEdit = Self.canEdit(workspace)
-        _model = State(initialValue: DocumentsModel(
+        let workspaceID = workspace.id
+        let onTasksChanged: @MainActor () -> Void = { environment.tasksChanged(in: workspaceID) }
+        let model = DocumentsModel(
             documents: documents,
             uploads: environment.uploads,
             canScan: canEdit,
@@ -228,7 +230,10 @@ private struct DocumentsScreen: View {
             openSettings: openSystemSettings,
             onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
             onMissingPairing: { appModel.connectionMissing() }
-        ))
+        )
+        // A letter that goes to the trash or comes back takes its tasks along: the calendar and reminders follow.
+        model.onTasksChanged = onTasksChanged
+        _model = State(initialValue: model)
         _scanModel = State(initialValue: ScanFlowModel(workspaceID: workspace.id, uploads: environment.uploads))
         title = workspace.name
         self.workspaceName = workspaceName
@@ -237,8 +242,7 @@ private struct DocumentsScreen: View {
         self.canEdit = canEdit
         self.appModel = appModel
         deviceID = connection.deviceID
-        let workspaceID = workspace.id
-        onTasksChanged = { environment.tasksChanged(in: workspaceID) }
+        self.onTasksChanged = onTasksChanged
         reminderRouter = environment.reminderRouter
         self.workspaceID = workspaceID
     }
@@ -256,11 +260,8 @@ private struct DocumentsScreen: View {
             DuplicateScreen(
                 pairID: pairID, documents: documents, canEdit: canEdit, persons: model.persons, labels: model.labels,
                 appModel: appModel, deviceID: deviceID,
-                onMerged: { [model, onTasksChanged] otherID in
-                    // A twin task may be completed and the other letter's tasks left: the calendar follows.
-                    onTasksChanged()
-                    Task { await model.didMerge(trashed: otherID) }
-                },
+                // `didMerge` lets the calendar follow (a twin task completed, the other letter's tasks left).
+                onMerged: { [model] otherID in Task { await model.didMerge(trashed: otherID) } },
                 onDismissed: { [model] in Task { await model.didDismissDuplicate() } },
                 onDecidedElsewhere: { [model] in Task { await model.didFindPairDecided() } }
             )

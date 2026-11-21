@@ -12,6 +12,8 @@ struct DocumentsList<Destination: View, Compare: View>: View {
         var removed: String?
         /// After a letter went to the trash: "Ongedaan maken" and "Sluiten".
         var undo: DocumentsModel.UndoNotice?
+        /// "Ongedaan maken" is on its way: the button waits.
+        var isUndoing = false
         /// After a choice on the compare screen: "Goed. We vragen het niet meer…", with "Sluiten".
         var duplicate: String?
         var openSettings: () -> Void = {}
@@ -108,7 +110,9 @@ struct DocumentsList<Destination: View, Compare: View>: View {
                     ErrorBanner(removed, style: .warning)
                 }
                 if let undo = notices.undo {
-                    UndoRow(notice: undo, undo: notices.undoAction, close: notices.closeUndo)
+                    UndoRow(
+                        notice: undo, isUndoing: notices.isUndoing, undo: notices.undoAction, close: notices.closeUndo
+                    )
                 }
                 if let duplicate = notices.duplicate {
                     DuplicateNoticeRow(message: duplicate, close: notices.closeDuplicate)
@@ -227,6 +231,7 @@ struct DocumentsList<Destination: View, Compare: View>: View {
 /// buttons stand side by side, or one under the other when the text is large.
 private struct UndoRow: View {
     let notice: DocumentsModel.UndoNotice
+    let isUndoing: Bool
     let undo: () -> Void
     let close: () -> Void
 
@@ -248,6 +253,7 @@ private struct UndoRow: View {
         Button(DocumentStrings.undoAction, action: undo)
             .buttonStyle(.borderless)
             .frame(minHeight: 44)
+            .disabled(isUndoing)
         Button(DocumentStrings.undoClose, action: close)
             .buttonStyle(.borderless)
             .frame(minHeight: 44)

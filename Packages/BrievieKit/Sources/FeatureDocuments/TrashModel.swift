@@ -44,7 +44,7 @@ public final class TrashModel {
     private let documents: WorkspaceDocuments
     private let clock: TodayClock
     private let locale: Locale
-    private let onRestored: @MainActor () -> Void
+    private let onRestored: @MainActor (UUID) -> Void
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
     @ObservationIgnored private var restoring: Set<UUID> = []
@@ -55,7 +55,7 @@ public final class TrashModel {
         canRestore: Bool,
         clock: TodayClock = .system,
         locale: Locale = .autoupdatingCurrent,
-        onRestored: @escaping @MainActor () -> Void,
+        onRestored: @escaping @MainActor (UUID) -> Void,
         onRevoked: @escaping @MainActor () -> Void,
         onMissingPairing: @escaping @MainActor () -> Void
     ) {
@@ -94,7 +94,7 @@ public final class TrashModel {
             _ = try await documents.restore(id)
             rows.removeAll { $0.id == id }
             notice = DocumentStrings.trashRestored
-            onRestored()
+            onRestored(id)
         } catch {
             handle(error) { notice = DocumentsModel.message(for: $0) }
         }

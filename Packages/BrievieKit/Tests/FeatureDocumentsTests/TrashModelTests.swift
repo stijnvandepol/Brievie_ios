@@ -27,7 +27,7 @@ import Testing
         return TrashModel(
             documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
             canRestore: canRestore, clock: Self.lateEvening, locale: Self.dutch,
-            onRestored: { [events] in events.add("restored") },
+            onRestored: { [events] _ in events.add("restored") },
             onRevoked: { [events] in events.add("revoked") },
             onMissingPairing: { [events] in events.add("missing") }
         )

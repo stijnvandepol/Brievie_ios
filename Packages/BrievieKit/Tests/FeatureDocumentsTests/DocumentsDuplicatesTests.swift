@@ -106,6 +106,65 @@ import Testing
         #expect(model.duplicates.count == 1)
     }
 
+    @Test func aTickThatLearnsOfANewPairLoadsTheGroupOnce() async throws {
+        let scanned = Self.letter("CAK", inbox: .new)
+        server.onList { _, filter in filter.inboxState == .new ? [scanned] : [] }
+        server.onDuplicates { _ in [DocumentFixtures.pair(first: Self.letter("A"), second: Self.letter("A"))] }
+        countPairs(0)
+        // Something on its way, so the tick really asks the server.
+        queue.set([FakeUploadQueue.item(workspaceID: workspaceID)])
+        let model = try model()
+        await model.load()
+        #expect(duplicatesCalls == 0)
+
+        // The server read the letter and found its twin: it left "new", so the tick loads the inbox whole.
+        let read = DocumentSummary(
+            id: scanned.id, clientID: scanned.clientID, status: .needsReview, pageCount: 1,
+            createdAt: scanned.createdAt, sender: "CAK", documentType: "", letterDate: nil, inboxState: .review
+        )
+        server.onList { _, filter in filter.inboxState == .review ? [read] : [] }
+        countPairs(1)
+        await model.refreshIfNeeded()
+
+        #expect(duplicatesCalls == 1)
+        #expect(model.duplicates.count == 1)
+
+        // A tick with the same count asks nothing.
+        await model.refreshIfNeeded()
+        #expect(duplicatesCalls == 1)
+    }
+
+    @Test func aTickThatLearnsAPairWasDecidedDropsTheGroup() async throws {
+        let waiting = Self.letter("CAK", inbox: .new)
+        server.onList { _, filter in filter.inboxState == .new ? [waiting] : [] }
+        server.onDuplicates { _ in [DocumentFixtures.pair(first: Self.letter("A"), second: Self.letter("A"))] }
+        countPairs(1)
+        queue.set([FakeUploadQueue.item(workspaceID: workspaceID)])
+        let model = try model()
+        await model.load()
+        #expect(model.duplicates.count == 1)
+
+        server.onList { _ in [] }
+        countPairs(0)
+        await model.refreshIfNeeded()
+
+        #expect(model.duplicates.isEmpty)
+        #expect(duplicatesCalls == 1)
+    }
+
+    @Test func failingCountsKeepTheGroup() async throws {
+        server.onDuplicates { _ in [DocumentFixtures.pair(first: Self.letter("A"), second: Self.letter("A"))] }
+        countPairs(1)
+        let model = try model()
+        await model.load()
+        #expect(model.duplicates.count == 1)
+
+        server.onInboxCounts { _ in throw ServerError.unreachable }
+        await model.load()
+
+        #expect(model.duplicates.count == 1)
+    }
+
     @Test func pairRowsNameBothLettersAndTheSimilarity() async throws {
         let pair = DocumentFixtures.pair(
             first: Self.letter("Gemeente Voorbeelddorp", day: 3), second: Self.letter("", day: nil)

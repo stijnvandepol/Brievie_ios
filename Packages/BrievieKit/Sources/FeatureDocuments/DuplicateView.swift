@@ -41,7 +41,8 @@ public struct DuplicateView: View {
         .listStyle(.insetGrouped)
         .navigationTitle(DocumentStrings.duplicateTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await model.load() }
+        // Once: coming back from the reader does not load the pair and both letters again.
+        .task { if model.pair == nil { await model.load() } }
         .refreshable { await model.load() }
         .onChange(of: model.state) { _, state in
             if state == .finished { dismiss() }

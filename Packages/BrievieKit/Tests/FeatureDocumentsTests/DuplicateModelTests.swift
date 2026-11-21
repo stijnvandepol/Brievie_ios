@@ -55,6 +55,16 @@ import Testing
         TaskTwin(doneDocumentID: done, openDocumentID: id, type: "pay", description: "Betaal de aanslag")
     }
 
+    @Test func aTwinWithoutADescriptionIsNamedByItsType() async throws {
+        let twin = TaskTwin(doneDocumentID: second.id, openDocumentID: first.id, type: "pay", description: "")
+        let model = try model(pair(twins: [twin]))
+        await model.load()
+        model.keepID = first.id
+
+        #expect(model.twinNotes == ["Op de andere scan is '\(DocumentTypes.taskTypeLabel("pay"))' al afgerond."])
+        #expect(!(model.twinNotes.first?.contains("''") ?? true))
+    }
+
     @Test func theSuggestedLetterIsPreselected() async throws {
         let model = try model(pair())
 
