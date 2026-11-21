@@ -188,6 +188,21 @@ extension DocumentStrings {
     )
     static let myTasksTickAction = String(localized: "tasks.tickAction", defaultValue: "Afvinken", bundle: .module)
 
+    // "Mijn taken" next to the Inbox
+    static let myTasksMenuCountFormat = String(
+        localized: "tasks.menu.count", defaultValue: "Mijn taken · %lld open", bundle: .module
+    )
+    static let myTasksMenuCountLateFormat = String(
+        localized: "tasks.menu.countLate", defaultValue: "Mijn taken · %1$lld open, %2$lld te laat", bundle: .module
+    )
+    static let myTasksLinkCountFormat = String(
+        localized: "tasks.link.count", defaultValue: "Mijn taken: %lld open", bundle: .module
+    )
+    static let myTasksLinkCountLateFormat = String(
+        localized: "tasks.link.countLate", defaultValue: "Mijn taken: %1$lld open, waarvan %2$lld te laat",
+        bundle: .module
+    )
+
     /// The plain keys of "Mijn taken" with the text the code resolves, for the catalog parity test.
     static var myTasksAll: [String: String] {
         [
@@ -220,7 +235,9 @@ extension DocumentStrings {
             "tasks.setDate.remove": myTasksSetDateRemove, "tasks.error.cannotRead": myTasksCannotRead,
             "tasks.error.withoutLetter": myTasksWithoutLetter, "tasks.error.dateBeforeLetter": myTasksDateBeforeLetter,
             "tasks.error.taken": myTasksTaken, "tasks.openLetter": myTasksOpenLetter,
-            "tasks.tickAction": myTasksTickAction
+            "tasks.tickAction": myTasksTickAction, "tasks.menu.count": myTasksMenuCountFormat,
+            "tasks.menu.countLate": myTasksMenuCountLateFormat, "tasks.link.count": myTasksLinkCountFormat,
+            "tasks.link.countLate": myTasksLinkCountLateFormat
         ]
     }
 }

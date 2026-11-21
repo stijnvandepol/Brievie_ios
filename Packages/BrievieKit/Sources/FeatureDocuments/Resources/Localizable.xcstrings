@@ -4903,6 +4903,78 @@
         }
       }
     },
+    "tasks.link.count": {
+      "comment": "Row on top of the Inbox that opens Mijn taken; %lld is the number of open tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks: %lld open"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken: %lld open"
+          }
+        }
+      }
+    },
+    "tasks.link.countLate": {
+      "comment": "Row on top of the Inbox that opens Mijn taken: open tasks (%1$lld), of which overdue (%2$lld).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks: %1$lld open, %2$lld of them overdue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken: %1$lld open, waarvan %2$lld te laat"
+          }
+        }
+      }
+    },
+    "tasks.menu.count": {
+      "comment": "Title menu entry of Mijn taken with the number of open tasks (%lld). A menu has no colour: words only.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks · %lld open"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken · %lld open"
+          }
+        }
+      }
+    },
+    "tasks.menu.countLate": {
+      "comment": "Title menu entry of Mijn taken: open tasks (%1$lld) and how many are overdue (%2$lld).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks · %1$lld open, %2$lld overdue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken · %1$lld open, %2$lld te laat"
+          }
+        }
+      }
+    },
     "tasks.needsDate": {
       "comment": "Mijn taken: badge of a task whose letter names a term but no date.",
       "extractionState": "manual",

@@ -26,6 +26,8 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
     @State private var pickedPhotos: [PhotosPickerItem] = []
     /// Made once per push of the Prullenbak screen.
     @State private var trashModel: TrashModel?
+    /// Made once, on the first show of "Mijn taken".
+    @State private var myTasksModel: MyTasksModel?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(
@@ -113,6 +115,10 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             .onChange(of: model.undo?.documentID) { _, id in
                 if id != nil { AccessibilityNotification.Announcement(DocumentStrings.undoTrashed).post() }
             }
+            // The post list does not refresh itself behind "Mijn taken".
+            .onChange(of: model.isShowingMyTasks) { _, isShowing in
+                if isShowing { model.stopPolling() } else { model.startPolling() }
+            }
             .onChange(of: scanModel.phase) { _, phase in
                 guard phase == .finished else { return }
                 scanModel.reset()
@@ -120,9 +126,11 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             }
     }
 
-    /// The search results while a term is typed in "Alle post", otherwise the post list.
+    /// "Mijn taken"; the search results while a term is typed in "Alle post"; otherwise the post list.
     @ViewBuilder private var content: some View {
-        if model.searchIsAvailable, model.search.isActive {
+        if model.isShowingMyTasks, let myTasksModel {
+            MyTasksView(model: myTasksModel, destination: destination)
+        } else if model.searchIsAvailable, model.search.isActive {
             DocumentSearchList(
                 model: model.search, undo: model.undo, isUndoing: model.isUndoing,
                 undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
@@ -151,6 +159,8 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
                 undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
                 closeDuplicate: { model.closeDuplicateNotice() }
             ),
+            myTasksLink: model.myTasksLink,
+            showMyTasks: showMyTasks,
             retryLoad: { Task { await model.load() } },
             retryUpload: { id in Task { await model.retryUpload(id) } },
             deleteUpload: { id in Task { await model.deleteUpload(id) } },
@@ -163,21 +173,30 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
         var hasSubtitle = false
         if #available(iOS 26, *) { hasSubtitle = true }
         return DocumentStrings.navigationTitle(
-            scope: model.scopeTitle, workspace: workspaceName, hasSubtitle: hasSubtitle
+            scope: model.screenTitle, workspace: workspaceName, hasSubtitle: hasSubtitle
         )
     }
 
-    /// "Inbox", "Alle post", or the post of one person; the current one is ticked. Then "Prullenbak".
+    /// "Mijn taken" (with its count) above "Inbox", "Alle post" or the post of one person; the current one is
+    /// ticked. Then "Prullenbak".
     @ViewBuilder private var scopeMenu: some View {
         Section(title) {
+            if model.hasMyTasks {
+                Button(action: showMyTasks) {
+                    Label(model.myTasksMenuTitle, systemImage: myTasksSymbol)
+                }
+            }
             Picker(
-                selection: Binding(get: { model.scope }, set: { scope in Task { await model.select(scope) } })
+                selection: Binding<DocumentsModel.Scope?>(
+                    get: { model.isShowingMyTasks ? nil : model.scope },
+                    set: { scope in if let scope { Task { await model.select(scope) } } }
+                )
             ) {
                 ForEach(model.scopeTitles, id: \.0) { scope, name in
-                    Text(name).tag(scope)
+                    Text(name).tag(Optional(scope))
                 }
             } label: {
-                Text(model.scopeTitle)
+                Text(model.screenTitle)
             }
             .pickerStyle(.inline)
         }
@@ -219,6 +238,17 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
                 Label(DocumentStrings.importPhotos, systemImage: "photo.on.rectangle")
             }
         }
+    }
+
+    /// Ticked while it shows, as the picker ticks the current scope.
+    private var myTasksSymbol: String {
+        if model.isShowingMyTasks { return "checkmark" }
+        return "checklist"
+    }
+
+    private func showMyTasks() {
+        if myTasksModel == nil { myTasksModel = model.makeMyTasksModel() }
+        model.showMyTasks()
     }
 
     /// Opens the scan's preview, which reads and turns the pages first.

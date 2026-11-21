@@ -1,5 +1,36 @@
 import Foundation
 
+extension DocumentsModel {
+    /// What a row needs, in the words of the web: "Controleren", "Naam kiezen", "Bezig…", "Klaar"; a scan still
+    /// on the phone says where its upload stands.
+    public enum RowStatus: Equatable, Sendable {
+        case waitingForUpload
+        case uploading(progress: Double)
+        /// `canRetry` is false for a scan that belongs to another server: it can only be deleted.
+        case uploadFailed(message: String, canRetry: Bool = true)
+        /// "Bezig…": the server is reading the letter; nothing to do yet.
+        case processing
+        /// "Controleren".
+        case needsReview
+        /// "Controleren" too: the server could not read the letter, so the person fills it in.
+        case failed
+        /// "Naam kiezen": read, but on nobody's name.
+        case needsName
+        case done
+
+        /// Something will change by itself: keep refreshing. The same rows close "Inbox".
+        var isMoving: Bool { isUnderway }
+
+        /// On its way, nothing for the person to do: an upload that is waiting or running, a letter being read.
+        var isUnderway: Bool {
+            switch self {
+            case .waitingForUpload, .uploading, .processing: true
+            case .uploadFailed, .needsReview, .failed, .needsName, .done: false
+            }
+        }
+    }
+}
+
 extension DocumentsModel.RowStatus {
     /// Short Dutch label, in the words of the web ("Controleren", "Naam kiezen", "Bezig…", "Klaar"); the meaning
     /// never rests on colour or the icon alone.

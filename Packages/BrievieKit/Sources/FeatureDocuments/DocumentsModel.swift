@@ -7,35 +7,6 @@ import Observation
 @MainActor
 @Observable
 public final class DocumentsModel {
-    /// What a row needs, in the words of the web: "Controleren", "Naam kiezen", "Bezig…", "Klaar"; a scan still
-    /// on the phone says where its upload stands.
-    public enum RowStatus: Equatable, Sendable {
-        case waitingForUpload
-        case uploading(progress: Double)
-        /// `canRetry` is false for a scan that belongs to another server: it can only be deleted.
-        case uploadFailed(message: String, canRetry: Bool = true)
-        /// "Bezig…": the server is reading the letter; nothing to do yet.
-        case processing
-        /// "Controleren".
-        case needsReview
-        /// "Controleren" too: the server could not read the letter, so the person fills it in.
-        case failed
-        /// "Naam kiezen": read, but on nobody's name.
-        case needsName
-        case done
-
-        /// Something will change by itself: keep refreshing. The same rows close "Inbox".
-        var isMoving: Bool { isUnderway }
-
-        /// On its way, nothing for the person to do: an upload that is waiting or running, a letter being read.
-        var isUnderway: Bool {
-            switch self {
-            case .waitingForUpload, .uploading, .processing: true
-            case .uploadFailed, .needsReview, .failed, .needsName, .done: false
-            }
-        }
-    }
-
     public enum State: Equatable, Sendable {
         case loading
         case loaded
@@ -72,6 +43,12 @@ public final class DocumentsModel {
     public internal(set) var hasTrash = false
     public internal(set) var undo: UndoNotice?
     public var isShowingTrash = false
+    /// "Mijn taken" shows in place of the post list (see `+MyTasks`).
+    public internal(set) var isShowingMyTasks = false
+    /// The server's counts of "Mijn taken"; `nil` before the first load and against an older server.
+    public internal(set) var myTaskCounts: MyTaskCounts?
+    /// The server knows "Mijn taken": the title menu offers it. False until a whole load found out.
+    public internal(set) var hasMyTasks = false
     /// "Dubbel?" in "Te doen": the open pairs, asked on a whole load when the server counts them (see `+Duplicates`).
     public internal(set) var duplicates: [DuplicateRow] = []
     /// "Goed. We vragen het niet meer…" after a pair was dismissed; gone on "Sluiten" or another scope.
@@ -147,13 +124,16 @@ public final class DocumentsModel {
         // Once the server is known to have a trash, it keeps it: no need to ask again.
         let knowsTrash = hasTrash
         async let probe = knowsTrash ? true : Self.probeTrash(documents)
+        async let counts = Self.fetchMyTaskCounts(documents)
         await load(organisation: true)
         if let found = await probe { hasTrash = found }
+        apply(await counts)
         await loadDuplicates()
     }
 
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
+        isShowingMyTasks = false
         guard scope != self.scope else { return }
         undo = nil
         duplicateNotice = nil

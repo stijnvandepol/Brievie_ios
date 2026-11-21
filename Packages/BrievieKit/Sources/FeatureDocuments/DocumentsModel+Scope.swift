@@ -103,7 +103,7 @@ extension DocumentsModel {
     }
 
     /// Search belongs to "Alle post": the other scopes are short lists of their own.
-    public var searchIsAvailable: Bool { scope == .all }
+    public var searchIsAvailable: Bool { scope == .all && !isShowingMyTasks }
 
     /// The empty "Inbox" offers a way to "Alle post".
     public var emptyOffersAllPost: Bool { scope == .inbox }
