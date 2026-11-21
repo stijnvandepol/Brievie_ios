@@ -44,4 +44,26 @@ import Testing
         // Only the API's own form goes out: the review converts the user's notation before this.
         #expect(tasks.map { $0["amount"] as? String } == ["1234.50", "", ""])
     }
+
+    @Test func detailDecodesTheTaskAmountAndAssignee() async throws {
+        let tasks = """
+            [{"id":"2b4c6d8e-0f1a-4b3c-9d5e-7f8a9b0c1d2e","type":"pay","description":"Betaal","deadline":null,
+              "deadline_source":"manual","deadline_quote":"","status":"open","amount":"1234.56",
+              "term_quote":"binnen zes weken","assigned_to_id":"5f1e2d3c-4b5a-4968-8776-655443322110",
+              "assigned_to_name":"Anne"},
+             {"id":"3c5d7e9f-1a2b-4c3d-8e4f-5a6b7c8d9e0f","type":"pay","description":"Betaal","deadline":null,
+              "deadline_source":"manual","deadline_quote":"","status":"open"}]
+            """
+        let url = try StubURLProtocol.serve(.response(status: 200, json: Self.detailJSON(tasks: tasks)))
+
+        let detail = try await server.document(Self.documentID, in: scope(url))
+
+        let first = try #require(detail.tasks.first)
+        #expect(first.amount == TaskAmount.parse(api: "1234.56"))
+        #expect(first.termQuote == "binnen zes weken")
+        #expect(first.assignedToID == UUID(uuidString: "5f1e2d3c-4b5a-4968-8776-655443322110"))
+        #expect(first.assignedToName == "Anne")
+        let older = try #require(detail.tasks.last)
+        #expect(older.amount == nil && older.assignedToID == nil && older.assignedToName.isEmpty)
+    }
 }

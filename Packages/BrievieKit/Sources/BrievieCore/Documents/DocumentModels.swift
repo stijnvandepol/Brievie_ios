@@ -107,10 +107,18 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
     public var isDone: Bool
     /// The AI made this task when it confirmed the letter by itself.
     public let createdByAI: Bool
+    /// The amount of a payment; `nil` when unknown (or from a server before "Mijn taken").
+    public let amount: Decimal?
+    /// The term the letter names without a date ("binnen zes weken").
+    public let termQuote: String
+    /// Who does the task; `nil` and empty when nobody has it yet.
+    public var assignedToID: UUID?
+    public var assignedToName: String
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false
+        deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false, amount: Decimal? = nil,
+        termQuote: String = "", assignedToID: UUID? = nil, assignedToName: String = ""
     ) {
         self.id = id
         self.type = type
@@ -120,6 +128,10 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
         self.deadlineQuote = deadlineQuote
         self.isDone = isDone
         self.createdByAI = createdByAI
+        self.amount = amount
+        self.termQuote = termQuote
+        self.assignedToID = assignedToID
+        self.assignedToName = assignedToName
     }
 }
 
