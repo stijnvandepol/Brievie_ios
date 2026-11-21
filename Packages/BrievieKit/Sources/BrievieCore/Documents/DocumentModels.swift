@@ -262,6 +262,17 @@ public protocol DocumentServer: Sendable {
     ) async throws -> DocumentDetail
     /// "Het zijn twee brieven": the pair is not asked again.
     func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws
+    /// "Mijn taken": one part of the member's tasks (a server before host PR #36 answers 404).
+    func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks
+    func myTaskCounts(in scope: DocumentScope) async throws -> MyTaskCounts
+    /// Gives the task to `user`; `nil` releases it.
+    func assignTask(_ id: UUID, to user: UUID?, in scope: DocumentScope) async throws -> WorkspaceTask
+    /// The members a task can be handed to: those who may read its letter.
+    func taskAssignees(_ id: UUID, in scope: DocumentScope) async throws -> [TaskAssignee]
+    /// Sets (or with `nil` removes) the deadline the user read in the letter.
+    func setTaskDeadline(_ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope) async throws -> WorkspaceTask
+    /// The signed-in user's id, for "Ik doe dit".
+    func currentUserID(in scope: DocumentScope) async throws -> UUID
 }
 
 public extension DocumentServer {
@@ -299,6 +310,33 @@ public extension DocumentServer {
     }
 
     func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws {
+        throw ServerError.other("http_404")
+    }
+
+    /// For servers that predate "Mijn taken": the 404 of a server without the endpoint.
+    func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks {
+        throw ServerError.other("http_404")
+    }
+
+    func myTaskCounts(in scope: DocumentScope) async throws -> MyTaskCounts {
+        throw ServerError.other("http_404")
+    }
+
+    func assignTask(_ id: UUID, to user: UUID?, in scope: DocumentScope) async throws -> WorkspaceTask {
+        throw ServerError.other("http_404")
+    }
+
+    func taskAssignees(_ id: UUID, in scope: DocumentScope) async throws -> [TaskAssignee] {
+        throw ServerError.other("http_404")
+    }
+
+    func setTaskDeadline(
+        _ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope
+    ) async throws -> WorkspaceTask {
+        throw ServerError.other("http_404")
+    }
+
+    func currentUserID(in scope: DocumentScope) async throws -> UUID {
         throw ServerError.other("http_404")
     }
 

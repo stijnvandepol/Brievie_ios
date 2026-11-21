@@ -29,6 +29,20 @@ import Testing
         }
     }
 
+    @Test func aMyTasksAnswerAboveTheCapIsRefused() async throws {
+        let server = LiveBrievieServer(configuration: StubURLProtocol.configuration, maxJSONBytes: 2_048)
+        let tasks = Self.tasksJSON(count: 20)
+        let json = """
+            {"items":\(tasks),"today":"2026-11-21","has_person":true,"truncated":false,"waiting_letters":0,
+             "split":false}
+            """
+        let url = try StubURLProtocol.serve(.response(status: 200, json: json))
+
+        await #expect(throws: ServerError.responseTooLarge) {
+            try await server.myTasks(part: .mine, status: .open, in: scope(url))
+        }
+    }
+
     @Test func aJSONAnswerUnderTheCapIsRead() async throws {
         let server = LiveBrievieServer(configuration: StubURLProtocol.configuration, maxJSONBytes: 2_048)
         let url = try StubURLProtocol.serve(.response(status: 200, json: Self.tasksJSON(count: 1)))
