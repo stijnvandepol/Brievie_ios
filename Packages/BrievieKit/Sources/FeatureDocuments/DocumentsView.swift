@@ -111,6 +111,10 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             .navigationDestination(item: $model.openedDocument) { documentID in
                 destination(documentID)
             }
+            // A letter opened from the search results: registered here, on the screen that stays.
+            .navigationDestination(for: SearchHitLink.self) { link in
+                destination(link.documentID)
+            }
             // The undo row appears while the letter screen closes: VoiceOver says so, or it is easily missed.
             .onChange(of: model.undo?.documentID) { _, id in
                 if id != nil { AccessibilityNotification.Announcement(DocumentStrings.undoTrashed).post() }
@@ -133,8 +137,7 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
         } else if model.searchIsAvailable, model.search.isActive {
             DocumentSearchList(
                 model: model.search, undo: model.undo, isUndoing: model.isUndoing,
-                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
-                destination: destination
+                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() }
             )
         } else {
             postList
