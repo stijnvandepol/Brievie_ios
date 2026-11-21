@@ -79,6 +79,9 @@ struct SetDateSheet: View {
             List {
                 Section {
                     Text(title).font(.headline)
+                    // The question is too long for the bar ("Which date does the l..."): it stands here in full.
+                    Text(DocumentStrings.myTasksSetDateTitle)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let term {
                         Text(String(format: DocumentStrings.taskNeedsDateTermFormat, term))
                             .font(.subheadline)
@@ -99,7 +102,7 @@ struct SetDateSheet: View {
                     }
                 }
             }
-            .navigationTitle(DocumentStrings.myTasksSetDateTitle)
+            .navigationTitle(DocumentStrings.myTasksSetDate)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
