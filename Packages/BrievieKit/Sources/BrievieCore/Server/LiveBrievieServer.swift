@@ -13,6 +13,7 @@ public struct LiveBrievieServer: BrievieServer {
     private let makeConfiguration: @Sendable () -> URLSessionConfiguration
     private let maxJSONBytes: Int
     let appVersion: String?
+    private let acceptLanguage: @Sendable () -> String?
 
     /// - Parameter appVersion: sent with every request (`AppVersionHeader`) and in the pairing body; `nil` sends
     ///   none.
@@ -25,11 +26,14 @@ public struct LiveBrievieServer: BrievieServer {
     ///     `SessionConfiguration.hardened`.
     ///   - maxJSONBytes: a longer JSON answer fails with `ServerError.responseTooLarge`.
     ///   - appVersion: as in the public initialiser; tests send none unless they ask.
+    ///   - acceptLanguage: the `Accept-Language` value, read per request; tests pin it.
     init(
         configuration: @escaping @Sendable () -> URLSessionConfiguration,
         maxJSONBytes: Int = LiveBrievieServer.maxJSONResponseBytes,
-        appVersion: String? = nil
+        appVersion: String? = nil,
+        acceptLanguage: @escaping @Sendable () -> String? = { AcceptLanguageHeader.current() }
     ) {
+        self.acceptLanguage = acceptLanguage
         makeConfiguration = configuration
         self.maxJSONBytes = maxJSONBytes
         self.appVersion = appVersion
@@ -53,7 +57,9 @@ public struct LiveBrievieServer: BrievieServer {
         // The only request made before any trust exists. It runs on a one-off session that accepts whatever
         // certificate the server presents, for this single GET only (see `CACertificateDownload`). The PEM it
         // returns is worthless until `PairingService` has checked its SHA-256 against the QR code.
-        try await CACertificateDownload.pem(at: url, configuration: makeConfiguration())
+        try await CACertificateDownload.pem(
+            at: url, configuration: makeConfiguration(), acceptLanguage: acceptLanguage()
+        )
     }
 
     public func pair(at url: URL, trust: ServerTrust, code: String, deviceName: String) async throws -> PairedDevice {
@@ -127,7 +133,8 @@ public struct LiveBrievieServer: BrievieServer {
         do {
             return try await operation(
                 APIClient.make(
-                    baseURL: url, session: session, token: token, maxJSONBytes: maxJSONBytes, appVersion: appVersion
+                    baseURL: url, session: session, token: token, maxJSONBytes: maxJSONBytes, appVersion: appVersion,
+                    acceptLanguage: acceptLanguage
                 )
             )
         } catch {

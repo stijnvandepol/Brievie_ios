@@ -210,7 +210,9 @@ import Testing
 
         await model.load()
 
-        #expect(model.rows.map(\.subtitle) == ["14 nov 2026 · 3 pagina's", "14 nov 2026 · 1 pagina"])
+        // The date follows the device's language; the page words are Dutch here because `swift test` reads no catalog.
+        let day = Date(timeIntervalSince1970: 1_794_650_500).formatted(DocumentsModel.dateStyle)
+        #expect(model.rows.map(\.subtitle) == ["\(day) · 3 pagina's", "\(day) · 1 pagina"])
     }
 
     // MARK: - Camera

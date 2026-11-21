@@ -5,6 +5,12 @@
       "comment": "Warning on the root screen when the device has no passcode, so the app cannot lock itself.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device has no passcode. Set a passcode to protect your mail."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -17,6 +23,12 @@
       "comment": "Title of a calendar event without details, shown on the lock screen; %@ is the task type (\"Betalen\").",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (Brievie)"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -29,6 +41,12 @@
       "comment": "Name of the calendar the app makes per workspace; %@ is the workspace name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie – %@"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -41,6 +59,12 @@
       "comment": "Last line of the notes of a deadline in the phone calendar.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From Brievie"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -53,6 +77,12 @@
       "comment": "Generic error; never shows server diagnostics.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Try again."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -65,6 +95,12 @@
       "comment": "Reason shown in the Face ID / passcode prompt.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock Brievie to see your mail."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -77,6 +113,12 @@
       "comment": "Text of a deadline reminder %d days before (at least 2). On the lock screen: nothing from the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deadline is due in %d days."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -89,6 +131,12 @@
       "comment": "As reminders.body.days, with the sender: %1$@ the sender, %2$d the days.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deadline from %1$@ is due in %2$d days."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -101,6 +149,12 @@
       "comment": "As reminders.body.today, with the sender (only when the user chose to show it); %@ is the sender.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deadline from %@ is due today."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -113,6 +167,12 @@
       "comment": "As reminders.body.tomorrow, with the sender; %@ is the sender.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deadline from %@ is due tomorrow."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -125,6 +185,12 @@
       "comment": "Text of a deadline reminder on its day. On the lock screen: nothing from the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deadline is due today."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -137,6 +203,12 @@
       "comment": "Text of a deadline reminder one day before. On the lock screen: nothing from the letter.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A deadline is due tomorrow."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -149,6 +221,12 @@
       "comment": "Notice on the pairing screen after the server refused this device: revoked, or expired after a long time unused.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This pairing no longer works: it was revoked, or you haven't used Brievie for a long time. Pair this device again to continue."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -161,6 +239,12 @@
       "comment": "Notice on the pairing screen after unpairing when the server could not be told.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone is still listed as a device on the server. Revoke it there under Devices."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",

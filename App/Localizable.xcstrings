@@ -5,6 +5,12 @@
       "comment": "App name.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -16,6 +22,12 @@
     "lock.subtitle": {
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock with Face ID or your passcode."
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -28,6 +40,12 @@
       "comment": "Lock screen title.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie is locked"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -40,6 +58,12 @@
       "comment": "Button that asks for Face ID or the passcode.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",
@@ -52,6 +76,12 @@
       "comment": "VoiceOver hint of the unlock button.",
       "extractionState": "manual",
       "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asks for Face ID or your passcode"
+          }
+        },
         "nl": {
           "stringUnit": {
             "state": "translated",

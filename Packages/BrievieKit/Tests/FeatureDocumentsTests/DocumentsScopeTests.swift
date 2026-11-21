@@ -124,7 +124,7 @@ import Testing
         #expect(row.addressees == ["Stijn", "Anne"])
         #expect(row.labels == [zorg, belasting])
         #expect(row.hasSuggestions)
-        #expect(row.accessibilityLabel.contains("Op naam van Stijn en Anne"))
+        #expect(row.accessibilityLabel.contains("Op naam van \(["Stijn", "Anne"].formatted(.list(type: .and)))"))
         #expect(row.accessibilityLabel.contains("Labels: Zorg, Belasting"))
     }
 

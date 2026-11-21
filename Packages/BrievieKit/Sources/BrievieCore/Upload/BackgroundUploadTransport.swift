@@ -187,7 +187,9 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
     // MARK: - Pure parts
 
     /// The upload's POST: the multipart content type, the device token, and the app version when known.
-    static func request(for upload: UploadRequest, appVersion: String?) -> URLRequest {
+    static func request(
+        for upload: UploadRequest, appVersion: String?, acceptLanguage: String? = AcceptLanguageHeader.current()
+    ) -> URLRequest {
         var request = URLRequest(url: upload.url)
         request.httpMethod = "POST"
         request.setValue(
@@ -196,6 +198,7 @@ public final class BackgroundUploadTransport: NSObject, UploadTransport, URLSess
         request.setValue("Bearer \(upload.token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let appVersion { request.setValue(appVersion, forHTTPHeaderField: AppVersionHeader.name) }
+        if let acceptLanguage { request.setValue(acceptLanguage, forHTTPHeaderField: "Accept-Language") }
         return request
     }
 

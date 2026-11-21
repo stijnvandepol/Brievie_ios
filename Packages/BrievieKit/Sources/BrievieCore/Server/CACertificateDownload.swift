@@ -19,13 +19,16 @@ enum CACertificateDownload {
     private static let path = "api/v1/server/ca-certificate"
 
     /// Errors are `ServerError`, or `CancellationError` when the task was cancelled.
-    static func pem(at baseURL: URL, configuration: URLSessionConfiguration) async throws -> String {
+    static func pem(
+        at baseURL: URL, configuration: URLSessionConfiguration, acceptLanguage: String? = nil
+    ) async throws -> String {
         guard let host = baseURL.host(), baseURL.scheme?.lowercased() == "https" else {
             throw ServerError.other("invalid_url")
         }
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let acceptLanguage { request.setValue(acceptLanguage, forHTTPHeaderField: "Accept-Language") }
 
         let session = URLSession(
             configuration: SessionConfiguration.hardened(configuration),

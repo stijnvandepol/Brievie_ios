@@ -247,10 +247,11 @@ extension ReviewModel {
 }
 
 extension CalendarDate {
-    /// "1 december 2026": the day as written in Dutch, whatever the device's time zone.
+    /// "1 december 2026" or "1 December 2026": the day as written in the user's language, whatever the device's
+    /// time zone.
     var display: String {
         let utc = TimeZone(identifier: "UTC") ?? .gmt
-        let style = Date.FormatStyle(date: .long, time: .omitted, locale: Locale(identifier: "nl_NL"), timeZone: utc)
+        let style = Date.FormatStyle(date: .long, time: .omitted, locale: .autoupdatingCurrent, timeZone: utc)
         return date(in: utc).formatted(style)
     }
 }
