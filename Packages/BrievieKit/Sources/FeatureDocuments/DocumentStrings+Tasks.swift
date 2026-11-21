@@ -57,6 +57,17 @@ extension DocumentStrings {
         localized: "documents.row.arrived", defaultValue: "Binnengekomen om %@", bundle: .module
     )
 
+    // The amount of a payment task in the review
+    static let amount = String(localized: "review.task.amount", defaultValue: "Bedrag", bundle: .module)
+    static let amountPlaceholder = String(
+        localized: "review.task.amount.placeholder", defaultValue: "€ 0,00", bundle: .module
+    )
+    static let amountUnreadable = String(
+        localized: "review.error.amountUnreadable",
+        defaultValue: "Dit bedrag kan Brievie niet lezen. Schrijf het als 1234,56.",
+        bundle: .module
+    )
+
     /// The strings of this part by catalog key, for the parity test (merged into `all`).
     static let taskEditing: [String: String] = [
         "review.deadline.pick.hint": deadlinePickHint,
@@ -72,6 +83,9 @@ extension DocumentStrings {
         "documents.automatic.added": automaticAddedFormat,
         "documents.automatic.confirmed": automaticConfirmedNote,
         "documents.row.arrived": arrivedFormat,
-        "documents.row.proposed": proposedMark
+        "documents.row.proposed": proposedMark,
+        "review.task.amount": amount,
+        "review.task.amount.placeholder": amountPlaceholder,
+        "review.error.amountUnreadable": amountUnreadable
     ]
 }

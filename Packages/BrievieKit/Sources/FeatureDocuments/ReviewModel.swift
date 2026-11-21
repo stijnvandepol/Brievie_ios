@@ -71,6 +71,8 @@ public final class ReviewModel {
     private let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration
     let clock: TodayClock
+    /// The notation of amounts (the user's own; tests set one).
+    @ObservationIgnored var locale: Locale = .autoupdatingCurrent
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     /// The draft as it was pre-filled, to tell whether the user changed anything.
     @ObservationIgnored private var pristineDraft = Draft()
@@ -211,17 +213,13 @@ public final class ReviewModel {
     public var draftHasUserEdits: Bool { draft != pristineDraft }
 
     public func confirm() async {
-        guard canEdit, state == .review, !isSaving else { return }
-        guard draft.tasks.allSatisfy({ !$0.description.trimmingCharacters(in: .whitespaces).isEmpty }) else {
-            saveError = DocumentStrings.taskNeedsDescription
-            return
-        }
+        guard canEdit, state == .review, !isSaving, let tasks = tasksToConfirm() else { return }
         isSaving = true
         saveError = nil
         defer { isSaving = false }
         let review = ConfirmedReview(
             sender: draft.sender, documentType: draft.documentType, letterDate: draft.letterDate,
-            summary: draft.summary, summaryByAI: draft.summaryIsByAI, tasks: draft.tasks,
+            summary: draft.summary, summaryByAI: draft.summaryIsByAI, tasks: tasks,
             addresseeIDs: organiseAvailable ? Self.sorted(draft.organise.addresseeIDs) : [],
             labelIDs: organiseAvailable ? Self.sorted(draft.organise.labelIDs) : [],
             setsOrganisation: organiseAvailable
@@ -302,7 +300,7 @@ public final class ReviewModel {
         case .needsReview, .failed:
             // A refresh must not throw away what the user typed.
             if !wasReviewing {
-                draft = Self.draft(from: detail, today: clock.today)
+                draft = Self.draft(from: detail, today: clock.today, locale: locale)
                 pristineDraft = draft
             }
             state = .review

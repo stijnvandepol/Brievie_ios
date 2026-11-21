@@ -49,6 +49,39 @@ extension ReviewModel {
         pickingDeadline = nil
     }
 
+    /// The amount of a payment task, as typed.
+    public func setAmount(_ text: String, for taskID: UUID) {
+        guard let index = draft.tasks.firstIndex(where: { $0.id == taskID }) else { return }
+        draft.tasks[index].amount = text
+    }
+
+    /// Empty (unknown) or an amount Brievie can read in the user's notation.
+    public func amountIsValid(for taskID: UUID) -> Bool {
+        guard let task = draft.tasks.first(where: { $0.id == taskID }) else { return true }
+        let text = task.amount.trimmingCharacters(in: .whitespaces)
+        return text.isEmpty || TaskAmount.parse(input: text, locale: locale) != nil
+    }
+
+    /// The tasks as they go to the server: every one described, and an amount only on a payment, in the API's
+    /// form. `nil` (with the reason in `saveError`) when the review cannot be confirmed yet.
+    func tasksToConfirm() -> [TaskDraft]? {
+        guard draft.tasks.allSatisfy({ !$0.description.trimmingCharacters(in: .whitespaces).isEmpty }) else {
+            saveError = DocumentStrings.taskNeedsDescription
+            return nil
+        }
+        guard draft.tasks.allSatisfy({ $0.type != "pay" || amountIsValid(for: $0.id) }) else {
+            saveError = DocumentStrings.amountUnreadable
+            return nil
+        }
+        return draft.tasks.map { task in
+            var task = task
+            let typed = task.amount.trimmingCharacters(in: .whitespaces)
+            task.amount = task.type == "pay"
+                ? TaskAmount.parse(input: typed, locale: locale).map(TaskAmount.api) ?? "" : ""
+            return task
+        }
+    }
+
     /// A deadline the user changed is theirs: its source in the letter no longer belongs to it. Setting the
     /// date read from the letter again brings its source back.
     public func setDeadline(_ deadline: CalendarDate?, for taskID: UUID) {

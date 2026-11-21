@@ -161,10 +161,13 @@ public struct TaskDraft: Equatable, Sendable, Identifiable {
     public var deadlineSource: String
     public var deadlineQuote: String
     public var needsAttention: Bool
+    /// The amount of a payment: as typed in the review (the user's notation), the API's decimal string ("1234.56")
+    /// once confirmed; empty when unknown.
+    public var amount: String
 
     public init(
         id: UUID = UUID(), type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String, needsAttention: Bool
+        deadlineQuote: String, needsAttention: Bool, amount: String = ""
     ) {
         self.id = id
         self.type = type
@@ -173,6 +176,7 @@ public struct TaskDraft: Equatable, Sendable, Identifiable {
         self.deadlineSource = deadlineSource
         self.deadlineQuote = deadlineQuote
         self.needsAttention = needsAttention
+        self.amount = amount
     }
 }
 

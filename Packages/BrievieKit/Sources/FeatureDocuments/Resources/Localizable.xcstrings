@@ -2383,6 +2383,24 @@
         }
       }
     },
+    "review.error.amountUnreadable": {
+      "comment": "Review: an amount the app cannot read blocks confirming.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brievie cannot read this amount. Write it as 1234.56."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit bedrag kan Brievie niet lezen. Schrijf het als 1234,56."
+          }
+        }
+      }
+    },
     "review.error.conflict": {
       "comment": "The server refused the confirmation for now (409) while the document still waits for review.",
       "extractionState": "manual",
@@ -3153,6 +3171,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Taak toevoegen"
+          }
+        }
+      }
+    },
+    "review.task.amount": {
+      "comment": "Review: the amount of a payment task (Betalen).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedrag"
+          }
+        }
+      }
+    },
+    "review.task.amount.placeholder": {
+      "comment": "Review: placeholder of the empty amount field.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "€0.00"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "€ 0,00"
           }
         }
       }
