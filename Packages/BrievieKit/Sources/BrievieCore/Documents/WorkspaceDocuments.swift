@@ -31,6 +31,12 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case alreadyDecided
     /// The two letters of a pair are not visible to the same people: they cannot be merged.
     case visibilityDiffers
+    /// The chosen person may not read the task's letter (or is a viewer): choose someone else.
+    case assigneeCannotRead
+    /// A task without a letter cannot be given to anyone.
+    case taskWithoutLetter
+    /// Someone else does the task already; only they or an admin can hand it on.
+    case taskTaken
     case cancelled
     case failed
 }
@@ -61,6 +67,9 @@ public struct WorkspaceDocuments: Sendable {
 
     /// The device this pairing belongs to, for `AppModel.sessionRevoked(deviceID:)`.
     public var deviceID: UUID { connection.deviceID }
+
+    /// The signed-in user's name, as the pairing stored it ("Jij doet dit" when they assigned a task to themselves).
+    public var userName: String { connection.userName }
 
     public func list(filter: DocumentFilter = .all) async throws(DocumentsError) -> [DocumentSummary] {
         try await perform { try await server.documents(in: $0, filter: filter) }
@@ -163,6 +172,41 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.dismissDuplicate(id, in: $0) }
     }
 
+    public func myTasks(part: MyTasksPart, status: MyTasksStatus) async throws(DocumentsError) -> MyTasks {
+        try await perform { try await server.myTasks(part: part, status: status, in: $0) }
+    }
+
+    public func myTaskCounts() async throws(DocumentsError) -> MyTaskCounts {
+        try await perform { try await server.myTaskCounts(in: $0) }
+    }
+
+    public func assignTask(_ id: UUID, to user: UUID?) async throws(DocumentsError) -> WorkspaceTask {
+        try await perform { try await server.assignTask(id, to: user, in: $0) }
+    }
+
+    public func taskAssignees(_ id: UUID) async throws(DocumentsError) -> [TaskAssignee] {
+        try await perform { try await server.taskAssignees(id, in: $0) }
+    }
+
+    public func setTaskDeadline(_ id: UUID, to deadline: CalendarDate?) async throws(DocumentsError) -> WorkspaceTask {
+        try await perform { try await server.setTaskDeadline(id, to: deadline, in: $0) }
+    }
+
+    public func currentUserID() async throws(DocumentsError) -> UUID {
+        try await perform { try await server.currentUserID(in: $0) }
+    }
+
+    /// The tasks the phone's reminders and calendar follow: the member's own ("Mijn taken", the default) or every
+    /// task they may see. Never "Op te pakken" (asked as the own tasks). A server before "Mijn taken" (404) gives
+    /// every open task of the workspace, as before; any other failure is a failure, never that fallback.
+    public func phoneTasks(_ part: MyTasksPart) async throws(DocumentsError) -> [WorkspaceTask] {
+        do {
+            return try await myTasks(part: part == .all ? .all : .mine, status: .open).items
+        } catch .notSupported {
+            return try await openTasks()
+        }
+    }
+
     private func perform<Result: Sendable>(
         _ call: (DocumentScope) async throws -> Result
     ) async throws(DocumentsError) -> Result {
@@ -230,6 +274,9 @@ public struct WorkspaceDocuments: Sendable {
         "forbidden": .forbidden,
         "duplicate_not_open": .alreadyDecided,
         "duplicate_visibility_differs": .visibilityDiffers,
+        "assignee_cannot_read": .assigneeCannotRead,
+        "task_without_letter": .taskWithoutLetter,
+        "task_taken": .taskTaken,
         "http_404": .notSupported
     ]
 

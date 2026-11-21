@@ -324,6 +324,20 @@
         "title": "AiSupplierOut",
         "type": "object"
       },
+      "AssignIn": {
+        "properties": {
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "title": "AssignIn",
+        "type": "object"
+      },
       "AuditEventOut": {
         "properties": {
           "actor_device_id": {
@@ -488,6 +502,11 @@
             "maxItems": 20,
             "title": "Tasks",
             "type": "array"
+          },
+          "visibility": {
+            "default": "",
+            "title": "Visibility",
+            "type": "string"
           }
         },
         "required": [
@@ -520,6 +539,63 @@
           "home_network_only"
         ],
         "title": "CreatedInvitationOut",
+        "type": "object"
+      },
+      "DeadlineIn": {
+        "properties": {
+          "deadline": {
+            "format": "date",
+            "title": "Deadline",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "title": "DeadlineIn",
+        "type": "object"
+      },
+      "DepartmentMemberIn": {
+        "properties": {
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "is_lead": {
+            "default": false,
+            "title": "Is Lead",
+            "type": "boolean"
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id"
+        ],
+        "title": "DepartmentMemberIn",
+        "type": "object"
+      },
+      "DepartmentMemberUpdateIn": {
+        "properties": {
+          "is_lead": {
+            "title": "Is Lead",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "is_lead"
+        ],
+        "title": "DepartmentMemberUpdateIn",
         "type": "object"
       },
       "DeviceOut": {
@@ -561,6 +637,23 @@
         "title": "DeviceOut",
         "type": "object"
       },
+      "DocumentAccessOut": {
+        "description": "Who can see this letter, by name (\"Wie kan deze brief zien?\").",
+        "properties": {
+          "viewers": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentViewerOut"
+            },
+            "title": "Viewers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "viewers"
+        ],
+        "title": "DocumentAccessOut",
+        "type": "object"
+      },
       "DocumentEventOut": {
         "properties": {
           "actor_id": {
@@ -595,6 +688,11 @@
           },
           "label_name": {
             "title": "Label Name",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
             "type": "string"
           },
           "origin": {
@@ -670,6 +768,11 @@
             },
             "title": "Auto Rule Label Ids",
             "type": "array"
+          },
+          "can_make_public": {
+            "default": false,
+            "title": "Can Make Public",
+            "type": "boolean"
           },
           "can_read": {
             "default": true,
@@ -771,9 +874,24 @@
             "title": "Proposed Sender",
             "type": "string"
           },
+          "reader_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reader Names",
+            "type": "array"
+          },
           "sender": {
             "title": "Sender",
             "type": "string"
+          },
+          "shared_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Shared User Ids",
+            "type": "array"
           },
           "status": {
             "title": "Status",
@@ -800,6 +918,11 @@
             },
             "title": "Tasks",
             "type": "array"
+          },
+          "visibility": {
+            "default": "workspace",
+            "title": "Visibility",
+            "type": "string"
           }
         },
         "required": [
@@ -932,6 +1055,13 @@
             "title": "Proposed Sender",
             "type": "string"
           },
+          "reader_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reader Names",
+            "type": "array"
+          },
           "sender": {
             "title": "Sender",
             "type": "string"
@@ -945,6 +1075,11 @@
           },
           "status": {
             "title": "Status",
+            "type": "string"
+          },
+          "visibility": {
+            "default": "workspace",
+            "title": "Visibility",
             "type": "string"
           }
         },
@@ -1176,12 +1311,24 @@
             "title": "Proposed Sender",
             "type": "string"
           },
+          "reader_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reader Names",
+            "type": "array"
+          },
           "sender": {
             "title": "Sender",
             "type": "string"
           },
           "status": {
             "title": "Status",
+            "type": "string"
+          },
+          "visibility": {
+            "default": "workspace",
+            "title": "Visibility",
             "type": "string"
           }
         },
@@ -1196,6 +1343,89 @@
           "letter_date"
         ],
         "title": "DocumentSummaryOut",
+        "type": "object"
+      },
+      "DocumentViewerOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "reasons"
+        ],
+        "title": "DocumentViewerOut",
+        "type": "object"
+      },
+      "DocumentVisibilityIn": {
+        "properties": {
+          "shared_user_ids": {
+            "default": [],
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Shared User Ids",
+            "type": "array"
+          },
+          "visibility": {
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "visibility"
+        ],
+        "title": "DocumentVisibilityIn",
+        "type": "object"
+      },
+      "DocumentVisibilityOut": {
+        "properties": {
+          "can_read": {
+            "default": true,
+            "title": "Can Read",
+            "type": "boolean"
+          },
+          "reader_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reader Names",
+            "type": "array"
+          },
+          "shared_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Shared User Ids",
+            "type": "array"
+          },
+          "visibility": {
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "visibility"
+        ],
+        "title": "DocumentVisibilityOut",
         "type": "object"
       },
       "DuplicateDifferenceOut": {
@@ -1300,6 +1530,66 @@
           "text_similarity"
         ],
         "title": "DuplicateOut",
+        "type": "object"
+      },
+      "EmergencyAccessIn": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "EmergencyAccessIn",
+        "type": "object"
+      },
+      "EmergencyAccessOut": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "EmergencyAccessOut",
+        "type": "object"
+      },
+      "EmergencyAccessUseIn": {
+        "properties": {
+          "reason": {
+            "maxLength": 200,
+            "minLength": 10,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "EmergencyAccessUseIn",
+        "type": "object"
+      },
+      "EmergencyAccessUseOut": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "opened_count": {
+            "title": "Opened Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "opened_count",
+          "expires_at"
+        ],
+        "title": "EmergencyAccessUseOut",
         "type": "object"
       },
       "EmptyTrashIn": {
@@ -1462,6 +1752,11 @@
       },
       "InvitationIn": {
         "properties": {
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
           "email": {
             "default": "",
             "maxLength": 254,
@@ -1491,6 +1786,12 @@
               "string",
               "null"
             ]
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
           },
           "role": {
             "default": "member",
@@ -1631,6 +1932,14 @@
             "title": "Color",
             "type": "string"
           },
+          "department_id": {
+            "format": "uuid",
+            "title": "Department Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "name": {
             "maxLength": 50,
             "minLength": 1,
@@ -1649,6 +1958,14 @@
           "color": {
             "title": "Color",
             "type": "string"
+          },
+          "department_id": {
+            "format": "uuid",
+            "title": "Department Id",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "document_count": {
             "title": "Document Count",
@@ -1684,6 +2001,14 @@
             "default": "",
             "title": "Color",
             "type": "string"
+          },
+          "department_id": {
+            "format": "uuid",
+            "title": "Department Id",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "name": {
             "maxLength": 50,
@@ -1754,12 +2079,55 @@
         "title": "LoginIn",
         "type": "object"
       },
+      "MemberChangeOut": {
+        "properties": {
+          "gains": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gains",
+            "type": "array"
+          },
+          "losses": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Losses",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "gains",
+          "losses"
+        ],
+        "title": "MemberChangeOut",
+        "type": "object"
+      },
       "MemberOut": {
         "properties": {
           "can_manage_account": {
             "default": false,
             "title": "Can Manage Account",
             "type": "boolean"
+          },
+          "department_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Department Ids",
+            "type": "array"
           },
           "name": {
             "title": "Name",
@@ -1776,6 +2144,11 @@
           "role": {
             "title": "Role",
             "type": "string"
+          },
+          "sorts_post": {
+            "default": false,
+            "title": "Sorts Post",
+            "type": "boolean"
           },
           "user_id": {
             "format": "uuid",
@@ -1794,6 +2167,17 @@
       },
       "MemberRoleIn": {
         "properties": {
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
+          },
           "role": {
             "enum": [
               "admin",
@@ -1880,6 +2264,81 @@
           "status"
         ],
         "title": "MyExportOut",
+        "type": "object"
+      },
+      "MyTaskCountsOut": {
+        "properties": {
+          "mine": {
+            "title": "Mine",
+            "type": "integer"
+          },
+          "needs_date": {
+            "title": "Needs Date",
+            "type": "integer"
+          },
+          "overdue": {
+            "title": "Overdue",
+            "type": "integer"
+          },
+          "to_pick_up": {
+            "title": "To Pick Up",
+            "type": "integer"
+          },
+          "within_week": {
+            "title": "Within Week",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mine",
+          "overdue",
+          "within_week",
+          "needs_date",
+          "to_pick_up"
+        ],
+        "title": "MyTaskCountsOut",
+        "type": "object"
+      },
+      "MyTasksOut": {
+        "properties": {
+          "has_person": {
+            "title": "Has Person",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "split": {
+            "title": "Split",
+            "type": "boolean"
+          },
+          "today": {
+            "format": "date",
+            "title": "Today",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "waiting_letters": {
+            "title": "Waiting Letters",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "today",
+          "has_person",
+          "truncated",
+          "waiting_letters",
+          "split"
+        ],
+        "title": "MyTasksOut",
         "type": "object"
       },
       "NoticeOut": {
@@ -2182,6 +2641,11 @@
             "title": "Display Name",
             "type": "string"
           },
+          "kind": {
+            "default": "person",
+            "title": "Kind",
+            "type": "string"
+          },
           "name_variants": {
             "items": {
               "type": "string"
@@ -2198,6 +2662,17 @@
       },
       "PersonMemberIn": {
         "properties": {
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
+          },
           "user_id": {
             "format": "uuid",
             "title": "User Id",
@@ -2229,6 +2704,27 @@
             "title": "Id",
             "type": "string"
           },
+          "kind": {
+            "default": "person",
+            "title": "Kind",
+            "type": "string"
+          },
+          "lead_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Lead User Ids",
+            "type": "array"
+          },
+          "member_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Member User Ids",
+            "type": "array"
+          },
           "name_variants": {
             "items": {
               "type": "string"
@@ -2254,6 +2750,23 @@
           "document_count"
         ],
         "title": "PersonOut",
+        "type": "object"
+      },
+      "PostAccessOut": {
+        "description": "\"Wie kan mijn post zien?\" for the caller, in sentences the server writes.",
+        "properties": {
+          "sentences": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sentences",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sentences"
+        ],
+        "title": "PostAccessOut",
         "type": "object"
       },
       "ProposalOut": {
@@ -2316,6 +2829,23 @@
           "password"
         ],
         "title": "ReauthenticateIn",
+        "type": "object"
+      },
+      "RenewInvitationIn": {
+        "properties": {
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
+          }
+        },
+        "title": "RenewInvitationIn",
         "type": "object"
       },
       "RuleActionSchema": {
@@ -2844,6 +3374,30 @@
         "title": "SnippetPartOut",
         "type": "object"
       },
+      "SortsPostIn": {
+        "properties": {
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
+          },
+          "sorts_post": {
+            "title": "Sorts Post",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sorts_post"
+        ],
+        "title": "SortsPostIn",
+        "type": "object"
+      },
       "SuggestionOut": {
         "properties": {
           "action": {
@@ -2906,8 +3460,38 @@
         "title": "SuggestionOut",
         "type": "object"
       },
+      "TaskAssigneeOut": {
+        "properties": {
+          "is_me": {
+            "title": "Is Me",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "user_id": {
+            "format": "uuid",
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "is_me"
+        ],
+        "title": "TaskAssigneeOut",
+        "type": "object"
+      },
       "TaskIn": {
         "properties": {
+          "amount": {
+            "default": "",
+            "maxLength": 20,
+            "title": "Amount",
+            "type": "string"
+          },
           "deadline": {
             "format": "date",
             "title": "Deadline",
@@ -2946,6 +3530,34 @@
       },
       "TaskItemOut": {
         "properties": {
+          "amount": {
+            "default": "",
+            "title": "Amount",
+            "type": "string"
+          },
+          "assigned_by_name": {
+            "default": "",
+            "title": "Assigned By Name",
+            "type": "string"
+          },
+          "assigned_to_id": {
+            "format": "uuid",
+            "title": "Assigned To Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assigned_to_name": {
+            "default": "",
+            "title": "Assigned To Name",
+            "type": "string"
+          },
+          "can_edit": {
+            "default": false,
+            "title": "Can Edit",
+            "type": "boolean"
+          },
           "completed_at": {
             "format": "date-time",
             "title": "Completed At",
@@ -2954,10 +3566,22 @@
               "null"
             ]
           },
+          "completed_by_name": {
+            "default": "",
+            "title": "Completed By Name",
+            "type": "string"
+          },
           "created_by_ai": {
             "default": false,
             "title": "Created By Ai",
             "type": "boolean"
+          },
+          "days_left": {
+            "title": "Days Left",
+            "type": [
+              "integer",
+              "null"
+            ]
           },
           "deadline": {
             "format": "date",
@@ -2966,6 +3590,11 @@
               "string",
               "null"
             ]
+          },
+          "deadline_quote": {
+            "default": "",
+            "title": "Deadline Quote",
+            "type": "string"
           },
           "deadline_source": {
             "title": "Deadline Source",
@@ -2983,9 +3612,36 @@
               "null"
             ]
           },
+          "document_type": {
+            "default": "",
+            "title": "Document Type",
+            "type": "string"
+          },
+          "for_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "For Names",
+            "type": "array"
+          },
+          "group": {
+            "default": "",
+            "title": "Group",
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
+            "type": "string"
+          },
+          "needs_deadline": {
+            "default": false,
+            "title": "Needs Deadline",
+            "type": "boolean"
+          },
+          "reason": {
+            "default": "",
+            "title": "Reason",
             "type": "string"
           },
           "sender": {
@@ -2994,6 +3650,11 @@
           },
           "status": {
             "title": "Status",
+            "type": "string"
+          },
+          "term_quote": {
+            "default": "",
+            "title": "Term Quote",
             "type": "string"
           },
           "type": {
@@ -3023,6 +3684,24 @@
       },
       "TaskOut": {
         "properties": {
+          "amount": {
+            "default": "",
+            "title": "Amount",
+            "type": "string"
+          },
+          "assigned_to_id": {
+            "format": "uuid",
+            "title": "Assigned To Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "assigned_to_name": {
+            "default": "",
+            "title": "Assigned To Name",
+            "type": "string"
+          },
           "completed_at": {
             "format": "date-time",
             "title": "Completed At",
@@ -3063,6 +3742,11 @@
           },
           "status": {
             "title": "Status",
+            "type": "string"
+          },
+          "term_quote": {
+            "default": "",
+            "title": "Term Quote",
             "type": "string"
           },
           "type": {
@@ -3254,6 +3938,13 @@
             "title": "Purge After",
             "type": "string"
           },
+          "reader_names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reader Names",
+            "type": "array"
+          },
           "sender": {
             "title": "Sender",
             "type": "string"
@@ -3270,6 +3961,11 @@
           "trashed_by_name": {
             "default": "",
             "title": "Trashed By Name",
+            "type": "string"
+          },
+          "visibility": {
+            "default": "workspace",
+            "title": "Visibility",
             "type": "string"
           }
         },
@@ -3350,6 +4046,259 @@
         "title": "UserOut",
         "type": "object"
       },
+      "VisibilityIn": {
+        "properties": {
+          "add_start_set": {
+            "default": false,
+            "title": "Add Start Set",
+            "type": "boolean"
+          },
+          "admins_read_all": {
+            "title": "Admins Read All",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "allow_member_export": {
+            "title": "Allow Member Export",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "apply_preset": {
+            "default": false,
+            "title": "Apply Preset",
+            "type": "boolean"
+          },
+          "care_is_private": {
+            "title": "Care Is Private",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "confirmed": {
+            "default": false,
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "departments_enabled": {
+            "title": "Departments Enabled",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "everyone_sees_all": {
+            "title": "Everyone Sees All",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "kind": {
+            "pattern": "^(home|business)$",
+            "title": "Kind",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preview_token": {
+            "default": "",
+            "maxLength": 64,
+            "title": "Preview Token",
+            "type": "string"
+          }
+        },
+        "title": "VisibilityIn",
+        "type": "object"
+      },
+      "VisibilityOut": {
+        "properties": {
+          "admins_read_all": {
+            "title": "Admins Read All",
+            "type": "boolean"
+          },
+          "departments_enabled": {
+            "title": "Departments Enabled",
+            "type": "boolean"
+          },
+          "everyone_sees_all": {
+            "title": "Everyone Sees All",
+            "type": "boolean"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "sentences": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sentences",
+            "type": "array"
+          },
+          "sorter_user_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Sorter User Ids",
+            "type": "array"
+          },
+          "summary": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Summary",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "everyone_sees_all",
+          "departments_enabled",
+          "admins_read_all",
+          "sorter_user_ids",
+          "sentences"
+        ],
+        "title": "VisibilityOut",
+        "type": "object"
+      },
+      "VisibilityPreviewIn": {
+        "properties": {
+          "add_start_set": {
+            "default": false,
+            "title": "Add Start Set",
+            "type": "boolean"
+          },
+          "admins_read_all": {
+            "title": "Admins Read All",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "allow_member_export": {
+            "title": "Allow Member Export",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "apply_preset": {
+            "default": false,
+            "title": "Apply Preset",
+            "type": "boolean"
+          },
+          "care_is_private": {
+            "title": "Care Is Private",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "departments_enabled": {
+            "title": "Departments Enabled",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "everyone_sees_all": {
+            "title": "Everyone Sees All",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "kind": {
+            "pattern": "^(home|business)$",
+            "title": "Kind",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "member_change": {
+            "default": "",
+            "pattern": "^(|role|sorts_post|department_add|department_remove|link|unlink|remove|invite|invite_admin)$",
+            "title": "Member Change",
+            "type": "string"
+          },
+          "member_person_id": {
+            "format": "uuid",
+            "title": "Member Person Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "member_role": {
+            "default": "",
+            "pattern": "^(|admin|member|viewer)$",
+            "title": "Member Role",
+            "type": "string"
+          },
+          "member_sorts_post": {
+            "default": false,
+            "title": "Member Sorts Post",
+            "type": "boolean"
+          },
+          "member_user_id": {
+            "format": "uuid",
+            "title": "Member User Id",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "title": "VisibilityPreviewIn",
+        "type": "object"
+      },
+      "VisibilityPreviewOut": {
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/MemberChangeOut"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "letter_count": {
+            "title": "Letter Count",
+            "type": "integer"
+          },
+          "needs_confirmation": {
+            "title": "Needs Confirmation",
+            "type": "boolean"
+          },
+          "preview_token": {
+            "title": "Preview Token",
+            "type": "string"
+          },
+          "sentences": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sentences",
+            "type": "array"
+          }
+        },
+        "required": [
+          "changes",
+          "letter_count",
+          "needs_confirmation",
+          "sentences",
+          "preview_token"
+        ],
+        "title": "VisibilityPreviewOut",
+        "type": "object"
+      },
       "WorkspaceOut": {
         "properties": {
           "id": {
@@ -3388,6 +4337,13 @@
               "null"
             ]
           },
+          "care_is_private": {
+            "title": "Care Is Private",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
           "summary_language": {
             "pattern": "^(nl|en)$",
             "title": "Summary Language",
@@ -3402,8 +4358,33 @@
       },
       "WorkspaceSettingsOut": {
         "properties": {
+          "admins_read_all": {
+            "default": true,
+            "title": "Admins Read All",
+            "type": "boolean"
+          },
           "allow_member_export": {
             "title": "Allow Member Export",
+            "type": "boolean"
+          },
+          "care_is_private": {
+            "default": false,
+            "title": "Care Is Private",
+            "type": "boolean"
+          },
+          "departments_enabled": {
+            "default": false,
+            "title": "Departments Enabled",
+            "type": "boolean"
+          },
+          "emergency_access": {
+            "default": false,
+            "title": "Emergency Access",
+            "type": "boolean"
+          },
+          "everyone_sees_all": {
+            "default": true,
+            "title": "Everyone Sees All",
             "type": "boolean"
           },
           "summary_language": {
@@ -6957,6 +7938,78 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/access": {
+      "get": {
+        "description": "Who can see this letter, and why, sorted by name; for any member who sees it (404 document_not_found otherwise, as for a letter that does not exist).",
+        "operationId": "getDocumentAccess",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentAccessOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get Document Access",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/documents/{document_id}/addressees": {
       "put": {
         "operationId": "setDocumentAddressees",
@@ -8210,6 +9263,148 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/visibility": {
+      "put": {
+        "description": "Make the letter private (`restricted`) or visible to everyone (`workspace`), and share it: afterwards it is shared with exactly `shared_user_ids` (any letter). 403 `cannot_make_public` for someone not addressed while an addressee reads it; 404 `member_not_found` for a share with somebody who is no member. `can_read` false when the caller removed their own share.",
+        "operationId": "setDocumentVisibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentVisibilityIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentVisibilityOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set Document Visibility",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/duplicates": {
       "get": {
         "description": "The open pairs of letters that are probably one letter scanned twice, newest first (at most 100). A viewer gets an empty list. Only a pair whose two letters the caller both sees; any other answers as a missing one (404 `duplicate_not_found`).",
@@ -8572,6 +9767,125 @@
         "summary": "Merge Duplicate",
         "tags": [
           "duplicates"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/emergency-access": {
+      "put": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Switch emergency access for the workspace's admins. Server admins only (403 forbidden), also without a membership; every member gets a notice.",
+        "operationId": "setEmergencyAccess",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyAccessIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyAccessOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set Emergency Access",
+        "tags": [
+          "workspaces"
         ]
       }
     },
@@ -9114,7 +10428,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/invitations/{invitation_id}/renew": {
       "post": {
-        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. A new link with the same role, person, email address, note and validity; the old link stops. Shown only here (Cache-Control: no-store). 404 invitation_not_found; 409 and 422 as when making one.",
+        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. A new link with the same role, person, email address, note and validity; the old link stops. Shown only here (Cache-Control: no-store). 404 invitation_not_found; 409 and 422 as when making one. The body is optional: a renewal that would give the newcomer more sight at this moment (the admin role, or the person) answers 409 confirmation_required until it sends `confirmed` and the `preview_token` of previewVisibilityChange with member_change invite, its role and person.",
         "operationId": "renewInvitation",
         "parameters": [
           {
@@ -9138,6 +10452,20 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/RenewInvitationIn"
+                  }
+                ]
+              }
+            }
+          },
+          "required": false
+        },
         "responses": {
           "201": {
             "content": {
@@ -9148,6 +10476,16 @@
               }
             },
             "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
           },
           "401": {
             "content": {
@@ -9188,6 +10526,26 @@
               }
             },
             "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
           },
           "422": {
             "content": {
@@ -9936,7 +11294,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/members/{user_id}/role": {
       "put": {
-        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. Give a member another role; the member sees it at their next request. 404 member_not_found for somebody who is no member of this workspace; 409 last_admin for demoting the only admin. A demoted admin's open invitations and reset links stop.",
+        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. Give a member another role; the member sees it at their next request. 404 member_not_found for somebody who is no member of this workspace; 409 last_admin for demoting the only admin. A demoted admin's open invitations and reset links stop. When somebody gains sight by it (a new admin while admins read all post, a new fallback sorter): 409 confirmation_required without `confirmed`, 409 preview_outdated for an old preview's token (`previewVisibilityChange`). A viewer sorts no post.",
         "operationId": "updateMemberRole",
         "parameters": [
           {
@@ -10068,6 +11426,145 @@
           }
         ],
         "summary": "Update Member Role",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/members/{user_id}/sorts-post": {
+      "put": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. \"Verdeelt post\": the member gets the letters nobody else reads, to put a name on them. 404 member_not_found; 422 viewer_cannot_sort; when somebody gains sight: 409 confirmation_required without `confirmed`, 409 preview_outdated for an old preview's token (`previewVisibilityChange`).",
+        "operationId": "updateMemberSortsPost",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SortsPostIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Update Member Sorts Post",
         "tags": [
           "workspaces"
         ]
@@ -10299,6 +11796,160 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/my-tasks": {
+      "get": {
+        "description": "\"Mijn taken\": the caller's tasks, derived from the post they may read. `part` is `mine` (default: given to them, or on their post), `to_pick_up` (an organisation's department and unnamed post; empty at home) or `all` (every task they see). `status` is `open` (default; by deadline, undated last, at most 500) or `done` (completed in the last 30 days, newest first, at most 200). 422 `validation_error` for another part or status.",
+        "operationId": "listMyTasks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "part",
+            "required": false,
+            "schema": {
+              "default": "mine",
+              "title": "Part",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": "open",
+              "title": "Status",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyTasksOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "List My Tasks",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/my-tasks/counts": {
+      "get": {
+        "description": "The numbers of \"Mijn taken\" for the navigation: open tasks only.",
+        "operationId": "countMyTasks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyTaskCountsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Count My Tasks",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/persons": {
       "get": {
         "operationId": "listPersons",
@@ -10364,6 +12015,7 @@
         ]
       },
       "post": {
+        "description": "`kind` \"department\" makes a department: admins only (403 `forbidden`).",
         "operationId": "createPerson",
         "parameters": [
           {
@@ -10578,7 +12230,7 @@
         ]
       },
       "put": {
-        "description": "`name_variants` and `archived` left out keep the person's current value (a rename never archives, restores or clears the variants); sent, they replace it.",
+        "description": "`name_variants` and `archived` left out keep the person's current value (a rename never archives, restores or clears the variants); sent, they replace it. A department or a person linked to an account: admins only (403 `forbidden`).",
         "operationId": "updatePerson",
         "parameters": [
           {
@@ -10718,9 +12370,148 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/persons/{person_id}/emergency-access": {
+      "post": {
+        "description": "Web session only, admins. Opens for one hour, read-only, every letter on the name of this person or department that the admin cannot see, with a reason of 10 to 200 characters: a history line on each, an audit row, a notice to the person or the department's members. 409 `emergency_access_off` when the workspace has it off.",
+        "operationId": "openEmergencyAccess",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Person Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyAccessUseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyAccessUseOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Open Emergency Access",
+        "tags": [
+          "people"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/persons/{person_id}/member": {
       "put": {
-        "description": "Web session only: a bearer token answers 401 not_authenticated. Link the person to a member of the workspace (`user_id`), or unlink it (null). Administrators only.",
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Link the person to a member of the workspace (`user_id`; administrators only), or unlink it (null). A linked person is unlinked only by its own member (409 `cannot_unlink` for anybody else); 409 `cannot_grant_self` for an admin linking themselves to a person with private post; 409 `is_a_department`. A link by which somebody gains sight needs `confirmed` and the preview's token (409 `confirmation_required`, `preview_outdated`; see `previewVisibilityChange`).",
         "operationId": "linkPersonToMember",
         "parameters": [
           {
@@ -10854,6 +12645,453 @@
         "summary": "Link Person To Member",
         "tags": [
           "people"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/persons/{person_id}/members": {
+      "post": {
+        "description": "Web session only. Admins put a member in a department (a grant). 409 `not_a_department`, 409 `cannot_grant_self` (an admin adding themselves where there is private post). A member already in it: 200, unchanged. When the member gains sight (departments on, \"Iedereen ziet alle post\" off): 409 `confirmation_required` without `confirmed`, 409 `preview_outdated` for an old preview's token.",
+        "operationId": "addDepartmentMember",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Person Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepartmentMemberIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Add Department Member",
+        "tags": [
+          "people"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/persons/{person_id}/members/{user_id}": {
+      "delete": {
+        "description": "Web session only. Admins take a member out of a department.",
+        "operationId": "removeDepartmentMember",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Person Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Remove Department Member",
+        "tags": [
+          "people"
+        ]
+      },
+      "put": {
+        "description": "Web session only. Admins make a department member its lead, or not.",
+        "operationId": "updateDepartmentMember",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "person_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Person Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepartmentMemberUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Update Department Member",
+        "tags": [
+          "people"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/post-access": {
+      "get": {
+        "description": "\"Wie kan mijn post zien?\": who can see the caller's post, in sentences (the switches, the admins, who sorts post, private post, emergency access, the server admins, the AI service). For every member, also with the app.",
+        "operationId": "getMyPostAccess",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostAccessOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get My Post Access",
+        "tags": [
+          "workspaces"
         ]
       }
     },
@@ -11915,6 +14153,224 @@
         ]
       }
     },
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/assign": {
+      "post": {
+        "description": "Give the task to a member who can read its letter (`user_id`), or take it back (`user_id` null). The same assignee again changes nothing. Writes a `task_assigned` or `task_unassigned` event on the letter. 404 `task_not_found` for a task the caller does not see; 422 `task_without_letter`; 422 `assignee_cannot_read` for someone who may not read the letter, a viewer or no member.",
+        "operationId": "assignTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Assign Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/assignees": {
+      "get": {
+        "description": "The members the task can be given to: those who can read its letter, viewers left out, by name. Empty for a task without a letter.",
+        "operationId": "listTaskAssignees",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TaskAssigneeOut"
+                  },
+                  "title": "Response",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "List Task Assignees",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/complete": {
       "post": {
         "description": "Idempotent. Writes a `task_completed` event on the task's document.",
@@ -11992,6 +14448,138 @@
           }
         ],
         "summary": "Complete Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/deadline": {
+      "post": {
+        "description": "\"Datum invullen\": the date the letter names, filled in by hand (`deadline`; null takes it away). The source becomes `manual`; the term's words stay. The same date again changes nothing. Writes a `task_deadline_set` event on the letter. 422 `validation_error` for a date before the letter's date.",
+        "operationId": "setTaskDeadline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeadlineIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set Task Deadline",
         "tags": [
           "tasks"
         ]
@@ -12339,6 +14927,324 @@
         "summary": "Purge Document",
         "tags": [
           "documents"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/visibility": {
+      "get": {
+        "description": "Who sees what, for every member: the three switches, who sorts post, and the sentences of \"Wie kan mijn post zien?\" for the caller; an admin also gets the summary of the installation.",
+        "operationId": "getVisibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get Visibility",
+        "tags": [
+          "workspaces"
+        ]
+      },
+      "put": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. Change who sees what; a value left out stays as it is. When anybody gains sight: 409 confirmation_required without `confirmed`, 409 preview_outdated when something changed since the preview whose token is sent. Every changed value is written to the log; the members whose sight changes get a notice, every member when admins gain all post. Labels and rules are never removed.",
+        "operationId": "updateVisibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisibilityIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Update Visibility",
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/visibility/preview": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. For the workspace's admins: another role answers 403 forbidden, a workspace the caller is not a member of 404 workspace_not_found. What a change of the switches, or a planned member change (`member_change`), would do: per member what they start and stop seeing, the number of letters whose viewers change, whether it needs confirmation, the summary after it, and the token a confirmed change sends back. Changes nothing. A member change answers that change's own errors (404 member_not_found, 409 last_admin, 422 viewer_cannot_sort, ...).",
+        "operationId": "previewVisibilityChange",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisibilityPreviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityPreviewOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Preview Visibility Change",
+        "tags": [
+          "workspaces"
         ]
       }
     }

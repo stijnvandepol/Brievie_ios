@@ -13,7 +13,8 @@ extension ServerError {
         "no_private_ca", "validation_error", "workspace_not_found", "document_not_found", "page_not_found",
         "document_not_reviewable", "document_not_failed", "device_not_found", "person_not_found",
         "label_not_found", "suggestion_not_found", "person_exists", "document_processing", "task_not_found",
-        "document_in_trash", "forbidden", "duplicate_not_found", "duplicate_not_open", "duplicate_visibility_differs"
+        "document_in_trash", "forbidden", "duplicate_not_found", "duplicate_not_open", "duplicate_visibility_differs",
+        "assignee_cannot_read", "task_without_letter", "task_taken"
     ]
 
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.

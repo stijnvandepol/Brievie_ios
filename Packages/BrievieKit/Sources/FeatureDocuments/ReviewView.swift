@@ -250,8 +250,7 @@ public struct ReviewView: View {
             notes(for: .taskType(id), title: DocumentStrings.taskType)
             TextField(DocumentStrings.taskDescription, text: task.description, axis: .vertical)
             notes(for: .taskDescription(id), title: DocumentStrings.taskDescription)
-            DeadlineRow(model: model, taskID: id, deadline: task.wrappedValue.deadline)
-            notes(for: .taskDeadline(id), title: DocumentStrings.deadline)
+            DeadlineAndAmountRows(model: model, task: task)
         } header: {
             if showsHeader {
                 Text(DocumentStrings.tasks)
@@ -321,7 +320,7 @@ private struct TrashQuestion: ViewModifier {
 /// What the user needs to judge a pre-filled value: a mark when it needs a second look (or was not read from
 /// the letter at all), where it stands in the letter, and a proposal that was not pre-filled. Nothing once the
 /// user changed the value: it is theirs.
-private struct FieldNotes: View {
+struct FieldNotes: View {
     let draft: ReviewModel.Draft
     let field: ReviewField
     /// The field's name, so VoiceOver says which value a mark belongs to.

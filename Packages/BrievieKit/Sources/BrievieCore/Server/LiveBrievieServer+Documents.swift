@@ -328,11 +328,18 @@ extension DocumentDetail {
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {
             guard let taskID = UUID(uuidString: task.id) else { throw .incompatible }
+            var assignedToID: UUID?
+            if let text = task.assignedToId {
+                guard let id = UUID(uuidString: text) else { throw .incompatible }
+                assignedToID = id
+            }
             tasks.append(ConfirmedTask(
                 id: taskID, type: task._type, description: task.description,
                 deadline: task.deadline.flatMap(CalendarDate.init(iso:)), deadlineSource: task.deadlineSource,
                 deadlineQuote: task.deadlineQuote, isDone: task.status == "done",
-                createdByAI: task.createdByAi ?? false
+                createdByAI: task.createdByAi ?? false, amount: task.amount.flatMap(TaskAmount.parse(api:)),
+                termQuote: task.termQuote ?? "", assignedToID: assignedToID,
+                assignedToName: task.assignedToName ?? ""
             ))
         }
         self.init(
@@ -369,6 +376,8 @@ private extension Components.Schemas.ConfirmIn {
             summaryByAi: review.summaryByAI,
             tasks: review.tasks.map { task in
                 .init(
+                    // Only the API's own form goes out; anything else is "unknown" (the review blocks it first).
+                    amount: TaskAmount.parse(api: task.amount).map(TaskAmount.api) ?? "",
                     deadline: task.deadline?.iso, deadlineQuote: task.deadlineQuote,
                     deadlineSource: task.deadlineSource, description: task.description, _type: task.type
                 )

@@ -37,6 +37,9 @@ public final class CalendarSettingModel {
     /// "Toon de omschrijving in de agenda" (off by default): the events carry the description and the sender.
     public private(set) var showsDetails: Bool
 
+    /// "Welke taken": only the member's own ("Mijn taken", the default) or every task they may see.
+    public private(set) var taskPart: MyTasksPart
+
     /// What the switch puts where, under it: the calendar's name, the account it is in, and what the events
     /// show (also on the lock screen).
     public var footer: String {
@@ -110,6 +113,7 @@ public final class CalendarSettingModel {
         openSystemSettings = openSettings
         isOn = settings.isEnabled(for: workspaceID)
         showsDetails = settings.showsDetails(for: workspaceID)
+        taskPart = settings.taskPart(for: workspaceID)
     }
 
     /// "Toon de omschrijving in de agenda" was flipped: stored at once, and the events are rewritten by a sync
@@ -118,6 +122,22 @@ public final class CalendarSettingModel {
         guard shows != showsDetails else { return }
         showsDetails = shows
         settings.setShowsDetails(shows, for: workspaceID)
+        guard isOn else { return }
+        let sync = sync
+        let workspace = workspaceID
+        let previous = pendingTask
+        pendingTask = Task {
+            await previous?.value
+            _ = await sync.sync(workspace: workspace)
+        }
+    }
+
+    /// "Welke taken" changed: stored at once; with the switch on, one sync puts in (or takes out) the other tasks.
+    public func setTaskPart(_ part: MyTasksPart) {
+        let part: MyTasksPart = part == .all ? .all : .mine
+        guard part != taskPart else { return }
+        taskPart = part
+        settings.setTaskPart(part, for: workspaceID)
         guard isOn else { return }
         let sync = sync
         let workspace = workspaceID

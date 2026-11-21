@@ -38,6 +38,14 @@ same terms the app uses plus the app-only ones. When they differ, the host's glo
 | Soort: factuur, aanslag, beschikking, rekening, herinnering, aanmaning, polis, jaaropgave, loonstrook, bonnetje | Invoice, Tax assessment, Decision, Bill, Reminder, Payment demand, Policy, Annual statement, Payslip, Receipt | |
 | persoon | person | "Choose persons"; never "people" for the list of persons. |
 | App koppelen (page on the web) | Pair the app | As an action in a sentence; the web page itself is called Devices. |
+| Mijn taken | My tasks | The member's own list of tasks; the menu entry and the screen. |
+| Op te pakken | To pick up | Tasks nobody has taken yet (an organisation only). |
+| Alle taken | All tasks | Every task the member may see. |
+| Afgerond, Afgevinkt door | Done, Ticked off by | "Toch niet klaar": "Not done after all". |
+| Datum nodig, Datum invullen | Needs a date, Set a date | The letter names a term but no date. |
+| Ik doe dit | I'll do it | Taking a task nobody has yet. |
+| Geef aan…, Niet meer aan mij | Hand over…, Not mine any more | |
+| Te laat, Binnen 7 dagen | Overdue, Within 7 days | Never "this week". |
 
 ## Rules
 

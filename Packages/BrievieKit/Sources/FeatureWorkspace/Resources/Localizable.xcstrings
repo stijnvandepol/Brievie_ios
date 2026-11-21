@@ -757,6 +757,78 @@
         }
       }
     },
+    "workspaces.calendar.tasks.all": {
+      "comment": "Choice of 'Welke taken': every task the member may see.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle taken"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.tasks.footer": {
+      "comment": "Under 'Welke taken': what the two choices mean.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks: only tasks that are yours. All tasks: every task you may see."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken: alleen taken die bij jou horen. Alle taken: elke taak die je mag zien."
+          }
+        }
+      }
+    },
+    "workspaces.calendar.tasks.label": {
+      "comment": "Under a calendar switch that is on: which tasks go in the calendar.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welke taken"
+          }
+        }
+      }
+    },
+    "workspaces.calendar.tasks.mine": {
+      "comment": "Choice of 'Welke taken': only the member's own tasks (the default).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken"
+          }
+        }
+      }
+    },
     "workspaces.calendar.tasksNotSupported": {
       "comment": "Under the calendar switch when the server cannot list tasks yet; the switch stays off.",
       "extractionState": "manual",

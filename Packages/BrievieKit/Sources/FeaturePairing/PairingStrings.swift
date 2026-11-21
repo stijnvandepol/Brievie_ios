@@ -87,6 +87,15 @@ enum PairingStrings {
         bundle: .module
     )
 
+    /// Under the scan button: a phone belongs to one person and one account (spec "Mijn taken" S 9).
+    static let ownPhone = String(
+        localized: "pairing.ownPhone",
+        defaultValue: """
+            Koppel alleen je eigen telefoon. Wie een andere telefoon gebruikt, koppelt die met een eigen account.
+            """,
+        bundle: .module
+    )
+
     /// Every string above by catalog key, for the parity test.
     static let all: [String: String] = [
         "pairing.error.notBrievie": notBrievie,
@@ -102,6 +111,7 @@ enum PairingStrings {
         "pairing.link.error.invalid": linkInvalid,
         "pairing.link.error.unsupportedVersion": linkUnsupportedVersion,
         "pairing.link.error.alreadyPaired": linkAlreadyPaired,
-        "pairing.link.error.invalidCode": linkInvalidCode
+        "pairing.link.error.invalidCode": linkInvalidCode,
+        "pairing.ownPhone": ownPhone
     ]
 }

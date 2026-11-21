@@ -32,9 +32,11 @@ public final class ConfirmedDocumentModel {
         case task(UUID, done: Bool)
     }
 
-    private let documents: WorkspaceDocuments
+    let documents: WorkspaceDocuments
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
+    /// The signed-in user, read once for "Ik doe dit" and "Jij doet dit" (see `+Assign`); `nil` until then.
+    public internal(set) var currentUserID: UUID?
     /// Changes go to the server one after the other, in the order the user made them.
     @ObservationIgnored private var queue: Task<Void, Never>?
     /// Changes of addressees, labels or suggestions sent but not answered yet.
@@ -224,6 +226,17 @@ public final class ConfirmedDocumentModel {
         }
     }
 
+    /// The server's answer to picking up or releasing a task: who has it now.
+    func setAssignee(_ id: UUID?, name: String, for taskID: UUID) {
+        guard let index = tasks.firstIndex(where: { $0.id == taskID }) else { return }
+        tasks[index].assignedToID = id
+        tasks[index].assignedToName = name
+    }
+
+    func showChangeError(_ message: String?) {
+        changeError = message
+    }
+
     private func setDone(_ done: Bool, for id: UUID) {
         guard let index = tasks.firstIndex(where: { $0.id == id }) else { return }
         tasks[index].isDone = done
@@ -237,7 +250,7 @@ public final class ConfirmedDocumentModel {
         ids.sorted { $0.uuidString < $1.uuidString }
     }
 
-    private func handle(_ error: DocumentsError, otherwise: (DocumentsError) -> Void) {
+    func handle(_ error: DocumentsError, otherwise: (DocumentsError) -> Void) {
         switch error {
         case .revoked: onRevoked()
         case .missingPairing: onMissingPairing()

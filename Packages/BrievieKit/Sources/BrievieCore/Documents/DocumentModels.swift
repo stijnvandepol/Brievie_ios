@@ -107,10 +107,18 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
     public var isDone: Bool
     /// The AI made this task when it confirmed the letter by itself.
     public let createdByAI: Bool
+    /// The amount of a payment; `nil` when unknown (or from a server before "Mijn taken").
+    public let amount: Decimal?
+    /// The term the letter names without a date ("binnen zes weken").
+    public let termQuote: String
+    /// Who does the task; `nil` and empty when nobody has it yet.
+    public var assignedToID: UUID?
+    public var assignedToName: String
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false
+        deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false, amount: Decimal? = nil,
+        termQuote: String = "", assignedToID: UUID? = nil, assignedToName: String = ""
     ) {
         self.id = id
         self.type = type
@@ -120,6 +128,10 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
         self.deadlineQuote = deadlineQuote
         self.isDone = isDone
         self.createdByAI = createdByAI
+        self.amount = amount
+        self.termQuote = termQuote
+        self.assignedToID = assignedToID
+        self.assignedToName = assignedToName
     }
 }
 
@@ -161,10 +173,13 @@ public struct TaskDraft: Equatable, Sendable, Identifiable {
     public var deadlineSource: String
     public var deadlineQuote: String
     public var needsAttention: Bool
+    /// The amount of a payment: as typed in the review (the user's notation), the API's decimal string ("1234.56")
+    /// once confirmed; empty when unknown.
+    public var amount: String
 
     public init(
         id: UUID = UUID(), type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String, needsAttention: Bool
+        deadlineQuote: String, needsAttention: Bool, amount: String = ""
     ) {
         self.id = id
         self.type = type
@@ -173,6 +188,7 @@ public struct TaskDraft: Equatable, Sendable, Identifiable {
         self.deadlineSource = deadlineSource
         self.deadlineQuote = deadlineQuote
         self.needsAttention = needsAttention
+        self.amount = amount
     }
 }
 
@@ -262,6 +278,17 @@ public protocol DocumentServer: Sendable {
     ) async throws -> DocumentDetail
     /// "Het zijn twee brieven": the pair is not asked again.
     func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws
+    /// "Mijn taken": one part of the member's tasks (a server before host PR #36 answers 404).
+    func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks
+    func myTaskCounts(in scope: DocumentScope) async throws -> MyTaskCounts
+    /// Gives the task to `user`; `nil` releases it.
+    func assignTask(_ id: UUID, to user: UUID?, in scope: DocumentScope) async throws -> WorkspaceTask
+    /// The members a task can be handed to: those who may read its letter.
+    func taskAssignees(_ id: UUID, in scope: DocumentScope) async throws -> [TaskAssignee]
+    /// Sets (or with `nil` removes) the deadline the user read in the letter.
+    func setTaskDeadline(_ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope) async throws -> WorkspaceTask
+    /// The signed-in user's id, for "Ik doe dit".
+    func currentUserID(in scope: DocumentScope) async throws -> UUID
 }
 
 public extension DocumentServer {
@@ -299,6 +326,33 @@ public extension DocumentServer {
     }
 
     func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws {
+        throw ServerError.other("http_404")
+    }
+
+    /// For servers that predate "Mijn taken": the 404 of a server without the endpoint.
+    func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks {
+        throw ServerError.other("http_404")
+    }
+
+    func myTaskCounts(in scope: DocumentScope) async throws -> MyTaskCounts {
+        throw ServerError.other("http_404")
+    }
+
+    func assignTask(_ id: UUID, to user: UUID?, in scope: DocumentScope) async throws -> WorkspaceTask {
+        throw ServerError.other("http_404")
+    }
+
+    func taskAssignees(_ id: UUID, in scope: DocumentScope) async throws -> [TaskAssignee] {
+        throw ServerError.other("http_404")
+    }
+
+    func setTaskDeadline(
+        _ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope
+    ) async throws -> WorkspaceTask {
+        throw ServerError.other("http_404")
+    }
+
+    func currentUserID(in scope: DocumentScope) async throws -> UUID {
         throw ServerError.other("http_404")
     }
 

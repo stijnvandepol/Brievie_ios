@@ -137,6 +137,11 @@ public struct PairingView: View {
                     showsScanner = true
                 }
                 .disabled(!cameraIsUsable || isPairing)
+                Text(PairingStrings.ownPhone)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
                 if !isManual {
                     SecondaryButton(String(localized: "pairing.paste.show", bundle: .module)) {
                         showsManualEntry = true

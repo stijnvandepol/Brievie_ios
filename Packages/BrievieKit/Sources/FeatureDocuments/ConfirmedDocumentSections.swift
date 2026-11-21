@@ -79,15 +79,24 @@ struct ConfirmedDocumentSections: View {
                     .foregroundStyle(.secondary)
             }
             ForEach(model.tasks) { task in
-                TaskTickRow(
-                    task: task, isEditable: model.canEdit,
-                    toggle: { Task { await model.setTask(task.id, done: !task.isDone) } },
-                    showSource: { onShowQuote(task.deadlineQuote) }
-                )
+                taskRow(task)
             }
         } header: {
             Text(DocumentStrings.confirmedTasks)
         }
+        .task { await model.loadCurrentUser() }
+    }
+
+    private func taskRow(_ task: ConfirmedTask) -> TaskTickRow {
+        let model = model
+        let id = task.id
+        let takeOn: (() -> Void)? = model.canTakeOn(task) ? { Task { await model.takeOn(id) } } : nil
+        let release: (() -> Void)? = model.canRelease(task) ? { Task { await model.release(id) } } : nil
+        return TaskTickRow(
+            task: task, isEditable: model.canEdit, whoDoesIt: model.whoDoesIt(task),
+            toggle: { Task { await model.setTask(id, done: !task.isDone) } },
+            showSource: { onShowQuote(task.deadlineQuote) }, takeOn: takeOn, release: release
+        )
     }
 
     private var actions: OrganiseActions {
@@ -140,8 +149,13 @@ struct ConfirmedPicker: View {
 private struct TaskTickRow: View {
     let task: ConfirmedTask
     let isEditable: Bool
+    /// "Jij doet dit" / "Bij Anne"; `nil` when nobody has it.
+    let whoDoesIt: String?
     let toggle: () -> Void
     let showSource: () -> Void
+    /// "Ik doe dit" and "Niet meer aan mij"; `nil` hides them.
+    let takeOn: (() -> Void)?
+    let release: (() -> Void)?
 
     var body: some View {
         if isEditable {
@@ -161,12 +175,17 @@ private struct TaskTickRow: View {
             } else {
                 mark
             }
-            ConfirmedTaskRow(task: task, showSource: showSource)
+            VStack(alignment: .leading, spacing: 4) {
+                ConfirmedTaskRow(task: task, whoDoesIt: whoDoesIt, showSource: showSource)
+                assignButtons
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(task.description)
         .accessibilityValue(
             [task.isDone ? DocumentStrings.taskDone : DocumentStrings.taskOpen]
+                .appending(task.amount.map { $0.formatted(.currency(code: "EUR")) })
+                .appending(whoDoesIt)
                 .appending(task.createdByAI ? DocumentStrings.automaticByAI : nil).joined(separator: ", ")
         )
         .accessibilityCustomContent(
@@ -179,6 +198,21 @@ private struct TaskTickRow: View {
             if !task.deadlineQuote.isEmpty {
                 Button(DocumentStrings.whereIsThis, action: showSource)
             }
+            if let takeOn { Button(DocumentStrings.myTasksTakeOn, action: takeOn) }
+            if let release { Button(DocumentStrings.myTasksRelease, action: release) }
+        }
+    }
+
+    @ViewBuilder private var assignButtons: some View {
+        if let takeOn {
+            Button(DocumentStrings.myTasksTakeOn, action: takeOn)
+                .font(.footnote.weight(.semibold))
+                .buttonStyle(.borderless)
+        }
+        if let release {
+            Button(DocumentStrings.myTasksRelease, action: release)
+                .font(.footnote)
+                .buttonStyle(.borderless)
         }
     }
 
@@ -203,6 +237,8 @@ private extension Array where Element == String {
 /// A confirmed task: what to do, by when, and where the deadline stands in the letter.
 struct ConfirmedTaskRow: View {
     let task: ConfirmedTask
+    /// "Jij doet dit" / "Bij Anne"; `nil` when nobody has the task (or the server does not say).
+    var whoDoesIt: String?
     let showSource: () -> Void
 
     var body: some View {
@@ -214,6 +250,14 @@ struct ConfirmedTaskRow: View {
                 DocumentTypes.taskTypeLabel(task.type), task.deadline?.display ?? DocumentStrings.noDeadline
             ))
             .font(.subheadline)
+            if let amount = task.amount {
+                Text(amount.formatted(.currency(code: "EUR"))).brievieNumber(.subheadline)
+            }
+            if let whoDoesIt {
+                Label(whoDoesIt, systemImage: "person")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
             if task.createdByAI {
                 AdaptiveLabel(DocumentStrings.automaticByAI, systemImage: "sparkles")
                     .font(.footnote)

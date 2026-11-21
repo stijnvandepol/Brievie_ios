@@ -27,7 +27,8 @@ struct BrievieApp: App {
         // Local notifications for deadlines, made on the phone from the tasks the app read; nothing goes to a server.
         let reminders = DeadlineReminders(
             center: UserNotificationsReminderCenter(), settings: UserDefaultsReminderSettings(),
-            tasks: AppCalendar.openTasks(store: store, server: server, revocations: revocations)
+            // Reminders follow the member's own tasks ("Mijn taken"); "Op te pakken" gets none.
+            tasks: AppCalendar.phoneTasks(store: store, server: server, revocations: revocations)
         )
         let reminderRouter = ReminderRouter()
         AppDelegate.reminderRouter = reminderRouter

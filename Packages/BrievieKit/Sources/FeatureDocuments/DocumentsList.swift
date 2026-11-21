@@ -44,6 +44,9 @@ struct DocumentsList<Destination: View, Compare: View>: View {
     var duplicates: [DocumentsModel.DuplicateRow] = []
     let empty: Empty
     var notices = Notices()
+    /// "Mijn taken: 4 open, waarvan 1 te laat" on top of the Inbox; `nil` shows no row.
+    var myTasksLink: DocumentsModel.MyTasksLink?
+    var showMyTasks: () -> Void = {}
     let retryLoad: () -> Void
     let retryUpload: (UUID) -> Void
     let deleteUpload: (UUID) -> Void
@@ -69,6 +72,9 @@ struct DocumentsList<Destination: View, Compare: View>: View {
     private var list: some View {
         List {
             noticeSection
+            if let myTasksLink {
+                Section { MyTasksLinkRow(link: myTasksLink, open: showMyTasks) }
+            }
             if case let .failed(message) = state {
                 Section {
                     ErrorBanner(message, actionTitle: DocumentStrings.retry, action: retryLoad)

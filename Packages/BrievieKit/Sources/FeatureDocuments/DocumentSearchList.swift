@@ -5,14 +5,13 @@ import SwiftUI
 
 /// The search results in "Alle post": the rows of the post list, each with the fragment where the words were
 /// found, and a clear word for every state (nothing typed, too short, searching, nothing found, failed).
-struct DocumentSearchList<Destination: View>: View {
+struct DocumentSearchList: View {
     let model: DocumentSearchModel
     /// A letter deleted from the results: its "Ongedaan maken" stands here too, not only in the hidden post list.
     var undo: DocumentsModel.UndoNotice?
     var isUndoing = false
     var undoAction: () -> Void = {}
     var closeUndo: () -> Void = {}
-    let destination: (UUID) -> Destination
 
     var body: some View {
         List {
@@ -82,9 +81,9 @@ struct DocumentSearchList<Destination: View>: View {
     @ViewBuilder
     private func hitRow(_ hit: DocumentSearchModel.Hit) -> some View {
         if let documentID = hit.row.documentID {
-            NavigationLink {
-                destination(documentID)
-            } label: {
+            // A value, not a destination view: the screen is pushed by `DocumentsView`, which stays while this
+            // list comes and goes with the search term (see `SearchHitLink`).
+            NavigationLink(value: SearchHitLink(documentID: documentID)) {
                 VStack(alignment: .leading, spacing: 6) {
                     DocumentRowView(row: hit.row)
                     if !hit.snippet.isEmpty {
@@ -126,6 +125,14 @@ struct DocumentSearchList<Destination: View>: View {
     }
 }
 
+/// A search hit opened from the results. `DocumentsView` registers its destination
+/// (`navigationDestination(for:)`), outside the results list: that list exists only while a term is typed, and a
+/// letter pushed by a link inside it was owned by a view the search could replace while the letter was open.
+/// Its own type, so it does not meet the `UUID` of `navigationDestination(item: $model.openedDocument)`.
+struct SearchHitLink: Hashable {
+    let documentID: UUID
+}
+
 /// The system search field, only in "Alle post". Return searches at once; typing searches after a pause.
 struct SearchField: ViewModifier {
     let search: DocumentSearchModel
@@ -139,6 +146,10 @@ struct SearchField: ViewModifier {
                     text: $search.query, placement: .navigationBarDrawer(displayMode: .automatic),
                     prompt: DocumentStrings.searchPrompt
                 )
+                // While searching, the bar stays: a hit opened from a hidden bar came back with neither the bar nor
+                // the search field, with no way out but a restart. (A search field that iOS 26 puts at the bottom
+                // still goes after a hit and back; the title menu, which now stays, brings it back.)
+                .searchPresentationToolbarBehavior(.avoidHidingContent)
                 // The keyboard does not learn what is searched for in letters.
                 .autocorrectionDisabled()
                 .onSubmit(of: .search) { search.submit() }

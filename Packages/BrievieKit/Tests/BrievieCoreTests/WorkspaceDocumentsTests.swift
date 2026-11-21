@@ -223,4 +223,18 @@ import Testing
         await #expect(throws: DocumentsError.inTrash) { try await documents().detail(Self.documentID) }
         await #expect(throws: DocumentsError.forbidden) { try await documents().restore(Self.documentID) }
     }
+
+    @Test(arguments: [
+        ("assignee_cannot_read", DocumentsError.assigneeCannotRead), ("task_without_letter", .taskWithoutLetter),
+        ("task_taken", .taskTaken), ("task_not_found", .notFound), ("validation_error", .invalid)
+    ])
+    func assignmentCodesBecomeTheirOwnErrors(code: String, expected: DocumentsError) async throws {
+        server.onAssignTask { _, _, _ in throw ServerError.other(code) }
+
+        await #expect(throws: expected) { try await documents().assignTask(UUID(), to: nil) }
+    }
+
+    @Test func theUserNameComesFromThePairing() throws {
+        #expect(try documents().userName == "Stijn")
+    }
 }

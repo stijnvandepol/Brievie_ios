@@ -27,6 +27,9 @@ public protocol CalendarSettings: Sendable {
     /// "Toon de omschrijving in de agenda": events carry the task's description and sender. Off by default.
     func showsDetails(for workspace: UUID) -> Bool
     func setShowsDetails(_ shows: Bool, for workspace: UUID)
+    /// "Welke taken": the member's own tasks (the default) or every task they may see. Forgotten with the pairing.
+    func taskPart(for workspace: UUID) -> MyTasksPart
+    func setTaskPart(_ part: MyTasksPart, for workspace: UUID)
     /// Calendars still to remove after a revocation (calendar identifier to its workspace). Kept apart from the
     /// switches: `removeAll()` leaves them, so a removal that could not run (no access, the app ended) is tried
     /// again.
@@ -36,6 +39,10 @@ public protocol CalendarSettings: Sendable {
 }
 
 extension CalendarSettings {
+    /// For settings that do not keep the choice (test doubles): the member's own tasks.
+    public func taskPart(for workspace: UUID) -> MyTasksPart { .mine }
+    public func setTaskPart(_ part: MyTasksPart, for workspace: UUID) {}
+
     /// A setting without its account, as stored before the account was.
     public func enable(workspace: UUID, calendarID: String) {
         enable(workspace: workspace, calendarID: calendarID, sourceID: nil)
@@ -48,11 +55,13 @@ extension CalendarSettings {
 
 /// `CalendarSettings` over `UserDefaults`: `calendar.<workspace-uuid>` (the calendar) and
 /// `calendarSource.<workspace-uuid>` (its account) per workspace that is on, `calendarDetails.<workspace-uuid>`
-/// per workspace whose events show the description.
+/// per workspace whose events show the description, `calendarTasks.<workspace-uuid>` per workspace that puts all
+/// tasks in (absent: only the member's own).
 public struct UserDefaultsCalendarSettings: CalendarSettings {
     private static let prefix = "calendar."
     private static let sourcePrefix = "calendarSource."
     private static let detailsPrefix = "calendarDetails."
+    private static let taskPartPrefix = "calendarTasks."
     private static let pendingRemovalPrefix = "calendarPendingRemoval."
     /// The clears in this process per defaults suite (`""` is the standard defaults); also the lock that makes
     /// "check the generation, then store" one step. Per suite, so separate suites (tests) never disturb each other.
@@ -104,7 +113,7 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
         let defaults = defaults
         Self.generations.withLock { generations in
             generations[suiteKey, default: 0] += 1
-            let prefixes = [Self.prefix, Self.sourcePrefix, Self.detailsPrefix]
+            let prefixes = [Self.prefix, Self.sourcePrefix, Self.detailsPrefix, Self.taskPartPrefix]
             for key in defaults.dictionaryRepresentation().keys where prefixes.contains(where: key.hasPrefix) {
                 defaults.removeObject(forKey: key)
             }
@@ -120,6 +129,18 @@ public struct UserDefaultsCalendarSettings: CalendarSettings {
             defaults.set(true, forKey: Self.detailsPrefix + workspace.uuidString)
         } else {
             defaults.removeObject(forKey: Self.detailsPrefix + workspace.uuidString)
+        }
+    }
+
+    public func taskPart(for workspace: UUID) -> MyTasksPart {
+        defaults.string(forKey: Self.taskPartPrefix + workspace.uuidString) == MyTasksPart.all.rawValue ? .all : .mine
+    }
+
+    public func setTaskPart(_ part: MyTasksPart, for workspace: UUID) {
+        if part == .all {
+            defaults.set(MyTasksPart.all.rawValue, forKey: Self.taskPartPrefix + workspace.uuidString)
+        } else {
+            defaults.removeObject(forKey: Self.taskPartPrefix + workspace.uuidString)
         }
     }
 
@@ -179,6 +200,7 @@ public final class InMemoryCalendarSettings: CalendarSettings {
         var ids: [UUID: String] = [:]
         var sources: [UUID: String] = [:]
         var details: Set<UUID> = []
+        var allTasks: Set<UUID> = []
         var pendingRemovals: [String: UUID] = [:]
         var generation = 0
     }
@@ -222,6 +244,7 @@ public final class InMemoryCalendarSettings: CalendarSettings {
             state.ids.removeAll()
             state.sources.removeAll()
             state.details.removeAll()
+            state.allTasks.removeAll()
             state.generation += 1
         }
     }
@@ -233,6 +256,16 @@ public final class InMemoryCalendarSettings: CalendarSettings {
     public func setShowsDetails(_ shows: Bool, for workspace: UUID) {
         calendars.withLock { state in
             if shows { state.details.insert(workspace) } else { state.details.remove(workspace) }
+        }
+    }
+
+    public func taskPart(for workspace: UUID) -> MyTasksPart {
+        calendars.withLock { $0.allTasks.contains(workspace) } ? .all : .mine
+    }
+
+    public func setTaskPart(_ part: MyTasksPart, for workspace: UUID) {
+        calendars.withLock { state in
+            if part == .all { state.allTasks.insert(workspace) } else { state.allTasks.remove(workspace) }
         }
     }
 

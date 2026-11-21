@@ -81,6 +81,34 @@ import Testing
         #expect(!settings.isEnabled(for: workspace))
         #expect(await store.calendars == [calendarID: "Brievie – Thuis"])
     }
+
+    @Test func taskPartDefaultsToMineAndIsStoredPerWorkspace() {
+        let settings = UserDefaultsCalendarSettings(suiteName: suiteName)
+        let home = UUID()
+        let business = UUID()
+        #expect(settings.taskPart(for: home) == .mine)
+
+        settings.setTaskPart(.all, for: business)
+
+        #expect(settings.taskPart(for: business) == .all)
+        #expect(settings.taskPart(for: home) == .mine)
+        settings.setTaskPart(.mine, for: business)
+        #expect(UserDefaults(suiteName: suiteName)?.object(forKey: "calendarTasks.\(business.uuidString)") == nil)
+    }
+
+    @Test func taskPartIsForgottenWithThePairing() {
+        let settings = UserDefaultsCalendarSettings(suiteName: suiteName)
+        let memory = InMemoryCalendarSettings()
+        let workspace = UUID()
+        settings.setTaskPart(.all, for: workspace)
+        memory.setTaskPart(.all, for: workspace)
+
+        settings.removeAll()
+        memory.removeAll()
+
+        #expect(settings.taskPart(for: workspace) == .mine)
+        #expect(memory.taskPart(for: workspace) == .mine)
+    }
 }
 
 /// An upload queue with nothing in it (also used by `AppModelUnpairCalendarTests`).

@@ -15,6 +15,8 @@ final class GatedDocumentServer: DocumentServer {
         case trash
         /// Merging a duplicate pair.
         case merge
+        /// One part of "Mijn taken".
+        case myTasks(MyTasksPart)
     }
 
     private struct State {
@@ -224,5 +226,32 @@ final class GatedDocumentServer: DocumentServer {
 
     func dismissDuplicate(_ id: UUID, in scope: DocumentScope) async throws {
         try await inner.dismissDuplicate(id, in: scope)
+    }
+
+    func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks {
+        await wait(at: .myTasks(part))
+        return try await inner.myTasks(part: part, status: status, in: scope)
+    }
+
+    func myTaskCounts(in scope: DocumentScope) async throws -> MyTaskCounts {
+        try await inner.myTaskCounts(in: scope)
+    }
+
+    func assignTask(_ id: UUID, to user: UUID?, in scope: DocumentScope) async throws -> WorkspaceTask {
+        try await inner.assignTask(id, to: user, in: scope)
+    }
+
+    func taskAssignees(_ id: UUID, in scope: DocumentScope) async throws -> [TaskAssignee] {
+        try await inner.taskAssignees(id, in: scope)
+    }
+
+    func setTaskDeadline(
+        _ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope
+    ) async throws -> WorkspaceTask {
+        try await inner.setTaskDeadline(id, to: deadline, in: scope)
+    }
+
+    func currentUserID(in scope: DocumentScope) async throws -> UUID {
+        try await inner.currentUserID(in: scope)
     }
 }

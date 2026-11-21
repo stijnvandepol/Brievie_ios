@@ -112,23 +112,28 @@ struct AppCalendar {
         sync = CalendarSync(
             store: EventKitCalendarStore(),
             settings: settings,
-            tasks: Self.openTasks(store: store, server: server, revocations: revocations),
+            // The calendar follows "Welke taken": the member's own tasks by default, or all they may see.
+            tasks: Self.phoneTasks(store: store, server: server, revocations: revocations) { workspace in
+                settings.taskPart(for: workspace)
+            },
             workspaceName: { workspaceNames.name(of: $0) },
             typeTitle: { TaskTypeName.label(for: $0) },
             today: { CalendarDate(Date(), in: .current) }
         )
     }
 
-    /// The open tasks of a workspace on the server, through the stored pairing: for the calendar and the reminders.
-    static func openTasks(
-        store: ConnectionStore, server: LiveBrievieServer, revocations: RevocationRelay
+    /// The open tasks of a workspace the phone follows, through the stored pairing: for the calendar (`part` per
+    /// workspace) and the reminders (always the member's own). A server before "Mijn taken" gives every open task.
+    static func phoneTasks(
+        store: ConnectionStore, server: LiveBrievieServer, revocations: RevocationRelay,
+        part: @escaping @Sendable (UUID) -> MyTasksPart = { _ in .mine }
     ) -> CalendarSync.TaskSource {
         { workspace in
             guard let stored = try store.load() else { throw DocumentsError.missingPairing }
             return try await WorkspaceDocuments(
                 workspaceID: workspace, connection: stored.connection, store: store, server: server,
                 onRevoked: revocations.revoked
-            ).openTasks()
+            ).phoneTasks(part(workspace))
         }
     }
 }

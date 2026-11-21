@@ -65,18 +65,30 @@ extension LiveBrievieServer {
     }
 }
 
-private extension WorkspaceTask {
+extension WorkspaceTask {
     init(task: Components.Schemas.TaskItemOut) throws(ServerError) {
         guard let id = UUID(uuidString: task.id) else { throw .incompatible }
-        var documentID: UUID?
-        if let text = task.documentId {
-            guard let id = UUID(uuidString: text) else { throw .incompatible }
-            documentID = id
-        }
+        let documentID = try Self.uuid(task.documentId)
+        let assignedToID = try Self.uuid(task.assignedToId)
         self.init(
             id: id, type: task._type, description: task.description,
             deadline: task.deadline.flatMap(CalendarDate.init(iso:)), isDone: task.status == "done",
-            documentID: documentID, sender: task.sender
+            documentID: documentID, sender: task.sender, deadlineSource: task.deadlineSource,
+            deadlineQuote: task.deadlineQuote ?? "", termQuote: task.termQuote ?? "",
+            needsDeadline: task.needsDeadline ?? false, amount: task.amount.flatMap(TaskAmount.parse(api:)),
+            daysLeft: task.daysLeft, group: TaskGroup(api: task.group ?? ""),
+            reason: TaskReason(api: task.reason ?? ""),
+            forNames: task.forNames ?? [], assignedToID: assignedToID, assignedToName: task.assignedToName ?? "",
+            assignedByName: task.assignedByName ?? "", completedByName: task.completedByName ?? "",
+            completedAt: task.completedAt, documentType: task.documentType ?? "", canEdit: task.canEdit,
+            createdByAI: task.createdByAi ?? false
         )
+    }
+
+    /// An optional id: absent is `nil`, present but not a UUID is an incompatible answer.
+    private static func uuid(_ text: String?) throws(ServerError) -> UUID? {
+        guard let text else { return nil }
+        guard let id = UUID(uuidString: text) else { throw .incompatible }
+        return id
     }
 }

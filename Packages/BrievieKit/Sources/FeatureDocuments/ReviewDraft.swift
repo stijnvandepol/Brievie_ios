@@ -9,12 +9,13 @@ public enum ReviewField: Hashable, Sendable {
     case taskType(UUID)
     case taskDescription(UUID)
     case taskDeadline(UUID)
+    case taskAmount(UUID)
 
     /// The value stands in the letter itself, so a quote and a confidence say something about it. A type or
     /// a task's text is the AI's own wording: the server gives those a fixed confidence and no quote.
     var isReadFromLetter: Bool {
         switch self {
-        case .sender, .letterDate, .taskDeadline: true
+        case .sender, .letterDate, .taskDeadline, .taskAmount: true
         case .documentType, .taskType, .taskDescription: false
         }
     }
@@ -105,6 +106,7 @@ extension ReviewModel {
             case let .taskType(id): return tasks.first { $0.id == id }?.type
             case let .taskDescription(id): return tasks.first { $0.id == id }?.description
             case let .taskDeadline(id): return tasks.first { $0.id == id }.map { $0.deadline?.iso ?? "" }
+            case let .taskAmount(id): return tasks.first { $0.id == id }?.amount
             }
         }
 
@@ -142,7 +144,9 @@ extension ReviewModel {
     /// The draft for `detail`. An empty letter date starts as `today`, unless the AI proposed one (also one it
     /// could not find in the letter: that stays a hint) or the server stored one; nothing is sent before the
     /// user confirms.
-    static func draft(from detail: DocumentDetail, today: CalendarDate) -> Draft {
+    static func draft(
+        from detail: DocumentDetail, today: CalendarDate, locale: Locale = .autoupdatingCurrent
+    ) -> Draft {
         let proposals = detail.proposals
         var draft = Draft()
         draft.organise = OrganiseDraft(detail: detail)
@@ -164,6 +168,9 @@ extension ReviewModel {
             draft.markUnchecked(.taskType(pay.id), value: pay.type)
             draft.markUnchecked(.taskDescription(pay.id), value: pay.description)
             apply(deadline: due, toTaskAt: draft.tasks.count - 1, in: &draft)
+        }
+        if let amount = proposals.first(where: { $0.field == "invoice_amount_incl" && $0.group == 0 }) {
+            apply(amount: amount, locale: locale, in: &draft)
         }
         if draft.letterDate == nil, draft.unverified[.letterDate] == nil {
             if let stored = detail.summary.letterDate {
@@ -232,6 +239,16 @@ extension ReviewModel {
             default:
                 break
             }
+        }
+    }
+
+    /// The invoice's amount on the payment task, in the user's notation ("1.234,56"), with its quote.
+    private static func apply(amount proposal: Proposal, locale: Locale, in draft: inout Draft) {
+        guard let index = draft.tasks.firstIndex(where: { $0.type == "pay" }) else { return }
+        let text = TaskAmount.parse(api: proposal.value)?
+            .formatted(.number.precision(.fractionLength(2)).locale(locale))
+        if draft.propose(proposal, for: .taskAmount(draft.tasks[index].id), text: text, hint: text ?? proposal.value) {
+            draft.tasks[index].amount = text ?? ""
         }
     }
 
