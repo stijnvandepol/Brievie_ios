@@ -183,6 +183,11 @@ extension DocumentStrings {
         bundle: .module
     )
 
+    static let myTasksOpenLetter = String(
+        localized: "tasks.openLetter", defaultValue: "Brief bekijken", bundle: .module
+    )
+    static let myTasksTickAction = String(localized: "tasks.tickAction", defaultValue: "Afvinken", bundle: .module)
+
     /// The plain keys of "Mijn taken" with the text the code resolves, for the catalog parity test.
     static var myTasksAll: [String: String] {
         [
@@ -214,7 +219,8 @@ extension DocumentStrings {
             "tasks.setDate.save": myTasksSetDateSave, "tasks.setDate.cancel": myTasksSetDateCancel,
             "tasks.setDate.remove": myTasksSetDateRemove, "tasks.error.cannotRead": myTasksCannotRead,
             "tasks.error.withoutLetter": myTasksWithoutLetter, "tasks.error.dateBeforeLetter": myTasksDateBeforeLetter,
-            "tasks.error.taken": myTasksTaken
+            "tasks.error.taken": myTasksTaken, "tasks.openLetter": myTasksOpenLetter,
+            "tasks.tickAction": myTasksTickAction
         ]
     }
 }

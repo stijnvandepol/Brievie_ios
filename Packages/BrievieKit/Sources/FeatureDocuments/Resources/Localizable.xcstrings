@@ -5065,6 +5065,24 @@
         }
       }
     },
+    "tasks.openLetter": {
+      "comment": "Mijn taken: opens the letter the task belongs to.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View letter"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief bekijken"
+          }
+        }
+      }
+    },
     "tasks.release": {
       "comment": "Mijn taken: give back a task the member has.",
       "extractionState": "manual",
@@ -5277,6 +5295,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klaar: %@"
+          }
+        }
+      }
+    },
+    "tasks.tickAction": {
+      "comment": "Mijn taken: swipe and VoiceOver action that ticks a task off.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tick off"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afvinken"
           }
         }
       }
