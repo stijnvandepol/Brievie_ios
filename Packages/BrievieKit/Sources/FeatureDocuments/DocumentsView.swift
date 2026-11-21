@@ -123,7 +123,11 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
     /// The search results while a term is typed in "Alle post", otherwise the post list.
     @ViewBuilder private var content: some View {
         if model.searchIsAvailable, model.search.isActive {
-            DocumentSearchList(model: model.search, destination: destination)
+            DocumentSearchList(
+                model: model.search, undo: model.undo, isUndoing: model.isUndoing,
+                undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
+                destination: destination
+            )
         } else {
             postList
         }

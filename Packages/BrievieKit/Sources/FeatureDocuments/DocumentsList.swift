@@ -52,6 +52,21 @@ struct DocumentsList<Destination: View, Compare: View>: View {
     let compare: (UUID) -> Compare
 
     var body: some View {
+        // A notice after deleting or "Dit zijn twee brieven" is easily missed far down the list: it scrolls up to it.
+        ScrollViewReader { proxy in
+            list
+                .onChange(of: notices.undo?.documentID) { _, id in
+                    if id != nil { withAnimation { proxy.scrollTo(Self.noticesID, anchor: .top) } }
+                }
+                .onChange(of: notices.duplicate) { _, message in
+                    if message != nil { withAnimation { proxy.scrollTo(Self.noticesID, anchor: .top) } }
+                }
+        }
+    }
+
+    private static var noticesID: String { "notices" }
+
+    private var list: some View {
         List {
             noticeSection
             if case let .failed(message) = state {
@@ -118,6 +133,7 @@ struct DocumentsList<Destination: View, Compare: View>: View {
                     DuplicateNoticeRow(message: duplicate, close: notices.closeDuplicate)
                 }
             }
+            .id(Self.noticesID)
         }
     }
 
@@ -224,39 +240,6 @@ struct DocumentsList<Destination: View, Compare: View>: View {
         if row.status.canDelete {
             SecondaryButton(DocumentStrings.delete) { deleteUpload(row.id) }
         }
-    }
-}
-
-/// "De brief staat in de prullenbak." with "Ongedaan maken" and "Sluiten"; why the undo failed under it. The
-/// buttons stand side by side, or one under the other when the text is large.
-private struct UndoRow: View {
-    let notice: DocumentsModel.UndoNotice
-    let isUndoing: Bool
-    let undo: () -> Void
-    let close: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(notice.message, systemImage: "trash")
-                .fixedSize(horizontal: false, vertical: true)
-            if let failure = notice.failure {
-                ErrorBanner(failure)
-            }
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 16) { buttons }
-                VStack(alignment: .leading, spacing: 8) { buttons }
-            }
-        }
-    }
-
-    @ViewBuilder private var buttons: some View {
-        Button(DocumentStrings.undoAction, action: undo)
-            .buttonStyle(.borderless)
-            .frame(minHeight: 44)
-            .disabled(isUndoing)
-        Button(DocumentStrings.undoClose, action: close)
-            .buttonStyle(.borderless)
-            .frame(minHeight: 44)
     }
 }
 
