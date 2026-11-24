@@ -100,7 +100,8 @@ import Testing
         let tabs = try model()
 
         tabs.showAllPost()
-        #expect(tabs.selection == .more && tabs.morePath == NavigationPath([WorkspaceTabsModel.Place.allPost]) && tabs.sidebarSelection == .allPost)
+        #expect(tabs.selection == .more && tabs.sidebarSelection == .allPost)
+        #expect(tabs.morePath == NavigationPath([WorkspaceTabsModel.Place.allPost]))
 
         tabs.showTasks()
         #expect(tabs.selection == .tasks)

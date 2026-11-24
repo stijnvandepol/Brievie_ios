@@ -201,7 +201,7 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
     }
 
     private var tasksRoot: some View {
-        MyTasksView(model: screens.tasks) { id in destination(id, screens.inbox) }
+        MyTasksView(model: screens.tasks, trashList: screens.inbox) { id in destination(id, screens.inbox) }
             .toolbar { pillItem }
     }
 

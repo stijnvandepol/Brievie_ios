@@ -97,6 +97,20 @@ import Testing
         #expect(model.openedDocument == id)
     }
 
+    /// "Ongedaan maken" in Taken: the letter comes back, but does not open on this list's tab, out of sight.
+    @Test func undoFromAnotherTabRestoresWithoutOpening() async throws {
+        let id = UUID()
+        let model = try model()
+        await model.load()
+        await model.didTrash(id)
+
+        await model.undoTrash(reopen: false)
+
+        #expect(server.calls.contains(.restore(Self.url, id)))
+        #expect(model.undo == nil)
+        #expect(model.openedDocument == nil)
+    }
+
     @Test func aFailedUndoKeepsTheNoticeWithTheReason() async throws {
         let id = UUID()
         server.onRestore { _, _ in throw ServerError.other("document_not_found") }
