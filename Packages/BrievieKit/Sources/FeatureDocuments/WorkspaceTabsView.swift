@@ -166,16 +166,43 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
     @ViewBuilder private var myPostRoot: some View {
         switch tabs.myPostSupport {
         case .supported:
-            DocumentsView(model: screens.myPost, scanModel: screens.myPostScan, warning: warning) { id in
-                destination(id, screens.myPost)
-            } compare: { id in
-                compare(id, screens.myPost)
-            }
+            DocumentsView(
+                model: screens.myPost, scanModel: screens.myPostScan, warning: warning, header: myPostHeader,
+                destination: { id in destination(id, screens.myPost) },
+                compare: { id in compare(id, screens.myPost) }
+            )
             .toolbar { pillItem }
         case .unknown, .notSupported:
             MyPostWaiting(failure: tabs.countFailure) { Task { await tabs.refreshCounts() } }
                 .toolbar { pillItem }
         }
+    }
+
+    /// Mijn post: unread, tasks and (for sorters) what lies too long; Scannen, Zoeken, Alles gelezen.
+    private var myPostHeader: PostHeader {
+        let list = screens.myPost
+        var actions: [PostHeader.Action] = []
+        if list.canScan { actions.append(.scan) }
+        actions.append(.search)
+        if list.offersReading { actions.append(.allRead) }
+        return PostHeader(
+            cards: tabs.cards, actions: actions, disabled: list.hasUnreadRows ? [] : [.allRead],
+            notice: tabs.lacksPerson ? DocumentStrings.myPostNoPerson : nil,
+            openCard: { kind in
+                switch kind {
+                case .unread: Task { await list.select(.myPostUnread) }
+                case .tasks: tabs.showTasks()
+                case .lingering: tabs.showInbox()
+                }
+            },
+            perform: { action in
+                switch action {
+                case .search: tabs.showSearch()
+                case .allRead: Task { await list.markAllRead() }
+                case .scan, .chooseName: break
+                }
+            }
+        )
     }
 
     private var tasksRoot: some View {

@@ -30,6 +30,7 @@ extension DocumentsModel {
         switch scope {
         case .inbox: .inbox
         case .myPost: .list(.myPost)
+        case .myPostUnread: .list(DocumentFilter(addressedToMe: true, unreadOnly: true))
         case .all: .list(.all)
         case let .person(id): .list(DocumentFilter(personID: id))
         }

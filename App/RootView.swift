@@ -241,9 +241,18 @@ private struct WorkspaceScreen: View {
             return model
         }
         let inbox = list(.inbox)
+        let myPost = list(.myPost)
+        let allPost = list(.all)
         let tasks = inbox.makeMyTasksModel { [weak tabs] in tabs?.showInbox() }
+        // "Zoeken" on another tab opens the search field of "Alle post".
+        tabs.onSearch = { [weak allPost] in allPost?.isSearchPresented = true }
+        // Once the server says it keeps read marks, the lists offer "Gelezen" and "Alles gelezen".
+        tabs.onReadingSupport = { [weak myPost, weak allPost] supported in
+            myPost?.tracksReading = supported
+            allPost?.tracksReading = supported
+        }
         _screens = State(initialValue: WorkspaceScreens(
-            tabs: tabs, inbox: inbox, myPost: list(.myPost), allPost: list(.all), tasks: tasks,
+            tabs: tabs, inbox: inbox, myPost: myPost, allPost: allPost, tasks: tasks,
             inboxScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads),
             myPostScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads),
             allPostScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads)
@@ -264,7 +273,8 @@ private struct WorkspaceScreen: View {
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
                 deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: list.hasTrash,
-                onTrashed: { [list] id in Task { await list.didTrash(id) } }
+                onTrashed: { [list] id in Task { await list.didTrash(id) } },
+                onRead: { [list] in list.didRead(documentID) }
             )
         } compare: { pairID, list in
             DuplicateScreen(
@@ -303,7 +313,7 @@ private struct ReviewScreen: View {
     init(
         documentID: UUID, documents: WorkspaceDocuments, canEdit: Bool, appModel: AppModel, deviceID: UUID,
         onTasksChanged: @escaping @MainActor () -> Void, trashAvailable: Bool,
-        onTrashed: @escaping @MainActor (UUID) -> Void
+        onTrashed: @escaping @MainActor (UUID) -> Void, onRead: @escaping @MainActor () -> Void
     ) {
         let model = ReviewModel(
             documentID: documentID,
@@ -317,6 +327,8 @@ private struct ReviewScreen: View {
         model.onTasksChanged = onTasksChanged
         // In the trash now: the post list offers the undo.
         model.onTrashed = onTrashed
+        // Opened: the list's row is read at once, the menu's numbers follow.
+        model.onRead = onRead
         _model = State(initialValue: model)
     }
 

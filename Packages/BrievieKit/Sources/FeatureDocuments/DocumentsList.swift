@@ -44,6 +44,11 @@ struct DocumentsList<Destination: View, Compare: View>: View {
     var duplicates: [DocumentsModel.DuplicateRow] = []
     let empty: Empty
     var notices = Notices()
+    /// Count cards and round actions on top; `nil` shows none.
+    var header: PostHeader?
+    var scan: () -> Void = {}
+    /// "Markeer als gelezen / ongelezen" on each letter; `nil` where the list does not show what is unread.
+    var reading: ReadingControls?
     /// "Mijn taken: 4 open, waarvan 1 te laat" on top of the Inbox; `nil` shows no row.
     var myTasksLink: DocumentsModel.MyTasksLink?
     var showMyTasks: () -> Void = {}
@@ -71,6 +76,9 @@ struct DocumentsList<Destination: View, Compare: View>: View {
 
     private var list: some View {
         List {
+            if let header, !header.isEmpty {
+                PostHeaderSection(header: header, scan: scan)
+            }
             noticeSection
             if let myTasksLink {
                 Section { MyTasksLinkRow(link: myTasksLink, open: showMyTasks) }
@@ -189,6 +197,7 @@ struct DocumentsList<Destination: View, Compare: View>: View {
             } label: {
                 DocumentRowView(row: row)
             }
+            .modifier(ReadingActions(row: row, documentID: documentID, reading: reading))
         } else {
             // Retry and delete as swipe actions, as a context menu, as VoiceOver and Switch Control actions,
             // and as visible buttons once the upload failed.

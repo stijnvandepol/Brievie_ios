@@ -137,18 +137,20 @@ struct SearchHitLink: Hashable {
 struct SearchField: ViewModifier {
     let search: DocumentSearchModel
     let isAvailable: Bool
+    /// The field is active (focused); set by "Zoeken" elsewhere to open it.
+    @Binding var isPresented: Bool
 
     func body(content: Content) -> some View {
         if isAvailable {
             @Bindable var search = search
             content
                 .searchable(
-                    text: $search.query, placement: .navigationBarDrawer(displayMode: .automatic),
-                    prompt: DocumentStrings.searchPrompt
+                    text: $search.query, isPresented: $isPresented,
+                    placement: .navigationBarDrawer(displayMode: .always), prompt: DocumentStrings.searchPrompt
                 )
                 // While searching, the bar stays: a hit opened from a hidden bar came back with neither the bar nor
-                // the search field, with no way out but a restart. (A search field that iOS 26 puts at the bottom
-                // still goes after a hit and back; the title menu, which now stays, brings it back.)
+                // the search field, with no way out but a restart. The field sits in the navigation bar and always
+                // shows (`.always`), not at the bottom where iOS 26 put it and lost it after a hit and back.
                 .searchPresentationToolbarBehavior(.avoidHidingContent)
                 // The keyboard does not learn what is searched for in letters.
                 .autocorrectionDisabled()

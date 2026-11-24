@@ -22,6 +22,8 @@ extension DocumentsModel {
         public let isAutomatic: Bool
         /// The letter is in an open duplicate pair: the chip "Dubbel?".
         public let isPossibleDuplicate: Bool
+        /// "Ongelezen": the member has not opened it. Never in the Inbox, which is a to-do list, not news.
+        public let isUnread: Bool
         /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
         let date: Date
 
@@ -29,7 +31,7 @@ extension DocumentsModel {
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
             addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
             isAutomatic: Bool = false, titleIsProposal: Bool = false, isPossibleDuplicate: Bool = false,
-            date: Date = .distantPast
+            isUnread: Bool = false, date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -42,6 +44,7 @@ extension DocumentsModel {
             self.isAutomatic = isAutomatic
             self.titleIsProposal = titleIsProposal
             self.isPossibleDuplicate = isPossibleDuplicate
+            self.isUnread = isUnread
             self.date = date
         }
     }
@@ -52,6 +55,8 @@ extension DocumentsModel {
         case inbox
         /// "Mijn post": the letters addressed to the member's own person (the app's start screen).
         case myPost
+        /// "Mijn post" with "Alleen ongelezen".
+        case myPostUnread
         case all
         /// The post addressed to one person ("Voor wie" in "Alle post").
         case person(UUID)
@@ -82,11 +87,16 @@ extension DocumentsModel {
         scope == .all || scope.isPerson
     }
 
+    /// "Mijn post", with or without "Alleen ongelezen".
+    public var isMyPost: Bool {
+        scope == .myPost || scope == .myPostUnread
+    }
+
     /// The name of the current scope, for the navigation bar.
     public var scopeTitle: String {
         switch scope {
         case .inbox: DocumentStrings.scopeInbox
-        case .myPost: DocumentStrings.scopeMyPost
+        case .myPost, .myPostUnread: DocumentStrings.scopeMyPost
         case .all: DocumentStrings.scopeAll
         case let .person(id): persons.first { $0.id == id }?.displayName ?? DocumentStrings.section
         }
@@ -100,6 +110,7 @@ extension DocumentsModel {
         switch scope {
         case .inbox: DocumentStrings.inboxEmpty
         case .myPost: DocumentStrings.myPostEmpty
+        case .myPostUnread: DocumentStrings.myPostAllRead
         case .all: DocumentStrings.empty
         case .person: DocumentStrings.personEmpty
         }
@@ -123,7 +134,7 @@ extension DocumentsModel {
         switch scope {
         case .inbox: return DocumentStrings.todoFooter
         case .all: return DocumentStrings.allFooter
-        case .myPost, .person: return nil
+        case .myPost, .myPostUnread, .person: return nil
         }
     }
 
@@ -211,6 +222,7 @@ extension DocumentsModel.Row {
     /// What VoiceOver reads for the row: sender, date and pages, status and its note, the addressees and the labels.
     public var accessibilityLabel: String {
         var parts = [titleIsProposal ? "\(title) \(DocumentStrings.proposedMark)" : title, subtitle, status.label]
+        if isUnread { parts.insert(DocumentStrings.unread, at: 0) }
         if let note = status.note { parts.append(note) }
         if let addresseeLine { parts.append(addresseeLine) }
         if !labels.isEmpty {
@@ -227,7 +239,9 @@ extension DocumentsModel {
     // Texts of rows and errors
 
     /// A letter's row in the words of the list; the search shows its hits with the same row.
-    static func row(for document: DocumentSummary, persons: [Person], labels: [DocumentLabel]) -> Row {
+    static func row(
+        for document: DocumentSummary, persons: [Person], labels: [DocumentLabel], showsUnread: Bool = false
+    ) -> Row {
         let addressees = Set(document.addresseeIDs)
         let labelIDs = Set(document.labelIDs)
         let status = Self.status(of: document)
@@ -240,7 +254,8 @@ extension DocumentsModel {
             labels: labels.filter { labelIDs.contains($0.id) },
             hasSuggestions: document.openSuggestionCount > 0,
             isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
-            isPossibleDuplicate: document.isPossibleDuplicate, date: document.createdAt
+            isPossibleDuplicate: document.isPossibleDuplicate, isUnread: showsUnread && document.isUnread,
+            date: document.createdAt
         )
     }
 

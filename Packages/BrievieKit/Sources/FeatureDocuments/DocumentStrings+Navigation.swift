@@ -15,6 +15,68 @@ extension DocumentStrings {
     static let myPostEmpty = String(
         localized: "documents.myPost.empty", defaultValue: "Er is nog geen post op jouw naam.", bundle: .module
     )
+    static let myPostAllRead = String(
+        localized: "documents.myPost.allRead", defaultValue: "Je hebt alles gelezen.", bundle: .module
+    )
+    static let myPostNoPerson = String(
+        localized: "documents.myPost.noPerson",
+        defaultValue: """
+            Je account is nog niet aan een persoon gekoppeld. Vraag een beheerder om dat te doen. \
+            Daarna staat hier de post op jouw naam.
+            """,
+        bundle: .module
+    )
+
+    // Ongelezen
+    static let unread = String(localized: "documents.unread", defaultValue: "Ongelezen", bundle: .module)
+    static let unreadOnly = String(
+        localized: "documents.unreadOnly", defaultValue: "Alleen ongelezen", bundle: .module
+    )
+    static let swipeRead = String(localized: "documents.swipe.read", defaultValue: "Gelezen", bundle: .module)
+    static let swipeUnread = String(localized: "documents.swipe.unread", defaultValue: "Ongelezen", bundle: .module)
+    static let markRead = String(
+        localized: "documents.markRead", defaultValue: "Markeer als gelezen", bundle: .module
+    )
+    static let markUnread = String(
+        localized: "documents.markUnread", defaultValue: "Markeer als ongelezen", bundle: .module
+    )
+
+    // Round quick actions
+    static let actionScan = String(localized: "actions.scan", defaultValue: "Scannen", bundle: .module)
+    static let actionSearch = String(localized: "actions.search", defaultValue: "Zoeken", bundle: .module)
+    static let actionAllRead = String(localized: "actions.allRead", defaultValue: "Alles gelezen", bundle: .module)
+    static let actionChooseName = String(
+        localized: "actions.chooseName", defaultValue: "Naam kiezen", bundle: .module
+    )
+
+    // Count cards
+    static let cardUnread = String(localized: "cards.unread", defaultValue: "ongelezen", bundle: .module)
+    static let cardTasks = String(localized: "cards.tasks", defaultValue: "taken", bundle: .module)
+    static let cardLingering = String(
+        localized: "cards.lingering", defaultValue: "blijven liggen", bundle: .module
+    )
+
+    static func cardLateDetail(_ late: Int) -> String {
+        String(localized: "cards.tasks.late", defaultValue: "\(late) te laat", bundle: .module)
+    }
+
+    /// What VoiceOver says for a count card: the place and the number in words, never a bare number.
+    static func cardUnreadLabel(_ count: Int) -> String {
+        String(localized: "cards.unread.label", defaultValue: "Mijn post: \(count) ongelezen", bundle: .module)
+    }
+
+    static func cardTasksLabel(_ count: Int, late: Int) -> String {
+        late > 0
+            ? String(
+                localized: "cards.tasks.label.late", defaultValue: "Mijn taken: \(count) open, \(late) te laat",
+                bundle: .module
+            )
+            : String(localized: "cards.tasks.label", defaultValue: "Mijn taken: \(count) open", bundle: .module)
+    }
+
+    static func cardLingeringLabel(_ count: Int) -> String {
+        String(localized: "cards.lingering.label", defaultValue: "Blijft liggen: \(count)", bundle: .module)
+    }
 
     static let navigation: [String: String] = [
         "documents.scope.myPost": scopeMyPost,
@@ -24,6 +86,21 @@ extension DocumentStrings {
         "tabs.tasks": tabTasks,
         "tabs.more": tabMore,
         "tabs.labels": labelsTitle,
-        "tabs.settings": settingsTitle
+        "tabs.settings": settingsTitle,
+        "documents.myPost.allRead": myPostAllRead,
+        "documents.myPost.noPerson": myPostNoPerson,
+        "documents.unread": unread,
+        "documents.unreadOnly": unreadOnly,
+        "documents.swipe.read": swipeRead,
+        "documents.swipe.unread": swipeUnread,
+        "documents.markRead": markRead,
+        "documents.markUnread": markUnread,
+        "actions.scan": actionScan,
+        "actions.search": actionSearch,
+        "actions.allRead": actionAllRead,
+        "actions.chooseName": actionChooseName,
+        "cards.unread": cardUnread,
+        "cards.tasks": cardTasks,
+        "cards.lingering": cardLingering
     ]
 }

@@ -61,6 +61,10 @@ public final class WorkspaceTabsModel {
     private let documents: WorkspaceDocuments
     private let onRevoked: @MainActor () -> Void
     private let onMissingPairing: @MainActor () -> Void
+    /// Opens the search field of "Alle post"; set by the app, which owns that list.
+    @ObservationIgnored public var onSearch: @MainActor () -> Void = {}
+    /// Whether the server keeps read marks, once known; set by the app, so the lists offer "Gelezen".
+    @ObservationIgnored public var onReadingSupport: @MainActor (Bool) -> Void = { _ in }
     /// The number of the latest count: only that one writes `counts`.
     @ObservationIgnored private var latestCount = 0
 
@@ -109,6 +113,7 @@ public final class WorkspaceTabsModel {
             guard count == latestCount else { return }
             counts = fresh
             countFailure = nil
+            if myPostSupport != .supported { onReadingSupport(true) }
             myPostSupport = .supported
             hasTasks = true
         } catch {
@@ -122,6 +127,7 @@ public final class WorkspaceTabsModel {
         case .notSupported:
             counts = nil
             countFailure = nil
+            if myPostSupport != .notSupported { onReadingSupport(false) }
             myPostSupport = .notSupported
             hasTasks = await Self.serverHasTasks(documents)
             if !tabs.contains(selection) { selection = .inbox }
@@ -156,6 +162,12 @@ public final class WorkspaceTabsModel {
         selection = .more
         morePath = [.allPost]
         sidebarSelection = .allPost
+    }
+
+    /// "Zoeken": "Alle post" with its search field open.
+    public func showSearch() {
+        showAllPost()
+        onSearch()
     }
 
     /// A tapped reminder: back to the start tab with nothing pushed in "Meer".

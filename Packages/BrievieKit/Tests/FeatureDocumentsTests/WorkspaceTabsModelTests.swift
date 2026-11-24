@@ -122,3 +122,72 @@ import Testing
         #expect(second.selection == .myPost)
     }
 }
+
+/// The count cards of "Mijn post".
+@MainActor
+@Suite struct WorkspaceTabsCardsTests {
+    private static let url = URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")
+
+    private let server = FakeDocumentServer { _, id in DocumentFixtures.detail(id: id) }
+
+    private func loaded(_ counts: MenuCounts) async throws -> WorkspaceTabsModel {
+        server.onMenuCounts { _ in counts }
+        let store = ConnectionStore(secrets: InMemorySecretStore())
+        let connection = ServerConnection(urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Jij")
+        try store.save(connection, token: "tok")
+        let tabs = WorkspaceTabsModel(
+            documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
+            onRevoked: {}, onMissingPairing: {}
+        )
+        await tabs.refreshCounts()
+        return tabs
+    }
+
+    @Test func unreadAndTasksSayThemselvesInWords() async throws {
+        let tabs = try await loaded(MenuCounts(myPostUnread: 4, myTasks: 2, myTasksOverdue: 1))
+
+        #expect(tabs.cards.map(\.kind) == [.unread, .tasks])
+        #expect(tabs.cards.map(\.number) == [4, 2])
+        #expect(tabs.cards.map(\.accessibilityLabel) == ["Mijn post: 4 ongelezen", "Mijn taken: 2 open, 1 te laat"])
+        #expect(tabs.cards.last?.detail == "1 te laat")
+        #expect(tabs.cards.last?.detailIsWarning == true)
+    }
+
+    @Test func lingeringOnlyForWhoSortsInAnOrganisation() async throws {
+        let home = try await loaded(MenuCounts(lingering: 0, showsLingering: false))
+        let office = try await loaded(MenuCounts(lingering: 3, showsLingering: true))
+
+        #expect(!home.cards.contains { $0.kind == .lingering })
+        #expect(office.cards.last?.kind == .lingering)
+        #expect(office.cards.last?.accessibilityLabel == "Blijft liggen: 3")
+    }
+
+    @Test func withoutAPersonMyPostSaysWhy() async throws {
+        let tabs = try await loaded(MenuCounts(hasPerson: false))
+
+        #expect(tabs.lacksPerson)
+    }
+
+    @Test func theListsHearOnceWhetherTheServerKeepsReadMarks() async throws {
+        server.onMenuCounts { _ in MenuCounts() }
+        let store = ConnectionStore(secrets: InMemorySecretStore())
+        let connection = ServerConnection(urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Jij")
+        try store.save(connection, token: "tok")
+        let tabs = WorkspaceTabsModel(
+            documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
+            onRevoked: {}, onMissingPairing: {}
+        )
+        let events = EventLog()
+        tabs.onReadingSupport = { events.add("\($0)") }
+        var searched = false
+        tabs.onSearch = { searched = true }
+
+        await tabs.refreshCounts()
+        await tabs.refreshCounts()
+        tabs.showSearch()
+
+        #expect(events.all == ["true"])
+        #expect(searched)
+        #expect(tabs.selection == .more && tabs.morePath == [.allPost])
+    }
+}

@@ -16,6 +16,8 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
     private let showMyTasks: () -> Void
     /// "Bekijk Alle post" under the empty Inbox.
     private let showAllPost: () -> Void
+    /// Count cards and round actions on top (tab roots); `nil` for none.
+    private let header: PostHeader?
     /// What a document on the server opens (the review screen).
     private let destination: (UUID) -> Destination
     /// What a pair in "Dubbel?" opens (the compare screen).
@@ -32,6 +34,7 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
         warning: String? = nil,
         showMyTasks: @escaping () -> Void = {},
         showAllPost: @escaping () -> Void = {},
+        header: PostHeader? = nil,
         @ViewBuilder destination: @escaping (UUID) -> Destination,
         @ViewBuilder compare: @escaping (UUID) -> Compare
     ) {
@@ -40,6 +43,7 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
         self.warning = warning
         self.showMyTasks = showMyTasks
         self.showAllPost = showAllPost
+        self.header = header
         self.destination = destination
         self.compare = compare
     }
@@ -47,7 +51,9 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
     public var body: some View {
         @Bindable var model = model
         content
-            .modifier(SearchField(search: model.search, isAvailable: model.searchIsAvailable))
+            .modifier(SearchField(
+                search: model.search, isAvailable: model.searchIsAvailable, isPresented: $model.isSearchPresented
+            ))
             .navigationTitle(model.scopeTitle)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -56,6 +62,9 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
                 }
                 if model.offersForWhom {
                     ToolbarItem(placement: .topBarTrailing) { forWhomMenu }
+                }
+                if model.isMyPost, model.offersReading {
+                    ToolbarItem(placement: .topBarTrailing) { unreadOnlyButton }
                 }
             }
             .refreshable { await model.load() }
@@ -150,6 +159,14 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
                 undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
                 closeDuplicate: { model.closeDuplicateNotice() }
             ),
+            header: header,
+            scan: startScan,
+            reading: model.offersReading
+                ? ReadingControls(
+                    markRead: { id in Task { await model.markRead(id) } },
+                    markUnread: { id in Task { await model.markUnread(id) } }
+                )
+                : nil,
             myTasksLink: model.myTasksLink,
             showMyTasks: showMyTasks,
             retryLoad: { Task { await model.load() } },
@@ -158,6 +175,31 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             destination: destination,
             compare: compare
         )
+    }
+
+    private static var filterOnSymbol: String { "line.3.horizontal.decrease.circle.fill" }
+    private static var filterOffSymbol: String { "line.3.horizontal.decrease.circle" }
+
+    /// "Alleen ongelezen" in "Mijn post": on or off.
+    private var unreadOnlyButton: some View {
+        let isOn = model.scope == .myPostUnread
+        return Button {
+            Task { await model.select(isOn ? .myPost : .myPostUnread) }
+        } label: {
+            Label(DocumentStrings.unreadOnly, systemImage: isOn ? Self.filterOnSymbol : Self.filterOffSymbol)
+        }
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+
+    /// The round "Scannen": the camera, or the photos where there is no camera.
+    private func startScan() {
+        guard DocumentScannerView.isSupported else {
+            showsPhotoPicker = true
+            return
+        }
+        Task {
+            if await model.prepareScanner() { showsScanner = true }
+        }
     }
 
     /// "Voor wie": everyone's post, or the post of one person (the persons who are not archived).

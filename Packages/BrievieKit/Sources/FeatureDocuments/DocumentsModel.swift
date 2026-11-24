@@ -54,6 +54,12 @@ public final class DocumentsModel {
     @ObservationIgnored var pairCount = 0 // counted by the last whole inbox load (0 from a server without pairs)
     /// The number of the latest pair load: only that one writes `duplicates`.
     @ObservationIgnored var latestPairLoad = 0
+    /// The search field of "Alle post" is active: "Zoeken" on another tab opens it.
+    public var isSearchPresented = false
+    /// The server keeps read marks (host PR #44): set by the screens once the menu's numbers answered.
+    public var tracksReading = false
+    /// Why marking read or unread failed; `nil` otherwise.
+    public internal(set) var readingError: String?
     /// "Ongedaan maken" is on its way: the button waits.
     public internal(set) var isUndoing = false
     /// The letters' open tasks changed on the server (a letter went to the trash or came back): the calendar
@@ -74,7 +80,7 @@ public final class DocumentsModel {
     private let refreshInterval: Duration
     let locale: Locale
 
-    private var serverDocuments: [DocumentSummary] = []
+    var serverDocuments: [DocumentSummary] = []
     /// In the inbox: per state, the number its header names (more than shown when only the newest are listed).
     private var inboxTotals: [InboxState: Int] = [:]
     private var queued: [UploadItem] = []
@@ -274,11 +280,14 @@ public final class DocumentsModel {
         return false
     }
 
-    private func rebuild() {
+    func rebuild() {
         let arrived = Set(serverDocuments.map(\.clientID))
         // A scan on the phone has no addressee yet: it is not under a person.
         let waiting = scope.showsQueue ? waitingRows(arrived: arrived) : []
-        let onServer = serverDocuments.map { Self.row(for: $0, persons: persons, labels: labels) }
+        let showsUnread = scope.showsUnread
+        let onServer = serverDocuments.map {
+            Self.row(for: $0, persons: persons, labels: labels, showsUnread: showsUnread)
+        }
         rows = arrange(waiting: waiting, onServer: onServer)
         summary = scope == .inbox
             ? Self.todoSummary(waiting: waiting, onServer: serverDocuments.map(\.inboxState), totals: inboxTotals)
