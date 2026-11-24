@@ -379,6 +379,24 @@
         }
       }
     },
+    "settings.section.calendar": {
+      "comment": "Settings header above the calendar switch (one workspace).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenda"
+          }
+        }
+      }
+    },
     "settings.title": {
       "comment": "Title of the settings screen, and the accessibility label of the gear that opens it.",
       "extractionState": "manual",
@@ -739,6 +757,24 @@
         }
       }
     },
+    "workspaces.calendar.section": {
+      "comment": "Settings header above the calendar switch of one workspace when there are several. %@ is the workspace's name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calendar: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agenda: %@"
+          }
+        }
+      }
+    },
     "workspaces.calendar.sourceGone": {
       "comment": "Under a calendar switch that went off because its calendar's account is no longer on the phone.",
       "extractionState": "manual",
@@ -991,6 +1027,96 @@
         }
       }
     },
+    "workspaces.picker.done": {
+      "comment": "Closes the workspace picker without changing anything.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klaar"
+          }
+        }
+      }
+    },
+    "workspaces.picker.footer": {
+      "comment": "Under the workspaces in the picker: each workspace is a separate space.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each workspace is a space of its own. You never see the mail, tasks or notifications of one workspace in another."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elke werkruimte is een eigen plek. Post, taken en meldingen van de ene werkruimte zie je niet in de andere."
+          }
+        }
+      }
+    },
+    "workspaces.picker.title": {
+      "comment": "Title of the sheet that lists the workspaces.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose workspace"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkruimte kiezen"
+          }
+        }
+      }
+    },
+    "workspaces.pill": {
+      "comment": "VoiceOver label of the workspace pill when there is only one workspace. %@ is its name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace: %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkruimte: %@"
+          }
+        }
+      }
+    },
+    "workspaces.pill.switch": {
+      "comment": "VoiceOver label of the workspace pill that opens the picker. %@ is the current workspace.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workspace: %@. Choose another workspace"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkruimte: %@. Kies een andere werkruimte"
+          }
+        }
+      }
+    },
     "workspaces.retry": {
       "comment": "Retry button after a failed load.",
       "extractionState": "manual",
@@ -1076,23 +1202,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Server"
-          }
-        }
-      }
-    },
-    "workspaces.section.workspaces": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your workspaces"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jouw werkruimtes"
           }
         }
       }

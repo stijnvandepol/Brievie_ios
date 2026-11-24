@@ -29,6 +29,15 @@ enum WorkspaceStrings {
         bundle: .module
     )
 
+    static let pillFormat = String(localized: "workspaces.pill", defaultValue: "Werkruimte: %@", bundle: .module)
+    static let pillSwitchFormat = String(
+        localized: "workspaces.pill.switch", defaultValue: "Werkruimte: %@. Kies een andere werkruimte", bundle: .module
+    )
+
+    static let calendarSectionFormat = String(
+        localized: "workspaces.calendar.section", defaultValue: "Agenda: %@", bundle: .module
+    )
+
     static let unpairMessage = String(
         localized: "workspaces.unpair.message",
         defaultValue: """
@@ -205,6 +214,9 @@ enum WorkspaceStrings {
         "workspaces.error.notVerified": notVerified,
         "error.generic": generic,
         "workspaces.unpair.message": unpairMessage,
+        "workspaces.pill": pillFormat,
+        "workspaces.pill.switch": pillSwitchFormat,
+        "workspaces.calendar.section": calendarSectionFormat,
         "workspaces.unpair.confirmRemovingCalendars": unpairRemovingCalendars,
         "workspaces.calendar.noAccess": calendarNoAccess,
         "workspaces.calendar.tasksNotSupported": calendarTasksNotSupported,

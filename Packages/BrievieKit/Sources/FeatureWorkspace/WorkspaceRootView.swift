@@ -31,6 +31,9 @@ public struct WorkspaceRootView<Inbox: View>: View {
                 // Outside the root's states: whatever the root shows, the gear is there.
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
+                        WorkspacePillButton(model: model)
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
                         Button {
                             model.isShowingSettings = true
                         } label: {
@@ -44,8 +47,11 @@ public struct WorkspaceRootView<Inbox: View>: View {
                 }
                 // In the model: a tapped reminder closes the settings to show its letter.
                 .navigationDestination(isPresented: $model.isShowingSettings) {
-                    SettingsView(model: model) { model.isShowingSettings = false }
+                    SettingsView(model: model)
                 }
+        }
+        .sheet(isPresented: $model.isShowingPicker) {
+            WorkspacePickerSheet(model: model)
         }
         .task { await model.load() }
         .onDisappear { model.stop() }
