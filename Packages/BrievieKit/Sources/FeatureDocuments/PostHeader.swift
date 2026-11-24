@@ -93,4 +93,40 @@ struct PostHeaderSection: View {
         }
     }
 }
+
+#if DEBUG
+private var previewHeader: PostHeader {
+    PostHeader(
+        cards: [
+            WorkspaceTabsModel.Card(
+                kind: .unread, number: 4, caption: DocumentStrings.cardUnread, detail: nil, detailIsWarning: false,
+                accessibilityLabel: DocumentStrings.cardUnreadLabel(4)
+            ),
+            WorkspaceTabsModel.Card(
+                kind: .tasks, number: 2, caption: DocumentStrings.cardTasks,
+                detail: DocumentStrings.cardLateDetail(1), detailIsWarning: true,
+                accessibilityLabel: DocumentStrings.cardTasksLabel(2, late: 1)
+            )
+        ],
+        actions: [.scan, .search, .allRead], openCard: { _ in }, perform: { _ in }
+    )
+}
+
+private struct PostHeaderPreview: View {
+    var body: some View {
+        NavigationStack {
+            List {
+                PostHeaderSection(header: previewHeader, scan: {})
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle(DocumentStrings.scopeMyPost)
+        }
+        .tint(BrievieColor.brand)
+    }
+}
+
+#Preview("Light") { PostHeaderPreview() }
+#Preview("Dark") { PostHeaderPreview().preferredColorScheme(.dark) }
+#Preview("AX5") { PostHeaderPreview().dynamicTypeSize(.accessibility5) }
+#endif
 #endif

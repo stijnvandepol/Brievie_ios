@@ -19,7 +19,7 @@ struct ReminderSettingsSection: View {
                 )
             }
             if model.isOn {
-                Picker(
+                StackedPicker(
                     WorkspaceStrings.remindersLead,
                     selection: Binding(get: { model.leadDays }, set: { model.setLeadDays($0) })
                 ) {

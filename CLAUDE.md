@@ -3,7 +3,7 @@
 Native SwiftUI app that pairs with a self-hosted Brievie server.
 
 - Spec: `../Brievie_host/docs/SPEC.md` (sections 11, 13, 14, 16 step 1a, 18, 19)
-- Current plan: `docs/superpowers/plans/2026-11-21-ios-trash-duplicates.md` (trash and duplicate letters; earlier: `../Brievie_host/docs/superpowers/plans/2026-11-17-ios-1d-a-leden-apparaten.md` for phase 1d part A, and here `docs/superpowers/plans/2026-11-16-ios-fase-1c.md`, `2026-11-14-ios-fase-1b.md`, `2026-11-13-ios-fundament.md`)
+- Current plan: the iOS steps I1–I8 of `../Brievie_host/docs/superpowers/plans/2026-11-21-host-navigatie-en-persoonlijke-inbox.md` (tabs, Mijn post, unread letters; decisions in `docs/DECISIONS.md`). Earlier: `docs/superpowers/plans/2026-11-21-ios-trash-duplicates.md` (trash and duplicate letters; before that: `../Brievie_host/docs/superpowers/plans/2026-11-17-ios-1d-a-leden-apparaten.md` for phase 1d part A, and here `docs/superpowers/plans/2026-11-16-ios-fase-1c.md`, `2026-11-14-ios-fase-1b.md`, `2026-11-13-ios-fundament.md`)
 - Dependency and design decisions: `docs/DECISIONS.md`
 
 ## Make targets

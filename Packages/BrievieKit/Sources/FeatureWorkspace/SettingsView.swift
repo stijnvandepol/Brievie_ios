@@ -226,7 +226,7 @@ private struct CalendarSwitchRows: View {
                     .foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 6) {
-                Picker(
+                StackedPicker(
                     WorkspaceStrings.calendarTasksLabel,
                     selection: Binding(get: { model.taskPart }, set: { model.setTaskPart($0) })
                 ) {
