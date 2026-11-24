@@ -216,9 +216,9 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
         case .labels:
             LabelsView(model: screens.labels) { id in
                 if sizeClass == .regular {
-                    tabs.detailPath.append(.label(id))
+                    tabs.detailPath.append(WorkspaceTabsModel.Place.label(id))
                 } else {
-                    tabs.morePath.append(.label(id))
+                    tabs.morePath.append(WorkspaceTabsModel.Place.label(id))
                 }
             }
         case let .label(id):

@@ -1,3 +1,13 @@
+import Foundation
+
+/// A search hit opened from the results. `DocumentsView` registers its destination
+/// (`navigationDestination(for:)`), outside the results list: that list exists only while a term is typed, and a
+/// letter pushed by a link inside it was owned by a view the search could replace while the letter was open.
+/// Its own type, so it does not meet the `UUID` of `navigationDestination(item: $model.openedDocument)`.
+struct SearchHitLink: Hashable {
+    let documentID: UUID
+}
+
 #if os(iOS)
 import BrievieCore
 import BrievieUI
@@ -123,14 +133,6 @@ struct DocumentSearchList: View {
             text += piece
         }
     }
-}
-
-/// A search hit opened from the results. `DocumentsView` registers its destination
-/// (`navigationDestination(for:)`), outside the results list: that list exists only while a term is typed, and a
-/// letter pushed by a link inside it was owned by a view the search could replace while the letter was open.
-/// Its own type, so it does not meet the `UUID` of `navigationDestination(item: $model.openedDocument)`.
-struct SearchHitLink: Hashable {
-    let documentID: UUID
 }
 
 /// The system search field, only in "Alle post". Return searches at once; typing searches after a pause.

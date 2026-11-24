@@ -1,6 +1,7 @@
 import BrievieCore
 @testable import FeatureDocuments
 import Foundation
+import SwiftUI
 import Testing
 
 /// The tabs of a workspace: the web's order, the start on "Mijn post", and what an older server leaves out.
@@ -99,7 +100,7 @@ import Testing
         let tabs = try model()
 
         tabs.showAllPost()
-        #expect(tabs.selection == .more && tabs.morePath == [.allPost] && tabs.sidebarSelection == .allPost)
+        #expect(tabs.selection == .more && tabs.morePath == NavigationPath([WorkspaceTabsModel.Place.allPost]) && tabs.sidebarSelection == .allPost)
 
         tabs.showTasks()
         #expect(tabs.selection == .tasks)
@@ -110,6 +111,19 @@ import Testing
         tabs.showAllPost()
         tabs.showStart()
         #expect(tabs.selection == .myPost && tabs.morePath.isEmpty && tabs.sidebarSelection == .myPost)
+    }
+
+    /// A search hit in "Alle post" pushes a `SearchHitLink` onto the stack of "Meer" (and of the iPad's detail): a
+    /// path of places only would refuse it, and the hit would not open.
+    @Test func aSearchHitCanBePushedWhereAllePostIs() throws {
+        let tabs = try model()
+        tabs.showAllPost()
+
+        tabs.morePath.append(SearchHitLink(documentID: UUID()))
+        tabs.detailPath.append(SearchHitLink(documentID: UUID()))
+
+        #expect(tabs.morePath.count == 2)
+        #expect(tabs.detailPath.count == 1)
     }
 
     @Test func aNewWorkspaceStartsAnew() async throws {
@@ -188,6 +202,6 @@ import Testing
 
         #expect(events.all == ["true"])
         #expect(searched)
-        #expect(tabs.selection == .more && tabs.morePath == [.allPost])
+        #expect(tabs.selection == .more && tabs.morePath == NavigationPath([WorkspaceTabsModel.Place.allPost]))
     }
 }

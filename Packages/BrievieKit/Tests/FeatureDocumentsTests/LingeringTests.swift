@@ -1,6 +1,7 @@
 import BrievieCore
 @testable import FeatureDocuments
 import Foundation
+import SwiftUI
 import Testing
 
 /// "Blijft liggen" and the Inbox's round actions, and how a workspace's screens are tied together.
@@ -174,7 +175,7 @@ import Testing
     @Test func anotherPlaceInTheSidebarStartsWithNothingPushed() throws {
         let tabs = try screens().tabs
         tabs.sidebarSelection = .labels
-        tabs.detailPath = [.label(UUID())]
+        tabs.detailPath = NavigationPath([WorkspaceTabsModel.Place.label(UUID())])
 
         tabs.sidebarSelection = .allPost
 

@@ -1,6 +1,7 @@
 import BrievieCore
 import Foundation
 import Observation
+import SwiftUI
 
 /// The navigation of one workspace (navigation design, section 4.5): the tabs Inbox, Mijn post, Taken and Meer in the
 /// web's order, starting on "Mijn post"; on an iPad the same places as a sidebar. It also holds the menu's numbers.
@@ -47,12 +48,13 @@ public final class WorkspaceTabsModel {
     public var selection: Tab = .myPost
     public var sidebarSelection: SidebarItem? = .myPost {
         // Another place in the sidebar starts with nothing pushed.
-        didSet { if sidebarSelection != oldValue { detailPath = [] } }
+        didSet { if sidebarSelection != oldValue { detailPath = NavigationPath() } }
     }
-    /// What the iPad's detail has pushed (a label's letters).
-    public var detailPath: [Place] = []
-    /// What "Meer" has pushed.
-    public var morePath: [Place] = []
+    /// What the iPad's detail has pushed (a label's letters, a search hit). Not a list of places: a search hit in
+    /// "Alle post" pushes a `SearchHitLink`, which a path of places would refuse (the hit would not open).
+    public var detailPath = NavigationPath()
+    /// What "Meer" has pushed: a place, then a search hit of "Alle post".
+    public var morePath = NavigationPath()
     /// "Blijft liggen" is pushed on the Inbox.
     public var isShowingLingering = false
     public private(set) var myPostSupport: Support = .unknown
@@ -174,7 +176,7 @@ public final class WorkspaceTabsModel {
     /// "Alle post" from elsewhere (the empty Inbox): the "Meer" tab with "Alle post" open.
     public func showAllPost() {
         selection = .more
-        morePath = [.allPost]
+        morePath = NavigationPath([Place.allPost])
         sidebarSelection = .allPost
     }
 
@@ -186,7 +188,7 @@ public final class WorkspaceTabsModel {
 
     /// A tapped reminder: back to the start tab with nothing pushed in "Meer".
     public func showStart() {
-        morePath = []
+        morePath = NavigationPath()
         selection = startTab
         sidebarSelection = startTab == .myPost ? .myPost : .inbox
     }
