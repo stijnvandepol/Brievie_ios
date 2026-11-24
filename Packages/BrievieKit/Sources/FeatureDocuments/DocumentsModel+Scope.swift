@@ -60,6 +60,8 @@ extension DocumentsModel {
         case all
         /// The post addressed to one person ("Voor wie" in "Alle post").
         case person(UUID)
+        /// The letters with one label (Meer, Labels).
+        case label(UUID)
     }
 }
 
@@ -99,6 +101,7 @@ extension DocumentsModel {
         case .myPost, .myPostUnread: DocumentStrings.scopeMyPost
         case .all: DocumentStrings.scopeAll
         case let .person(id): persons.first { $0.id == id }?.displayName ?? DocumentStrings.section
+        case let .label(id): labels.first { $0.id == id }?.name ?? DocumentStrings.labelsTitle
         }
     }
 
@@ -118,6 +121,7 @@ extension DocumentsModel {
         case .myPostUnread: DocumentStrings.myPostAllRead
         case .all: DocumentStrings.empty
         case .person: DocumentStrings.personEmpty
+        case .label: DocumentStrings.labelEmpty
         }
     }
 
@@ -139,7 +143,7 @@ extension DocumentsModel {
         switch scope {
         case .inbox: return DocumentStrings.todoFooter
         case .all: return DocumentStrings.allFooter
-        case .myPost, .myPostUnread, .person: return nil
+        case .myPost, .myPostUnread, .person, .label: return nil
         }
     }
 

@@ -128,3 +128,56 @@ import Testing
         #expect(counts.count >= 1)
     }
 }
+
+/// "Labels" under Meer: the labels, and the letters of one label as a list of their own.
+@MainActor
+@Suite struct LabelsTests {
+    private static let url = URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")
+
+    private let store = ConnectionStore(secrets: InMemorySecretStore())
+    private let server = FakeDocumentServer { _, id in DocumentFixtures.detail(id: id) }
+
+    private func screens() throws -> WorkspaceScreens {
+        let connection = ServerConnection(urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Jij")
+        try store.save(connection, token: "tok")
+        return WorkspaceScreens(
+            documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
+            uploads: FakeUploadQueue(), canScan: true, camera: FakeScanCamera(.allowed), openSettings: {},
+            onTasksChanged: {}, onRevoked: {}, onMissingPairing: {}
+        )
+    }
+
+    @Test func theLabelsLoad() async throws {
+        let screens = try screens()
+
+        await screens.labels.load()
+
+        #expect(screens.labels.state == .loaded)
+        #expect(screens.labels.labels == DocumentFixtures.labels)
+    }
+
+    @Test func aLabelsLettersAskTheServerForThatLabel() async throws {
+        let screens = try screens()
+        let label = try #require(DocumentFixtures.labels.first)
+        await screens.tabs.refreshCounts()
+        let list = screens.allPost.makeLabelModel(label.id)
+
+        await list.load()
+
+        let filters = server.calls.compactMap { if case let .list(_, filter) = $0 { filter } else { nil } }
+        #expect(filters.last == DocumentFilter(labelID: label.id))
+        #expect(list.scopeTitle == label.name)
+        #expect(list.offersReading)
+        #expect(!list.offersForWhom && !list.searchIsAvailable)
+    }
+
+    @Test func anotherPlaceInTheSidebarStartsWithNothingPushed() throws {
+        let tabs = try screens().tabs
+        tabs.sidebarSelection = .labels
+        tabs.detailPath = [.label(UUID())]
+
+        tabs.sidebarSelection = .allPost
+
+        #expect(tabs.detailPath.isEmpty)
+    }
+}

@@ -93,9 +93,12 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
             }
             .toolbar { ToolbarItem(placement: .topBarLeading) { pill() } }
         } detail: {
-            NavigationStack { sidebarDetail }
-                // Another place is another stack: nothing pushed in one shows in the next.
-                .id(tabs.sidebarSelection)
+            NavigationStack(path: $tabs.detailPath) {
+                sidebarDetail
+                    .navigationDestination(for: WorkspaceTabsModel.Place.self) { place(_: $0) }
+            }
+            // Another place is another stack: nothing pushed in one shows in the next.
+            .id(tabs.sidebarSelection)
         }
     }
 
@@ -210,8 +213,16 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
             } compare: { id in
                 compare(id, screens.allPost)
             }
-        case .labels, .label:
-            EmptyView()
+        case .labels:
+            LabelsView(model: screens.labels) { id in
+                if sizeClass == .regular {
+                    tabs.detailPath.append(.label(id))
+                } else {
+                    tabs.morePath.append(.label(id))
+                }
+            }
+        case let .label(id):
+            LabelPostScreen(label: id, from: screens.allPost, destination: destination, compare: compare)
         case .trash:
             TrashScreen(model: screens.allPost)
         case .settings:
@@ -282,6 +293,7 @@ struct MoreList: View {
         List {
             Section {
                 row(DocumentStrings.scopeAll, symbol: "tray.full", place: .allPost)
+                row(DocumentStrings.labelsTitle, symbol: "tag", place: .labels)
                 if hasTrash {
                     row(DocumentStrings.trashTitle, symbol: "trash", place: .trash)
                 }

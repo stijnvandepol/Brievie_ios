@@ -45,7 +45,12 @@ public final class WorkspaceTabsModel {
     }
 
     public var selection: Tab = .myPost
-    public var sidebarSelection: SidebarItem? = .myPost
+    public var sidebarSelection: SidebarItem? = .myPost {
+        // Another place in the sidebar starts with nothing pushed.
+        didSet { if sidebarSelection != oldValue { detailPath = [] } }
+    }
+    /// What the iPad's detail has pushed (a label's letters).
+    public var detailPath: [Place] = []
     /// What "Meer" has pushed.
     public var morePath: [Place] = []
     /// "Blijft liggen" is pushed on the Inbox.

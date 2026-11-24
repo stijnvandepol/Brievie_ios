@@ -33,6 +33,7 @@ extension DocumentsModel {
         case .myPostUnread: .list(DocumentFilter(addressedToMe: true, unreadOnly: true))
         case .all: .list(.all)
         case let .person(id): .list(DocumentFilter(personID: id))
+        case let .label(id): .list(DocumentFilter(labelID: id))
         }
     }
 

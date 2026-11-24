@@ -72,9 +72,9 @@ public final class DocumentsModel {
     public let search: DocumentSearchModel
 
     let documents: WorkspaceDocuments
-    private let uploads: any UploadQueue
-    private let camera: any ScanCameraAccess
-    private let settingsOpener: @MainActor () -> Void
+    let uploads: any UploadQueue
+    let camera: any ScanCameraAccess
+    let settingsOpener: @MainActor () -> Void
     let onRevoked: @MainActor () -> Void
     let onMissingPairing: @MainActor () -> Void
     private let refreshInterval: Duration

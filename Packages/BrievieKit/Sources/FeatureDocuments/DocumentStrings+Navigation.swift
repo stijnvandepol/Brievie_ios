@@ -104,6 +104,17 @@ extension DocumentStrings {
             : String(localized: "lingering.days.unopened", defaultValue: "\(days) dagen niet geopend", bundle: .module)
     }
 
+    // Labels
+    static let labelsEmpty = String(
+        localized: "labels.empty", defaultValue: "Deze werkruimte heeft nog geen labels.", bundle: .module
+    )
+    static let labelsFooter = String(
+        localized: "labels.footer", defaultValue: "Labels maak en wijzig je op de website.", bundle: .module
+    )
+    static let labelEmpty = String(
+        localized: "labels.letters.empty", defaultValue: "Er is nog geen post met dit label.", bundle: .module
+    )
+
     static let navigation: [String: String] = [
         "documents.scope.myPost": scopeMyPost,
         "documents.forWhom": forWhom,
@@ -131,6 +142,9 @@ extension DocumentStrings {
         "lingering.title": lingeringTitle,
         "lingering.tooLong": lingeringTooLong,
         "lingering.notOpened": lingeringNotOpened,
-        "lingering.empty": lingeringEmpty
+        "lingering.empty": lingeringEmpty,
+        "labels.empty": labelsEmpty,
+        "labels.footer": labelsFooter,
+        "labels.letters.empty": labelEmpty
     ]
 }

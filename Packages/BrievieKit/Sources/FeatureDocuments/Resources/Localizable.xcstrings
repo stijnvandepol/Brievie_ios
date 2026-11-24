@@ -2311,6 +2311,60 @@
         }
       }
     },
+    "labels.empty": {
+      "comment": "Labels screen without labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workspace has no labels yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze werkruimte heeft nog geen labels."
+          }
+        }
+      }
+    },
+    "labels.footer": {
+      "comment": "Under the labels: where they are made.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You create and change labels on the website."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels maak en wijzig je op de website."
+          }
+        }
+      }
+    },
+    "labels.letters.empty": {
+      "comment": "The letters of one label, when there are none.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no mail with this label yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is nog geen post met dit label."
+          }
+        }
+      }
+    },
     "lingering.days.inbox": {
       "comment": "How long a letter waits in the Inbox. %lld is the number of days.",
       "extractionState": "manual",

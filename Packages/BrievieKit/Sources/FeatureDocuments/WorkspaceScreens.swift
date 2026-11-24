@@ -10,6 +10,7 @@ public struct WorkspaceScreens {
     public let allPost: DocumentsModel
     public let tasks: MyTasksModel
     public let lingering: LingeringModel
+    public let labels: LabelsModel
     /// One scan flow per list: each pushes its preview on its own navigation stack.
     public let inboxScan: ScanFlowModel
     public let myPostScan: ScanFlowModel
@@ -55,6 +56,7 @@ public struct WorkspaceScreens {
             documents: documents, persons: { [weak inbox] in inbox?.persons ?? [] },
             labels: { [weak inbox] in inbox?.labels ?? [] }, onRevoked: onRevoked, onMissingPairing: onMissingPairing
         )
+        labels = LabelsModel(documents: documents, onRevoked: onRevoked, onMissingPairing: onMissingPairing)
         inboxScan = ScanFlowModel(workspaceID: documents.workspaceID, uploads: uploads)
         myPostScan = ScanFlowModel(workspaceID: documents.workspaceID, uploads: uploads)
         allPostScan = ScanFlowModel(workspaceID: documents.workspaceID, uploads: uploads)
