@@ -55,9 +55,6 @@ public final class WorkspacesModel {
         return []
     }
 
-    /// More than one workspace: the inbox says which one it shows. With one the user never sees the word.
-    public var showsWorkspaceName: Bool { rows.count > 1 }
-
     /// The settings are pushed on the root screen.
     public var isShowingSettings = false
     /// The workspace picker (the sheet of the workspace pill) is open.

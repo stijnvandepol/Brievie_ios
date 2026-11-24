@@ -3,8 +3,8 @@ import BrievieCore
 import Foundation
 import Testing
 
-/// "Mijn taken" next to the Inbox: the menu entry with its count, the link row, switching back and forth, and an
-/// older server without it.
+/// "Mijn taken" next to the Inbox: its counts, the link row, the screen of the "Taken" tab, and an older server
+/// without it.
 @MainActor
 @Suite struct DocumentsMyTasksTests {
     private static let url = URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")
@@ -38,16 +38,15 @@ import Testing
 
         #expect(countCalls == 1)
         #expect(model.hasMyTasks)
-        #expect(model.myTasksMenuTitle == "Mijn taken · 4 open, 1 te laat")
+        #expect(model.myTaskCounts == MyTaskCounts(mine: 4, overdue: 1))
     }
 
-    @Test func theMenuSaysOnlyOpenWithoutLateTasks() async throws {
+    @Test func theLinkSaysOnlyOpenWithoutLateTasks() async throws {
         server.onMyTaskCounts { _ in MyTaskCounts(mine: 3) }
         let model = try model()
 
         await model.load()
 
-        #expect(model.myTasksMenuTitle == "Mijn taken · 3 open")
         #expect(model.myTasksLink == DocumentsModel.MyTasksLink(text: "Mijn taken: 3 open", isLate: false))
     }
 
@@ -70,10 +69,9 @@ import Testing
         await model.load()
 
         #expect(model.myTasksLink == nil)
-        #expect(model.myTasksMenuTitle == "Mijn taken")
     }
 
-    @Test func menuHidesMyTasksOnAnOlderServer() async throws {
+    @Test func anOlderServerHasNoMyTasks() async throws {
         server.onMyTaskCounts { _ in throw ServerError.other("http_404") }
         let model = try model()
 
@@ -82,8 +80,6 @@ import Testing
         #expect(!model.hasMyTasks)
         #expect(model.myTasksLink == nil)
         #expect(model.state == .loaded)
-        model.showMyTasks()
-        #expect(!model.isShowingMyTasks)
     }
 
     @Test func anUnreachableCountKeepsWhatWasKnown() async throws {
@@ -98,52 +94,29 @@ import Testing
         #expect(model.myTaskCounts == MyTaskCounts(mine: 2))
     }
 
-    @Test func pickingAScopeLeavesMyTasks() async throws {
+    @Test func naarInboxGoesToTheInboxTab() async throws {
         let model = try model()
         await model.load()
-        await model.select(.all)
-        model.search.query = "belasting"
-        model.showMyTasks()
-        #expect(!model.search.isActive)
-        #expect(model.isShowingMyTasks)
-        #expect(model.screenTitle == "Mijn taken")
-        #expect(!model.searchIsAvailable)
-
-        await model.select(.all)
-
-        #expect(!model.isShowingMyTasks)
-        #expect(model.searchIsAvailable)
-    }
-
-    @Test func pickingTheCurrentScopeAlsoLeavesMyTasks() async throws {
-        let model = try model()
-        await model.load()
-        model.showMyTasks()
-
-        await model.select(.inbox)
-
-        #expect(!model.isShowingMyTasks)
-    }
-
-    @Test func myTasksShowInboxGoesBackToTheInbox() async throws {
-        let model = try model()
-        await model.load()
-        await model.select(.all)
-        model.showMyTasks()
-        let tasks = model.makeMyTasksModel()
+        let events = events
+        let tasks = model.makeMyTasksModel { events.add("inbox") }
 
         tasks.showInbox()
-        while model.isShowingMyTasks { await Task.yield() }
-        while model.scope != .inbox { await Task.yield() }
 
-        #expect(model.scope == .inbox)
+        #expect(events.all == ["inbox"])
     }
 
-    @Test func theStartScreenIsStillTheInbox() throws {
-        let model = try model()
-
-        #expect(!model.isShowingMyTasks)
-        #expect(model.scope == .inbox)
+    @Test func aModelStartsOnTheScopeItIsMadeFor() throws {
+        #expect(try model().scope == .inbox)
+        let store = ConnectionStore(secrets: InMemorySecretStore())
+        let connection = ServerConnection(urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Jij")
+        let myPost = DocumentsModel(
+            documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
+            scope: .myPost, uploads: FakeUploadQueue(), canScan: true, camera: FakeScanCamera(.allowed),
+            openSettings: {}, onRevoked: {}, onMissingPairing: {}
+        )
+        #expect(myPost.scope == .myPost)
+        #expect(myPost.scopeTitle == "Mijn post")
+        #expect(!myPost.searchIsAvailable)
     }
 
     @Test func aTickInMyTasksRefreshesTheCounts() async throws {
@@ -152,7 +125,7 @@ import Testing
         server.onMyTaskCounts { _ in MyTaskCounts(mine: 1) }
         let model = try model()
         await model.load()
-        let tasks = model.makeMyTasksModel()
+        let tasks = model.makeMyTasksModel {}
         await tasks.load()
 
         await tasks.setDone(true, for: task.id)

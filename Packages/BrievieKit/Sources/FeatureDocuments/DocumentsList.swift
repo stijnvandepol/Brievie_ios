@@ -352,8 +352,7 @@ private var previewEmpty: DocumentsList<EmptyView, EmptyView>.Empty {
             destination: { _ in EmptyView() }, compare: { _ in EmptyView() }
         )
         .navigationTitle("Inbox")
-        .workspaceSubtitle("Thuis")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
     }
     .tint(BrievieColor.brand)
 }

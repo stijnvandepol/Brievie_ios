@@ -29,6 +29,7 @@ extension DocumentsModel {
     static func source(for scope: Scope) -> Source {
         switch scope {
         case .inbox: .inbox
+        case .myPost: .list(.myPost)
         case .all: .list(.all)
         case let .person(id): .list(DocumentFilter(personID: id))
         }

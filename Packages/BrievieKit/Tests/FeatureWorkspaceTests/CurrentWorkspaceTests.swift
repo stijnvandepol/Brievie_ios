@@ -217,24 +217,4 @@ import Testing
 
         #expect(appModel.state == .unpaired(notice: nil))
     }
-
-    // MARK: - naming the workspace
-
-    @Test func withOneWorkspaceTheInboxDoesNotNameIt() async {
-        serve([home])
-        let model = makeModel()
-
-        await model.load()
-
-        #expect(!model.showsWorkspaceName)
-    }
-
-    @Test func withMoreWorkspacesTheInboxNamesIt() async {
-        serve([home, business])
-        let model = makeModel()
-
-        await model.load()
-
-        #expect(model.showsWorkspaceName)
-    }
 }

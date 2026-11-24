@@ -122,7 +122,7 @@ private struct PairingScreen: View {
     }
 }
 
-/// The paired app: the inbox of the current workspace, with the settings behind it.
+/// The paired app: the screens of the current workspace, with the settings under "Meer".
 private struct PairedScreen: View {
     @State private var model: WorkspacesModel
     private let appModel: AppModel
@@ -157,13 +157,13 @@ private struct PairedScreen: View {
 
     var body: some View {
         WorkspaceRootView(model: model, warning: appModel.noPasscodeWarning) { workspace in
-            DocumentsScreen(
+            WorkspaceScreen(
                 appModel: appModel, environment: environment, connection: connection, workspace: workspace,
-                workspaceName: model.showsWorkspaceName ? workspace.name : nil,
-                warning: appModel.noPasscodeWarning
+                workspaces: model, warning: appModel.noPasscodeWarning
             )
-            // Another workspace (or another role in it) is another post: new models, nothing of the old one kept.
-            .id(InboxIdentity(workspace: workspace.id, canEdit: DocumentsScreen.canEdit(workspace)))
+            // Another workspace (or another role in it) is another post: new models, nothing of the old one kept,
+            // and the screens start on "Mijn post" again.
+            .id(InboxIdentity(workspace: workspace.id, canEdit: WorkspaceScreen.canEdit(workspace)))
         }
         // This screen stays in the view tree while locked: every unlock after the first loads the list again, and
         // that load syncs the calendars and checks calendar access (the first unlock loads when the screen
@@ -191,12 +191,11 @@ private struct InboxIdentity: Hashable {
     let canEdit: Bool
 }
 
-/// The post of one workspace: the root of the paired app. Owns its models for as long as it shows this workspace.
-private struct DocumentsScreen: View {
-    @State private var model: DocumentsModel
-    @State private var scanModel: ScanFlowModel
-    private let title: String
-    private let workspaceName: String?
+/// The screens of one workspace: the root of the paired app. Owns their models for as long as it shows this
+/// workspace.
+private struct WorkspaceScreen: View {
+    @State private var screens: WorkspaceScreens
+    private let workspaces: WorkspacesModel
     private let warning: String?
     private let documents: WorkspaceDocuments
     private let canEdit: Bool
@@ -213,7 +212,7 @@ private struct DocumentsScreen: View {
 
     init(
         appModel: AppModel, environment: AppEnvironment, connection: ServerConnection,
-        workspace: WorkspacesModel.Row, workspaceName: String?, warning: String?
+        workspace: WorkspacesModel.Row, workspaces: WorkspacesModel, warning: String?
     ) {
         let documents = WorkspaceDocuments(
             workspaceID: workspace.id, connection: connection, store: environment.store,
@@ -222,21 +221,34 @@ private struct DocumentsScreen: View {
         let canEdit = Self.canEdit(workspace)
         let workspaceID = workspace.id
         let onTasksChanged: @MainActor () -> Void = { environment.tasksChanged(in: workspaceID) }
-        let model = DocumentsModel(
-            documents: documents,
-            uploads: environment.uploads,
-            canScan: canEdit,
-            camera: LiveScanCameraAccess(),
-            openSettings: openSystemSettings,
-            onRevoked: { appModel.sessionRevoked(deviceID: connection.deviceID) },
-            onMissingPairing: { appModel.connectionMissing() }
-        )
-        // A letter that goes to the trash or comes back takes its tasks along: the calendar and reminders follow.
-        model.onTasksChanged = onTasksChanged
-        _model = State(initialValue: model)
-        _scanModel = State(initialValue: ScanFlowModel(workspaceID: workspace.id, uploads: environment.uploads))
-        title = workspace.name
-        self.workspaceName = workspaceName
+        let onRevoked: @MainActor () -> Void = { appModel.sessionRevoked(deviceID: connection.deviceID) }
+        let onMissingPairing: @MainActor () -> Void = { appModel.connectionMissing() }
+        let tabs = WorkspaceTabsModel(documents: documents, onRevoked: onRevoked, onMissingPairing: onMissingPairing)
+        func list(_ scope: DocumentsModel.Scope) -> DocumentsModel {
+            let model = DocumentsModel(
+                documents: documents, scope: scope, uploads: environment.uploads, canScan: canEdit,
+                camera: LiveScanCameraAccess(), openSettings: openSystemSettings, onRevoked: onRevoked,
+                onMissingPairing: onMissingPairing
+            )
+            // A letter that goes to the trash or comes back takes its tasks along: the calendar and reminders follow.
+            model.onTasksChanged = onTasksChanged
+            // A list that loaded (or marked letters read) may change the menu's numbers.
+            model.onListChanged = { [weak model, weak tabs] in
+                guard let model, let tabs else { return }
+                if model.hasTrash { tabs.hasTrash = true }
+                Task { await tabs.refreshCounts() }
+            }
+            return model
+        }
+        let inbox = list(.inbox)
+        let tasks = inbox.makeMyTasksModel { [weak tabs] in tabs?.showInbox() }
+        _screens = State(initialValue: WorkspaceScreens(
+            tabs: tabs, inbox: inbox, myPost: list(.myPost), allPost: list(.all), tasks: tasks,
+            inboxScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads),
+            myPostScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads),
+            allPostScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads)
+        ))
+        self.workspaces = workspaces
         self.warning = warning
         self.documents = documents
         self.canEdit = canEdit
@@ -248,34 +260,39 @@ private struct DocumentsScreen: View {
     }
 
     var body: some View {
-        DocumentsView(
-            model: model, scanModel: scanModel, title: title, workspaceName: workspaceName, warning: warning
-        ) { documentID in
+        WorkspaceTabsView(screens: screens, warning: warning) { documentID, list in
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
-                deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: model.hasTrash,
-                onTrashed: { [model] id in Task { await model.didTrash(id) } }
+                deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: list.hasTrash,
+                onTrashed: { [list] id in Task { await list.didTrash(id) } }
             )
-        } compare: { pairID in
+        } compare: { pairID, list in
             DuplicateScreen(
-                pairID: pairID, documents: documents, canEdit: canEdit, persons: model.persons, labels: model.labels,
+                pairID: pairID, documents: documents, canEdit: canEdit, persons: list.persons, labels: list.labels,
                 appModel: appModel, deviceID: deviceID,
                 // `didMerge` lets the calendar follow (a twin task completed, the other letter's tasks left).
-                onMerged: { [model] otherID in Task { await model.didMerge(trashed: otherID) } },
-                onDismissed: { [model] in Task { await model.didDismissDuplicate() } },
-                onDecidedElsewhere: { [model] in Task { await model.didFindPairDecided() } }
+                onMerged: { [list] otherID in Task { await list.didMerge(trashed: otherID) } },
+                onDismissed: { [list] in Task { await list.didDismissDuplicate() } },
+                onDecidedElsewhere: { [list] in Task { await list.didFindPairDecided() } }
             )
+        } pill: {
+            WorkspacePillButton(model: workspaces)
+        } settings: {
+            SettingsView(model: workspaces)
         }
         // A tapped reminder of this workspace opens its letter, once the app is open (never behind the lock).
         .onChange(of: reminderRouter.target, initial: true) { openTappedLetter() }
         .onChange(of: appModel.state) { openTappedLetter() }
     }
 
+    /// The letter opens on the start tab ("Mijn post", or the Inbox on an older server).
     private func openTappedLetter() {
         guard case .ready = appModel.state, let target = reminderRouter.target, target.workspaceID == workspaceID,
               let documentID = target.documentID
         else { return }
-        model.openedDocument = documentID
+        screens.tabs.showStart()
+        let list = screens.tabs.startTab == .myPost ? screens.myPost : screens.inbox
+        list.openedDocument = documentID
         reminderRouter.finish()
     }
 }

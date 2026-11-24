@@ -383,7 +383,6 @@ extension DocumentStrings {
         "scan.camera.openSettings": openSettings,
         "documents.scope.inbox": scopeInbox,
         "documents.scope.all": scopeAll,
-        "documents.title.inWorkspace": titleInWorkspaceFormat,
         "documents.inbox.empty": inboxEmpty,
         "documents.person.empty": personEmpty,
         "documents.addressees": addresseesFormat,
@@ -393,4 +392,5 @@ extension DocumentStrings {
         .merging(scanPreview) { current, _ in current }.merging(list) { current, _ in current }
         .merging(taskEditing) { current, _ in current }.merging(search) { current, _ in current }
         .merging(trash) { current, _ in current }.merging(duplicates) { current, _ in current }
+        .merging(navigation) { current, _ in current }
 }

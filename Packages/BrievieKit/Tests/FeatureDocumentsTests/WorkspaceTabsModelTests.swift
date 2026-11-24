@@ -1,0 +1,124 @@
+import BrievieCore
+@testable import FeatureDocuments
+import Foundation
+import Testing
+
+/// The tabs of a workspace: the web's order, the start on "Mijn post", and what an older server leaves out.
+@MainActor
+@Suite struct WorkspaceTabsModelTests {
+    private static let url = URL(string: "https://brievie.local") ?? URL(fileURLWithPath: "/")
+
+    private let server = FakeDocumentServer { _, id in DocumentFixtures.detail(id: id) }
+
+    private func model() throws -> WorkspaceTabsModel {
+        let store = ConnectionStore(secrets: InMemorySecretStore())
+        let connection = ServerConnection(urls: [Self.url], caCertificateDER: nil, deviceID: UUID(), userName: "Jij")
+        try store.save(connection, token: "tok")
+        return WorkspaceTabsModel(
+            documents: WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server),
+            onRevoked: {}, onMissingPairing: {}
+        )
+    }
+
+    @Test func theTabsFollowTheWebsOrderAndStartOnMyPost() throws {
+        let tabs = try model()
+
+        #expect(tabs.tabs == [.inbox, .myPost, .tasks, .more])
+        #expect(tabs.selection == .myPost)
+        #expect(tabs.startTab == .myPost)
+        #expect(tabs.myPostSupport == .unknown)
+    }
+
+    @Test func theSidebarFollowsTheWebsMenu() async throws {
+        let tabs = try model()
+        tabs.hasTrash = true
+
+        await tabs.refreshCounts()
+
+        #expect(tabs.sidebarItems == [.inbox, .myPost, .tasks, .allPost, .labels, .trash])
+        #expect(tabs.sidebarSelection == .myPost)
+    }
+
+    @Test func theCountsGiveTheBadges() async throws {
+        server.onMenuCounts { _ in MenuCounts(inbox: 3, myPostUnread: 4, myTasks: 0, myTasksOverdue: 0) }
+        let tabs = try model()
+
+        await tabs.refreshCounts()
+
+        #expect(tabs.myPostSupport == .supported)
+        #expect(tabs.badge(for: .inbox) == 3)
+        #expect(tabs.badge(for: .myPost) == 4)
+        #expect(tabs.badge(for: .tasks) == nil)
+        #expect(tabs.badge(for: .more) == nil)
+    }
+
+    @Test func anOlderServerHasNoMyPostAndStartsOnTheInbox() async throws {
+        server.onMenuCounts { _ in throw ServerError.other("http_404") }
+        let tabs = try model()
+
+        await tabs.refreshCounts()
+
+        #expect(tabs.myPostSupport == .notSupported)
+        #expect(tabs.tabs == [.inbox, .tasks, .more])
+        #expect(tabs.selection == .inbox)
+        #expect(tabs.startTab == .inbox)
+        #expect(tabs.badge(for: .inbox) == nil)
+        // "Mijn post" never asked a list it cannot trust.
+        #expect(!server.calls.contains { if case .list = $0 { true } else { false } })
+    }
+
+    @Test func aServerWithoutMyTasksHasNoTasksTab() async throws {
+        server.onMenuCounts { _ in throw ServerError.other("http_404") }
+        server.onMyTaskCounts { _ in throw ServerError.other("http_404") }
+        let tabs = try model()
+
+        await tabs.refreshCounts()
+
+        #expect(tabs.tabs == [.inbox, .more])
+        #expect(tabs.sidebarItems == [.inbox, .allPost, .labels])
+    }
+
+    @Test func anUnreachableServerKeepsMyPostWaitingWithAReason() async throws {
+        server.onMenuCounts { _ in throw ServerError.unreachable }
+        let tabs = try model()
+
+        await tabs.refreshCounts()
+
+        #expect(tabs.myPostSupport == .unknown)
+        #expect(tabs.countFailure == DocumentStrings.unreachable)
+        #expect(tabs.tabs.contains(.myPost))
+
+        server.onMenuCounts { _ in MenuCounts() }
+        await tabs.refreshCounts()
+
+        #expect(tabs.myPostSupport == .supported)
+        #expect(tabs.countFailure == nil)
+    }
+
+    @Test func goingElsewhereAndBackToTheStart() throws {
+        let tabs = try model()
+
+        tabs.showAllPost()
+        #expect(tabs.selection == .more && tabs.morePath == [.allPost] && tabs.sidebarSelection == .allPost)
+
+        tabs.showTasks()
+        #expect(tabs.selection == .tasks)
+
+        tabs.showInbox()
+        #expect(tabs.selection == .inbox && tabs.sidebarSelection == .inbox)
+
+        tabs.showAllPost()
+        tabs.showStart()
+        #expect(tabs.selection == .myPost && tabs.morePath.isEmpty && tabs.sidebarSelection == .myPost)
+    }
+
+    @Test func aNewWorkspaceStartsAnew() async throws {
+        let first = try model()
+        first.showInbox()
+
+        // A workspace switch makes new models: the new one is back on "Mijn post".
+        let second = try model()
+
+        #expect(second.selection == .myPost)
+    }
+}

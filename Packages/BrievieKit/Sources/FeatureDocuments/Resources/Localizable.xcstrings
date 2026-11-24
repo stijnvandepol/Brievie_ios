@@ -343,6 +343,42 @@
         }
       }
     },
+    "documents.forWhom": {
+      "comment": "Filter in All mail: whose letters the list shows.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For whom"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor wie"
+          }
+        }
+      }
+    },
+    "documents.forWhom.everyone": {
+      "comment": "First choice of the For whom filter: every letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iedereen"
+          }
+        }
+      }
+    },
     "documents.import": {
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",
@@ -483,6 +519,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Post laden…"
+          }
+        }
+      }
+    },
+    "documents.myPost.empty": {
+      "comment": "My post without letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no mail addressed to you yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is nog geen post op jouw naam."
           }
         }
       }
@@ -681,6 +735,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inbox"
+          }
+        }
+      }
+    },
+    "documents.scope.myPost": {
+      "comment": "Name of the letters addressed to the member: a tab, a screen title and a menu entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My post"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn post"
           }
         }
       }
@@ -951,24 +1023,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bezig"
-          }
-        }
-      }
-    },
-    "documents.title.inWorkspace": {
-      "comment": "Title of the post list before iOS 26 when the user has more than one workspace: %1$@ is the scope (\"Inbox\"), %2$@ the workspace (\"Thuis\").",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$@"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@ · %2$@"
           }
         }
       }
@@ -4215,6 +4269,78 @@
           "stringUnit": {
             "state": "translated",
             "value": "Typ minstens twee tekens."
+          }
+        }
+      }
+    },
+    "tabs.labels": {
+      "comment": "Menu entry and screen title: the workspace's labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        }
+      }
+    },
+    "tabs.more": {
+      "comment": "Tab with the rest of the menu: All mail, Labels, Trash, Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meer"
+          }
+        }
+      }
+    },
+    "tabs.settings": {
+      "comment": "Menu entry and screen title of the settings, at the bottom of the menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellingen"
+          }
+        }
+      }
+    },
+    "tabs.tasks": {
+      "comment": "Tab with the member's own tasks (the screen is called My tasks).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
           }
         }
       }

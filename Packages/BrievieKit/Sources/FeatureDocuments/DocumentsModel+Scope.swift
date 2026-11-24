@@ -50,16 +50,18 @@ extension DocumentsModel {
     public enum Scope: Hashable, Sendable {
         /// "Inbox": what still needs the person (to check, a name to choose), and what is on its way.
         case inbox
+        /// "Mijn post": the letters addressed to the member's own person (the app's start screen).
+        case myPost
         case all
-        /// The post addressed to one person.
+        /// The post addressed to one person ("Voor wie" in "Alle post").
         case person(UUID)
     }
 }
 
 extension DocumentsModel.Scope {
-    /// Scans still on the phone show in the inbox and in all post, not under a person.
+    /// Scans still on the phone show in the inbox and in all post: they have no addressee yet.
     var showsQueue: Bool {
-        !isPerson
+        self == .inbox || self == .all
     }
 
     var isPerson: Bool {
@@ -69,16 +71,22 @@ extension DocumentsModel.Scope {
 }
 
 extension DocumentsModel {
-    /// The scopes for the menu: "Inbox", "Alle post", then each person who is not archived.
-    public var scopeTitles: [(Scope, String)] {
-        [(.inbox, DocumentStrings.scopeInbox), (.all, DocumentStrings.scopeAll)]
+    /// The choices of "Voor wie" in "Alle post": everyone, then each person who is not archived.
+    public var forWhomChoices: [(Scope, String)] {
+        [(.all, DocumentStrings.forEveryone)]
             + persons.filter { !$0.isArchived }.map { (.person($0.id), $0.displayName) }
+    }
+
+    /// "Voor wie" applies: the screen shows "Alle post" or one person's post.
+    public var offersForWhom: Bool {
+        scope == .all || scope.isPerson
     }
 
     /// The name of the current scope, for the navigation bar.
     public var scopeTitle: String {
         switch scope {
         case .inbox: DocumentStrings.scopeInbox
+        case .myPost: DocumentStrings.scopeMyPost
         case .all: DocumentStrings.scopeAll
         case let .person(id): persons.first { $0.id == id }?.displayName ?? DocumentStrings.section
         }
@@ -91,6 +99,7 @@ extension DocumentsModel {
     public var emptyText: String {
         switch scope {
         case .inbox: DocumentStrings.inboxEmpty
+        case .myPost: DocumentStrings.myPostEmpty
         case .all: DocumentStrings.empty
         case .person: DocumentStrings.personEmpty
         }
@@ -103,7 +112,7 @@ extension DocumentsModel {
     }
 
     /// Search belongs to "Alle post": the other scopes are short lists of their own.
-    public var searchIsAvailable: Bool { scope == .all && !isShowingMyTasks }
+    public var searchIsAvailable: Bool { scope == .all }
 
     /// The empty "Inbox" offers a way to "Alle post".
     public var emptyOffersAllPost: Bool { scope == .inbox }
@@ -114,7 +123,7 @@ extension DocumentsModel {
         switch scope {
         case .inbox: return DocumentStrings.todoFooter
         case .all: return DocumentStrings.allFooter
-        case .person: return nil
+        case .myPost, .person: return nil
         }
     }
 

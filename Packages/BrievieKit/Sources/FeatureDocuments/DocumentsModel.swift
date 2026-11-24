@@ -22,7 +22,7 @@ public final class DocumentsModel {
     }
 
     public private(set) var state: State = .loading
-    public private(set) var scope: Scope = .inbox
+    public private(set) var scope: Scope
     /// The rows of the current scope, in one list (see `arrange(waiting:onServer:)` for the order).
     public private(set) var rows: [Row] = []
     /// The line above "Inbox": how many rows need what. `nil` in the other scopes and without rows.
@@ -43,8 +43,6 @@ public final class DocumentsModel {
     public internal(set) var hasTrash = false
     public internal(set) var undo: UndoNotice?
     public var isShowingTrash = false
-    /// "Mijn taken" shows in place of the post list (see `+MyTasks`).
-    public internal(set) var isShowingMyTasks = false
     /// The server's counts of "Mijn taken"; `nil` before the first load and against an older server.
     public internal(set) var myTaskCounts: MyTaskCounts?
     /// The server knows "Mijn taken": the title menu offers it. False until a whole load found out.
@@ -61,6 +59,8 @@ public final class DocumentsModel {
     /// The letters' open tasks changed on the server (a letter went to the trash or came back): the calendar
     /// and the deadline reminders follow. Set by the screen that owns this model.
     @ObservationIgnored public var onTasksChanged: @MainActor () -> Void = {}
+    /// A whole load finished, or letters were marked read or unread: the menu's numbers may have changed.
+    @ObservationIgnored public var onListChanged: @MainActor () -> Void = {}
     /// Search in "Alle post"; forgotten when the user leaves it (and with this model, on a workspace switch or when
     /// the session ends).
     public let search: DocumentSearchModel
@@ -89,6 +89,7 @@ public final class DocumentsModel {
 
     public init(
         documents: WorkspaceDocuments,
+        scope: Scope = .inbox,
         uploads: any UploadQueue,
         canScan: Bool,
         camera: any ScanCameraAccess,
@@ -100,6 +101,7 @@ public final class DocumentsModel {
         locale: Locale = .autoupdatingCurrent
     ) {
         self.documents = documents
+        self.scope = scope
         self.uploads = uploads
         self.canScan = canScan
         self.camera = camera
@@ -129,11 +131,11 @@ public final class DocumentsModel {
         if let found = await probe { hasTrash = found }
         apply(await counts)
         await loadDuplicates()
+        onListChanged()
     }
 
     /// Shows another scope. A scope with another server list starts empty, so no wrong post shows meanwhile.
     public func select(_ scope: Scope) async {
-        isShowingMyTasks = false
         guard scope != self.scope else { return }
         undo = nil
         duplicateNotice = nil
@@ -188,9 +190,9 @@ public final class DocumentsModel {
         if let freshPersons { persons = freshPersons }
         if let fetched = await fetchedLabels { labels = fetched }
         search.use(persons: persons, labels: labels)
-        // The chosen person was archived or removed meanwhile: back to the inbox.
+        // The chosen person was archived or removed meanwhile: back to all post.
         if let freshPersons, isCurrent(source), !isActivePersonScope(in: freshPersons) {
-            await select(.inbox)
+            await select(.all)
             return
         }
         rebuild()
@@ -263,8 +265,8 @@ public final class DocumentsModel {
         case .cancelled:
             break
         case .notFound where owns(load, source) && scope.isPerson:
-            // The person is gone: back to the inbox rather than "this document no longer exists".
-            await select(.inbox)
+            // The person is gone: back to all post rather than "this document no longer exists".
+            await select(.all)
             return true
         default:
             if owns(load, source), state != .loaded { state = .failed(message: Self.message(for: error)) }
