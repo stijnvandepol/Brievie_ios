@@ -47,6 +47,9 @@ public struct WorkspacePill: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
+                // In a navigation bar the item is offered almost no width: without this the name shrank to nothing
+                // and only the initial showed.
+                .fixedSize()
             if showsChevron {
                 Image(systemName: "chevron.down")
                     .font(.caption.weight(.bold))
