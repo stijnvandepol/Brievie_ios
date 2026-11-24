@@ -243,7 +243,10 @@ private struct WorkspaceScreen: View {
         WorkspaceTabsView(screens: screens, warning: warning) { documentID, list in
             ReviewScreen(
                 documentID: documentID, documents: documents, canEdit: canEdit, appModel: appModel,
-                deviceID: deviceID, onTasksChanged: onTasksChanged, trashAvailable: list.hasTrash,
+                // Whichever list found the trash first: a letter opened from Taken or Blijft liggen (the Inbox's
+                // model, maybe not loaded yet) still offers "Verwijderen".
+                deviceID: deviceID, onTasksChanged: onTasksChanged,
+                trashAvailable: screens.tabs.hasTrash || list.hasTrash,
                 onTrashed: { [list] id in Task { await list.didTrash(id) } },
                 onRead: { [list] in list.didRead(documentID) }
             )

@@ -84,7 +84,6 @@ struct LabelPostScreen<Destination: View, Compare: View>: View {
             model: model, scanModel: scanModel,
             destination: { id in destination(id, model) }, compare: { id in compare(id, model) }
         )
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 #endif
