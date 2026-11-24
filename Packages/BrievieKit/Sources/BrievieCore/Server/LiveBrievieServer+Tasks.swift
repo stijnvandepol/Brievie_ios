@@ -81,7 +81,8 @@ extension WorkspaceTask {
             forNames: task.forNames ?? [], assignedToID: assignedToID, assignedToName: task.assignedToName ?? "",
             assignedByName: task.assignedByName ?? "", completedByName: task.completedByName ?? "",
             completedAt: task.completedAt, documentType: task.documentType ?? "", canEdit: task.canEdit,
-            createdByAI: task.createdByAi ?? false
+            createdByAI: task.createdByAi ?? false,
+            permissions: TaskPermissions(take: task.canTake, handOver: task.canHandOver, release: task.canRelease)
         )
     }
 

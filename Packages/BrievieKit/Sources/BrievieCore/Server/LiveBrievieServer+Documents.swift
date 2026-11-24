@@ -10,7 +10,12 @@ extension LiveBrievieServer: DocumentServer {
         try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
             let output = try await client.listDocuments(
                 path: .init(workspaceId: scope.workspaceID.apiString),
-                query: .init(inboxState: filter.inboxState?.queryValue, personId: filter.personID?.apiString)
+                query: .init(
+                    inboxState: filter.inboxState?.queryValue, personId: filter.personID?.apiString,
+                    labelId: filter.labelID?.apiString,
+                    // Only sent when asked: an older server then sees the query it always saw.
+                    addressedToMe: filter.addressedToMe ? true : nil, unreadOnly: filter.unreadOnly ? true : nil
+                )
             )
             switch output {
             case let .ok(response):
@@ -254,7 +259,8 @@ extension DocumentSummary {
                 confirmedByAI: summary.confirmedByAi, labelIDs: summary.autoLabelIds,
                 addresseeIDs: summary.autoAddresseeIds
             ),
-            proposedSender: summary.proposedSender, openDuplicateCount: summary.openDuplicateCount
+            proposedSender: summary.proposedSender, openDuplicateCount: summary.openDuplicateCount,
+            unread: summary.unread
         )
     }
 
@@ -264,7 +270,7 @@ extension DocumentSummary {
         apiID: String, clientID: String, status: String, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: String?, inboxState: String?, addresseeIDs: [String]?,
         labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks, proposedSender: String?,
-        openDuplicateCount: Int?
+        openDuplicateCount: Int?, unread: Bool? = nil
     ) throws(ServerError) {
         guard let id = UUID(uuidString: apiID), let clientID = UUID(uuidString: clientID) else {
             throw .incompatible
@@ -279,7 +285,8 @@ extension DocumentSummary {
             confirmedByAI: automatic.confirmedByAI ?? false,
             autoLabelIDs: try uuids(automatic.labelIDs ?? []),
             autoAddresseeIDs: try uuids(automatic.addresseeIDs ?? []),
-            proposedSender: proposedSender ?? "", openDuplicateCount: openDuplicateCount ?? 0
+            proposedSender: proposedSender ?? "", openDuplicateCount: openDuplicateCount ?? 0,
+            isUnread: unread ?? false
         )
     }
 }
@@ -323,7 +330,8 @@ extension DocumentDetail {
                 confirmedByAI: document.confirmedByAi, labelIDs: document.autoLabelIds,
                 addresseeIDs: document.autoAddresseeIds
             ),
-            proposedSender: document.proposedSender, openDuplicateCount: document.openDuplicateCount
+            proposedSender: document.proposedSender, openDuplicateCount: document.openDuplicateCount,
+            unread: document.unread
         )
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {
@@ -339,7 +347,8 @@ extension DocumentDetail {
                 deadlineQuote: task.deadlineQuote, isDone: task.status == "done",
                 createdByAI: task.createdByAi ?? false, amount: task.amount.flatMap(TaskAmount.parse(api:)),
                 termQuote: task.termQuote ?? "", assignedToID: assignedToID,
-                assignedToName: task.assignedToName ?? ""
+                assignedToName: task.assignedToName ?? "",
+                permissions: TaskPermissions(take: task.canTake, handOver: task.canHandOver, release: task.canRelease)
             ))
         }
         self.init(

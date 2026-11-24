@@ -35,12 +35,18 @@ public final class FakeDocumentServer: DocumentServer {
         case taskAssignees(URL, UUID)
         case setTaskDeadline(URL, UUID, CalendarDate?)
         case currentUserID(URL)
+        case menuCounts(URL)
+        case markRead(URL, UUID)
+        case markUnread(URL, UUID)
+        case markManyRead(URL, [UUID])
+        case lingering(URL)
     }
 
     /// The user `currentUserID` answers with unless a test sets another.
     public static let currentUser = UUID(uuidString: "0E3A54C1-7B2F-4D6E-9A8B-1C2D3E4F5A6B") ?? UUID()
 
-    private let state: Mutex<FakeServerState>
+    // Internal (not private) so the extensions in `FakeDocumentServer+Reading.swift` reach them.
+    let state: Mutex<FakeServerState>
 
     public init(detail: @escaping @Sendable (URL, UUID) throws -> DocumentDetail) {
         state = Mutex(FakeServerState(detail: detail))
@@ -270,7 +276,7 @@ public final class FakeDocumentServer: DocumentServer {
         return try organise?(scope.url, document) ?? detail(scope.url, document)
     }
 
-    private func record<Answer>(
+    func record<Answer>(
         _ call: Call, _ scope: DocumentScope, _ answer: (FakeServerState) -> Answer
     ) -> Answer {
         state.withLock { state in
@@ -281,61 +287,8 @@ public final class FakeDocumentServer: DocumentServer {
     }
 }
 
-/// "Mijn taken" (host PR #36).
-extension FakeDocumentServer {
-    public func onMyTasks(_ answer: @escaping @Sendable (URL, MyTasksPart, MyTasksStatus) throws -> MyTasks) {
-        state.withLock { $0.myTasks = answer }
-    }
-
-    public func onMyTaskCounts(_ answer: @escaping @Sendable (URL) throws -> MyTaskCounts) {
-        state.withLock { $0.myTaskCounts = answer }
-    }
-
-    public func onAssignTask(_ answer: @escaping @Sendable (URL, UUID, UUID?) throws -> WorkspaceTask) {
-        state.withLock { $0.assignTask = answer }
-    }
-
-    public func onTaskAssignees(_ answer: @escaping @Sendable (URL, UUID) throws -> [TaskAssignee]) {
-        state.withLock { $0.taskAssignees = answer }
-    }
-
-    public func onSetTaskDeadline(_ answer: @escaping @Sendable (URL, UUID, CalendarDate?) throws -> WorkspaceTask) {
-        state.withLock { $0.setTaskDeadline = answer }
-    }
-
-    public func onCurrentUserID(_ answer: @escaping @Sendable (URL) throws -> UUID) {
-        state.withLock { $0.currentUserID = answer }
-    }
-
-    public func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks {
-        try record(.myTasks(scope.url, part, status), scope) { $0.myTasks }(scope.url, part, status)
-    }
-
-    public func myTaskCounts(in scope: DocumentScope) async throws -> MyTaskCounts {
-        try record(.myTaskCounts(scope.url), scope) { $0.myTaskCounts }(scope.url)
-    }
-
-    public func assignTask(_ id: UUID, to user: UUID?, in scope: DocumentScope) async throws -> WorkspaceTask {
-        try record(.assignTask(scope.url, id, user), scope) { $0.assignTask }(scope.url, id, user)
-    }
-
-    public func taskAssignees(_ id: UUID, in scope: DocumentScope) async throws -> [TaskAssignee] {
-        try record(.taskAssignees(scope.url, id), scope) { $0.taskAssignees }(scope.url, id)
-    }
-
-    public func setTaskDeadline(
-        _ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope
-    ) async throws -> WorkspaceTask {
-        try record(.setTaskDeadline(scope.url, id, deadline), scope) { $0.setTaskDeadline }(scope.url, id, deadline)
-    }
-
-    public func currentUserID(in scope: DocumentScope) async throws -> UUID {
-        try record(.currentUserID(scope.url), scope) { $0.currentUserID }(scope.url)
-    }
-}
-
 /// What `FakeDocumentServer` answers and has recorded.
-private struct FakeServerState {
+struct FakeServerState {
     typealias Call = FakeDocumentServer.Call
     var calls: [Call] = []
     var tokens: [String] = []
@@ -390,4 +343,11 @@ private struct FakeServerState {
         )
     }
     var currentUserID: @Sendable (URL) throws -> UUID = { _ in FakeDocumentServer.currentUser }
+    var menuCounts: @Sendable (URL) throws -> MenuCounts = { _ in MenuCounts() }
+    var markRead: @Sendable (URL, UUID) throws -> Void = { _, _ in }
+    var markUnread: @Sendable (URL, UUID) throws -> Void = { _, _ in }
+    var markManyRead: @Sendable (URL, [UUID]) throws -> Int = { _, ids in ids.count }
+    var lingering: @Sendable (URL) throws -> LingeringLetters = { _ in
+        LingeringLetters(tooLongInInbox: [], notOpened: [], inboxDays: 2, unopenedDays: 5)
+    }
 }

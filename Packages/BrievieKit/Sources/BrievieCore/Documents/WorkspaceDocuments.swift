@@ -196,6 +196,37 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.currentUserID(in: $0) }
     }
 
+    public func menuCounts() async throws(DocumentsError) -> MenuCounts {
+        try await perform { try await server.menuCounts(in: $0) }
+    }
+
+    public func markRead(_ id: UUID) async throws(DocumentsError) {
+        try await perform { try await server.markRead(id, in: $0) }
+    }
+
+    public func markUnread(_ id: UUID) async throws(DocumentsError) {
+        try await perform { try await server.markUnread(id, in: $0) }
+    }
+
+    /// At most `markReadLimit` ids per call (the server's cap); more are sent in several calls.
+    public func markRead(_ ids: [UUID]) async throws(DocumentsError) -> Int {
+        var marked = 0
+        var rest = ids[...]
+        while !rest.isEmpty {
+            let part = Array(rest.prefix(Self.markReadLimit))
+            rest = rest.dropFirst(part.count)
+            marked += try await perform { try await server.markRead(part, in: $0) }
+        }
+        return marked
+    }
+
+    public func lingeringLetters() async throws(DocumentsError) -> LingeringLetters {
+        try await perform { try await server.lingeringLetters(in: $0) }
+    }
+
+    /// The most letters `markDocumentsRead` takes in one call.
+    public static let markReadLimit = 200
+
     /// The tasks the phone's reminders and calendar follow: the member's own ("Mijn taken", the default) or every
     /// task they may see. Never "Op te pakken" (asked as the own tasks). A server before "Mijn taken" (404) gives
     /// every open task of the workspace, as before; any other failure is a failure, never that fallback.
