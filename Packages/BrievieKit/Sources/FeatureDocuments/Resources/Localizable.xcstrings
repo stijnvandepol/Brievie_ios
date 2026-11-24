@@ -2311,6 +2311,162 @@
         }
       }
     },
+    "lingering.days.inbox": {
+      "comment": "How long a letter waits in the Inbox. %lld is the number of days.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Waiting %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Waiting %lld days"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ligt er %lld dag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ligt er %lld dagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lingering.days.unopened": {
+      "comment": "How long a confirmed letter has not been opened by its addressee. %lld is the number of days.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Not opened for %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Not opened for %lld days"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dag niet geopend"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dagen niet geopend"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lingering.empty": {
+      "comment": "Lying too long without letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing is lying too long."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er blijft niets liggen."
+          }
+        }
+      }
+    },
+    "lingering.notOpened": {
+      "comment": "Group in Lying too long: confirmed letters their addressee has not opened.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not opened yet"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog niet geopend"
+          }
+        }
+      }
+    },
+    "lingering.title": {
+      "comment": "Screen title (organisations): letters that lie too long.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lying too long"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blijft liggen"
+          }
+        }
+      }
+    },
+    "lingering.tooLong": {
+      "comment": "Group in Lying too long: letters that wait too long in the Inbox.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too long in the Inbox"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In de Inbox te lang"
+          }
+        }
+      }
+    },
     "reader.mode": {
       "comment": "Label of the switch between the page image and the recognised text in the reader.",
       "extractionState": "manual",

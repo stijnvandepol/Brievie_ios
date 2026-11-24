@@ -48,6 +48,8 @@ public final class WorkspaceTabsModel {
     public var sidebarSelection: SidebarItem? = .myPost
     /// What "Meer" has pushed.
     public var morePath: [Place] = []
+    /// "Blijft liggen" is pushed on the Inbox.
+    public var isShowingLingering = false
     public private(set) var myPostSupport: Support = .unknown
     /// Why the numbers could not be asked while "Mijn post" still waits for them; `nil` otherwise.
     public private(set) var countFailure: String?
@@ -149,6 +151,13 @@ public final class WorkspaceTabsModel {
     public func showInbox() {
         selection = .inbox
         sidebarSelection = .inbox
+    }
+
+    /// The "Blijft liggen" card: the Inbox with its letters that lie too long.
+    public func showLingering() {
+        selection = .inbox
+        sidebarSelection = .inbox
+        isShowingLingering = true
     }
 
     public func showTasks() {

@@ -223,39 +223,10 @@ private struct WorkspaceScreen: View {
         let onTasksChanged: @MainActor () -> Void = { environment.tasksChanged(in: workspaceID) }
         let onRevoked: @MainActor () -> Void = { appModel.sessionRevoked(deviceID: connection.deviceID) }
         let onMissingPairing: @MainActor () -> Void = { appModel.connectionMissing() }
-        let tabs = WorkspaceTabsModel(documents: documents, onRevoked: onRevoked, onMissingPairing: onMissingPairing)
-        func list(_ scope: DocumentsModel.Scope) -> DocumentsModel {
-            let model = DocumentsModel(
-                documents: documents, scope: scope, uploads: environment.uploads, canScan: canEdit,
-                camera: LiveScanCameraAccess(), openSettings: openSystemSettings, onRevoked: onRevoked,
-                onMissingPairing: onMissingPairing
-            )
-            // A letter that goes to the trash or comes back takes its tasks along: the calendar and reminders follow.
-            model.onTasksChanged = onTasksChanged
-            // A list that loaded (or marked letters read) may change the menu's numbers.
-            model.onListChanged = { [weak model, weak tabs] in
-                guard let model, let tabs else { return }
-                if model.hasTrash { tabs.hasTrash = true }
-                Task { await tabs.refreshCounts() }
-            }
-            return model
-        }
-        let inbox = list(.inbox)
-        let myPost = list(.myPost)
-        let allPost = list(.all)
-        let tasks = inbox.makeMyTasksModel { [weak tabs] in tabs?.showInbox() }
-        // "Zoeken" on another tab opens the search field of "Alle post".
-        tabs.onSearch = { [weak allPost] in allPost?.isSearchPresented = true }
-        // Once the server says it keeps read marks, the lists offer "Gelezen" and "Alles gelezen".
-        tabs.onReadingSupport = { [weak myPost, weak allPost] supported in
-            myPost?.tracksReading = supported
-            allPost?.tracksReading = supported
-        }
         _screens = State(initialValue: WorkspaceScreens(
-            tabs: tabs, inbox: inbox, myPost: myPost, allPost: allPost, tasks: tasks,
-            inboxScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads),
-            myPostScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads),
-            allPostScan: ScanFlowModel(workspaceID: workspaceID, uploads: environment.uploads)
+            documents: documents, uploads: environment.uploads, canScan: canEdit, camera: LiveScanCameraAccess(),
+            openSettings: openSystemSettings, onTasksChanged: onTasksChanged, onRevoked: onRevoked,
+            onMissingPairing: onMissingPairing
         ))
         self.workspaces = workspaces
         self.warning = warning

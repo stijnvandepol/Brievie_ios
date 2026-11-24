@@ -102,6 +102,11 @@ extension DocumentsModel {
         }
     }
 
+    /// "Naam kiezen" in the Inbox: the first letter on screen that waits for a name; `nil` for none.
+    public var firstLetterNeedingName: UUID? {
+        rows.first { $0.status == .needsName }?.documentID
+    }
+
     /// The list shows its empty text: no rows and, in "Te doen", no pairs either.
     public var showsEmpty: Bool { rows.isEmpty && duplicates.isEmpty }
 

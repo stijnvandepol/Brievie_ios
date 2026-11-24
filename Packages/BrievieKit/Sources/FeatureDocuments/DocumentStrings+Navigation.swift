@@ -78,6 +78,32 @@ extension DocumentStrings {
         String(localized: "cards.lingering.label", defaultValue: "Blijft liggen: \(count)", bundle: .module)
     }
 
+    // Blijft liggen
+    static let lingeringTitle = String(localized: "lingering.title", defaultValue: "Blijft liggen", bundle: .module)
+    static let lingeringTooLong = String(
+        localized: "lingering.tooLong", defaultValue: "In de Inbox te lang", bundle: .module
+    )
+    static let lingeringNotOpened = String(
+        localized: "lingering.notOpened", defaultValue: "Nog niet geopend", bundle: .module
+    )
+    static let lingeringEmpty = String(
+        localized: "lingering.empty", defaultValue: "Er blijft niets liggen.", bundle: .module
+    )
+
+    /// "Ligt er 4 dagen"; the catalog has the singular and the plural.
+    static func lingeringInboxDays(_ days: Int) -> String {
+        days == 1
+            ? String(localized: "lingering.days.inbox", defaultValue: "Ligt er \(days) dag", bundle: .module)
+            : String(localized: "lingering.days.inbox", defaultValue: "Ligt er \(days) dagen", bundle: .module)
+    }
+
+    /// "5 dagen niet geopend".
+    static func lingeringUnopenedDays(_ days: Int) -> String {
+        days == 1
+            ? String(localized: "lingering.days.unopened", defaultValue: "\(days) dag niet geopend", bundle: .module)
+            : String(localized: "lingering.days.unopened", defaultValue: "\(days) dagen niet geopend", bundle: .module)
+    }
+
     static let navigation: [String: String] = [
         "documents.scope.myPost": scopeMyPost,
         "documents.forWhom": forWhom,
@@ -101,6 +127,10 @@ extension DocumentStrings {
         "actions.chooseName": actionChooseName,
         "cards.unread": cardUnread,
         "cards.tasks": cardTasks,
-        "cards.lingering": cardLingering
+        "cards.lingering": cardLingering,
+        "lingering.title": lingeringTitle,
+        "lingering.tooLong": lingeringTooLong,
+        "lingering.notOpened": lingeringNotOpened,
+        "lingering.empty": lingeringEmpty
     ]
 }

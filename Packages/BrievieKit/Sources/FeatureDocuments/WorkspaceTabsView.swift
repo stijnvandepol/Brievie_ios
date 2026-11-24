@@ -3,33 +3,6 @@ import BrievieCore
 import BrievieUI
 import SwiftUI
 
-/// The models of one workspace's screens, made together by the app and dropped together on a workspace switch.
-public struct WorkspaceScreens {
-    public let tabs: WorkspaceTabsModel
-    public let inbox: DocumentsModel
-    public let myPost: DocumentsModel
-    public let allPost: DocumentsModel
-    public let tasks: MyTasksModel
-    /// One scan flow per list: each pushes its preview on its own navigation stack.
-    public let inboxScan: ScanFlowModel
-    public let myPostScan: ScanFlowModel
-    public let allPostScan: ScanFlowModel
-
-    public init(
-        tabs: WorkspaceTabsModel, inbox: DocumentsModel, myPost: DocumentsModel, allPost: DocumentsModel,
-        tasks: MyTasksModel, inboxScan: ScanFlowModel, myPostScan: ScanFlowModel, allPostScan: ScanFlowModel
-    ) {
-        self.tabs = tabs
-        self.inbox = inbox
-        self.myPost = myPost
-        self.allPost = allPost
-        self.tasks = tasks
-        self.inboxScan = inboxScan
-        self.myPostScan = myPostScan
-        self.allPostScan = allPostScan
-    }
-}
-
 /// A workspace on the iPhone: a tab bar with Inbox, Mijn post, Taken and Meer (in the web's order), opening on
 /// "Mijn post". On an iPad (regular width) a sidebar in the web's order, "Instellingen" at the bottom; in compact
 /// width it falls back to the tabs. Every root carries the workspace pill at the top left.
@@ -154,13 +127,32 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
     }
 
     private var inboxRoot: some View {
-        DocumentsView(
+        @Bindable var tabs = tabs
+        return DocumentsView(
             model: screens.inbox, scanModel: screens.inboxScan, warning: warning,
-            showMyTasks: { tabs.showTasks() }, showAllPost: { tabs.showAllPost() },
+            showMyTasks: { tabs.showTasks() }, showAllPost: { tabs.showAllPost() }, header: inboxHeader,
             destination: { id in destination(id, screens.inbox) },
             compare: { id in compare(id, screens.inbox) }
         )
         .toolbar { pillItem }
+        .navigationDestination(isPresented: $tabs.isShowingLingering) {
+            LingeringView(model: screens.lingering) { id in destination(id, screens.inbox) }
+        }
+    }
+
+    /// The Inbox: for sorters in an organisation the "Blijft liggen" card; Scannen and Naam kiezen.
+    private var inboxHeader: PostHeader {
+        let list = screens.inbox
+        var actions: [PostHeader.Action] = []
+        if list.canScan { actions += [.scan, .chooseName] }
+        return PostHeader(
+            cards: tabs.cards.filter { $0.kind == .lingering }, actions: actions,
+            disabled: list.firstLetterNeedingName == nil ? [.chooseName] : [],
+            openCard: { _ in tabs.isShowingLingering = true },
+            perform: { action in
+                if action == .chooseName, let id = list.firstLetterNeedingName { list.openedDocument = id }
+            }
+        )
     }
 
     @ViewBuilder private var myPostRoot: some View {
@@ -192,7 +184,7 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
                 switch kind {
                 case .unread: Task { await list.select(.myPostUnread) }
                 case .tasks: tabs.showTasks()
-                case .lingering: tabs.showInbox()
+                case .lingering: tabs.showLingering()
                 }
             },
             perform: { action in
