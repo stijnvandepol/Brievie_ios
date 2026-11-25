@@ -12,6 +12,7 @@ enum PairingFailure {
         case .connectionLostWhilePairing: (PairingStrings.connectionLost, false)
         case .tooManyAttempts: (PairingStrings.tooManyAttempts, true)
         case .incompatibleServer: (PairingStrings.incompatible, false)
+        case .pairAtHome: (PairingStrings.pairAtHome, false)
         case .cancelled: nil
         // The associated value is diagnostic only and never shown.
         case .failed: (PairingStrings.generic, false)

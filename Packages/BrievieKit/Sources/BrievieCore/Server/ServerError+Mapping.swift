@@ -16,7 +16,9 @@ extension ServerError {
         "document_in_trash", "forbidden", "duplicate_not_found", "duplicate_not_open", "duplicate_visibility_differs",
         "assignee_cannot_read", "task_without_letter", "task_taken",
         // The host blocks the device token until two-step verification is set up (a 401, but no revocation).
-        "second_factor_required"
+        "second_factor_required",
+        // Pairing and address lists only over a CA-pinned connection (host PR #53, security review point 5).
+        "pair_at_home"
     ]
 
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.

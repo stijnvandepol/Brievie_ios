@@ -244,7 +244,7 @@ public struct WorkspaceDocuments: Sendable {
         _ call: (DocumentScope) async throws -> Result
     ) async throws(DocumentsError) -> Result {
         let token = try storedToken()
-        let trust = ServerTrust(caCertificateDER: connection.caCertificateDER)
+        let trust = connection.trust
         var sawUntrusted = false
         var sawForeign401 = false
         for url in connection.urls {

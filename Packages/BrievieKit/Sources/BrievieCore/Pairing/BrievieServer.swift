@@ -21,6 +21,20 @@ public protocol BrievieServer: Sendable {
     func pairWithProof(
         at url: URL, trust: ServerTrust, proof: CodeProof, deviceName: String
     ) async throws -> PairedDevice
+    /// The server's addresses and which of them carry a public certificate (`getServerAddresses`, host PR #53).
+    /// The server answers 403 `pair_at_home` on its public route: ask only over a CA-pinned address.
+    func serverAddresses(at url: URL, trust: ServerTrust, token: String) async throws -> ServerAddresses
+}
+
+/// The answer of `getServerAddresses`, as the server sent it (not checked yet: see `AddressRefresh`).
+public struct ServerAddresses: Equatable, Sendable {
+    public let urls: [String]
+    public let publicURLs: [String]
+
+    public init(urls: [String], publicURLs: [String]) {
+        self.urls = urls
+        self.publicURLs = publicURLs
+    }
 }
 
 /// What the phone sends instead of the pairing code: the code's id, the server's nonce and the proof (64 lower-case
@@ -48,6 +62,11 @@ public extension BrievieServer {
     ) async throws -> PairedDevice {
         throw ServerError.other("not_implemented")
     }
+
+    /// For servers that predate external access: the 404 of a server without the endpoint.
+    func serverAddresses(at url: URL, trust: ServerTrust, token: String) async throws -> ServerAddresses {
+        throw ServerError.other("http_404")
+    }
 }
 
 /// The result of a successful pairing.
@@ -55,11 +74,14 @@ public struct PairedDevice: Equatable, Sendable {
     public let deviceID: UUID
     public let token: String
     public let userName: String
+    /// `PairOut.public_urls` (host PR #53); empty from an older server or one without a public name.
+    public let publicURLs: [URL]
 
-    public init(deviceID: UUID, token: String, userName: String) {
+    public init(deviceID: UUID, token: String, userName: String, publicURLs: [URL] = []) {
         self.deviceID = deviceID
         self.token = token
         self.userName = userName
+        self.publicURLs = publicURLs
     }
 }
 

@@ -198,6 +198,24 @@
         }
       }
     },
+    "pairing.error.pairAtHome": {
+      "comment": "The server refused pairing because the phone reached it from outside (403 pair_at_home).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can only pair at home or through VPN. Try again when you are at home or have VPN on."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppelen kan alleen thuis of via VPN. Probeer het opnieuw als je thuis bent of VPN aan hebt."
+          }
+        }
+      }
+    },
     "pairing.error.tooManyAttempts": {
       "comment": "Server throttled pairing.",
       "extractionState": "manual",

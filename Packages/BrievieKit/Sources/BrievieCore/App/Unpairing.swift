@@ -105,7 +105,7 @@ public struct Unpairing: Sendable {
     private static func revoke(
         _ connection: ServerConnection, token: String, on server: any BrievieServer
     ) async -> Bool {
-        let trust = ServerTrust(caCertificateDER: connection.caCertificateDER)
+        let trust = connection.trust
         for url in connection.urls {
             do {
                 try await server.revokeDevice(connection.deviceID, at: url, trust: trust, token: token)

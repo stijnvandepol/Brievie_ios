@@ -12,6 +12,8 @@ public enum PairingError: Error, Equatable {
     case connectionLostWhilePairing
     /// A Brievie server that speaks another major API version, or answered pairing with unusable data.
     case incompatibleServer
+    /// The server refused pairing on its public route (403 `pair_at_home`): pair at home or through VPN.
+    case pairAtHome
     /// The task was cancelled; nothing was stored.
     case cancelled
     /// Anything else. The associated value is diagnostic only (logs, bug reports) and never shown to the user.
@@ -130,7 +132,7 @@ public struct PairingService: Sendable {
         case .failure(.cancelled): throw .cancelled
         case let .failure(.server(error)): throw PairingError(pairing: error)
         }
-        return try store(device, urls: Self.storedURLs(link, located: located), attempt: attempt)
+        return try store(device, urls: Self.storedURLs(link, located: located), publicURLs: [], attempt: attempt)
     }
 
     /// What a link pairing keeps. With a pinned CA every later connection to any address (API calls, uploads,
@@ -219,18 +221,25 @@ public struct PairingService: Sendable {
         case .failure(.cancelled): throw .cancelled
         case let .failure(.server(error)): throw PairingError(pairing: error)
         }
-        return try store(device, urls: payload.urls, attempt: attempt)
+        return try store(device, urls: payload.urls, publicURLs: payload.publicURLs, attempt: attempt)
     }
 
     /// Stores a pairing the server accepted. The code is spent; this finishes even if the task was cancelled
     /// meanwhile, so the device the server now knows about is not lost.
-    private func store(_ device: PairedDevice, urls: [URL], attempt: Attempt) throws(PairingError) -> ServerConnection {
+    ///
+    /// Public addresses come only from what the server sent over this CA-pinned connection (the QR's
+    /// `public_urls`, `PairOut.public_urls`), and only when they are https entries of the stored `urls`
+    /// (`ServerConnection` drops the rest, and keeps none without a CA).
+    private func store(
+        _ device: PairedDevice, urls: [URL], publicURLs: [URL], attempt: Attempt
+    ) throws(PairingError) -> ServerConnection {
         guard !device.token.isEmpty else { throw .incompatibleServer }
         let connection = ServerConnection(
             urls: urls,
             caCertificateDER: attempt.caCertificateDER,
             deviceID: device.deviceID,
-            userName: device.userName
+            userName: device.userName,
+            publicURLs: publicURLs + device.publicURLs
         )
         do {
             try store.save(connection, token: device.token)
@@ -286,6 +295,7 @@ extension PairingError {
         // A 1c server has no proof path; the code is not sent there instead.
         case .other("http_404"), .incompatible: self = .incompatibleServer
         case .tooManyAttempts: self = .tooManyAttempts
+        case .other("pair_at_home"): self = .pairAtHome
         case .invalidCode, .unauthorized: self = .failed("challenge_refused")
         case .other(let reason): self = .failed(reason)
         }
@@ -300,6 +310,7 @@ extension PairingError {
         case .tooManyAttempts: self = .tooManyAttempts
         case .incompatible: self = .incompatibleServer
         case .unauthorized: self = .failed("unauthorized")
+        case .other("pair_at_home"): self = .pairAtHome
         case .other(let reason): self = .failed(reason)
         }
     }

@@ -303,12 +303,17 @@ public final class WorkspacesModel {
     }
 
     private func fetch(token: String) async -> Outcome {
-        let trust = ServerTrust(caCertificateDER: connection.caCertificateDER)
+        let trust = connection.trust
         var sawUntrusted = false
         var sawForeign401 = false
         for url in connection.urls {
             do {
-                return .workspaces(try await server.workspaces(at: url, trust: trust, token: token))
+                let workspaces = try await server.workspaces(at: url, trust: trust, token: token)
+                // The stored pairing learns the server's addresses; this screen keeps its own until the next start.
+                await AddressRefresh.refresh(
+                    store: store, server: server, deviceID: connection.deviceID, at: url, token: token
+                )
+                return .workspaces(workspaces)
             } catch ServerError.unauthorized {
                 return .revoked
             } catch ServerError.unreachable {
