@@ -24,6 +24,8 @@ extension DocumentsModel {
         public let isPossibleDuplicate: Bool
         /// "Ongelezen": the member has not opened it. Never in the Inbox, which is a to-do list, not news.
         public let isUnread: Bool
+        /// The letter's status and "Te laat" (host PR #50); `nil` from an older server and for scans.
+        public let letterBadge: LetterBadge?
         /// When the scan was made (on the phone) or arrived (on the server): newest first within a part of a list.
         let date: Date
 
@@ -31,7 +33,7 @@ extension DocumentsModel {
             id: UUID, documentID: UUID?, title: String, subtitle: String, status: RowStatus,
             addressees: [String] = [], labels: [DocumentLabel] = [], hasSuggestions: Bool = false,
             isAutomatic: Bool = false, titleIsProposal: Bool = false, isPossibleDuplicate: Bool = false,
-            isUnread: Bool = false, date: Date = .distantPast
+            isUnread: Bool = false, letterBadge: LetterBadge? = nil, date: Date = .distantPast
         ) {
             self.id = id
             self.documentID = documentID
@@ -45,6 +47,7 @@ extension DocumentsModel {
             self.titleIsProposal = titleIsProposal
             self.isPossibleDuplicate = isPossibleDuplicate
             self.isUnread = isUnread
+            self.letterBadge = letterBadge
             self.date = date
         }
     }
@@ -232,6 +235,7 @@ extension DocumentsModel.Row {
     public var accessibilityLabel: String {
         var parts = [titleIsProposal ? "\(title) \(DocumentStrings.proposedMark)" : title, subtitle, status.label]
         if isUnread { parts.insert(DocumentStrings.unread, at: 0) }
+        if let letterBadge { parts.insert(letterBadge.accessibilityText, at: isUnread ? 2 : 1) }
         if let note = status.note { parts.append(note) }
         if let addresseeLine { parts.append(addresseeLine) }
         if !labels.isEmpty {
@@ -264,7 +268,7 @@ extension DocumentsModel {
             hasSuggestions: document.openSuggestionCount > 0,
             isAutomatic: document.isAutomatic, titleIsProposal: isProposal,
             isPossibleDuplicate: document.isPossibleDuplicate, isUnread: showsUnread && document.isUnread,
-            date: document.createdAt
+            letterBadge: LetterStatusWords.badge(for: document), date: document.createdAt
         )
     }
 

@@ -98,6 +98,16 @@ public final class MyTasksModel {
         }
     }
 
+    /// "Wacht op reactie (n)" and "Uitgesteld (n)" (host PR #50): below the groups, collapsed by the screen.
+    public var parkedSections: [Section] {
+        guard tab == .open else { return [] }
+        return [TaskGroup.waiting, .snoozed].compactMap { group in
+            let members = openTasks.filter { $0.group == group }.map(row(for:))
+            guard !members.isEmpty, let title = TaskWords.groupTitle(group) else { return nil }
+            return Section(group: group, title: title, rows: members)
+        }
+    }
+
     /// "Op te pakken": only in an organisation, on the own list.
     public var toPickUp: Section? {
         guard answer?.split == true, filter == .mine, tab == .open else { return nil }
@@ -147,7 +157,9 @@ public final class MyTasksModel {
         let tab = tab
         let filter = filter
         do {
-            let main = try await documents.myTasks(part: part, status: tab == .open ? .open : .done)
+            let main = try await documents.myTasks(
+                part: part, status: tab == .open ? .open : .done, includeWaiting: tab == .open
+            )
             var pickUp: [WorkspaceTask] = []
             if tab == .open, main.split, filter == .mine {
                 pickUp = try await documents.myTasks(part: .toPickUp, status: .open).items
@@ -291,7 +303,10 @@ public final class MyTasksModel {
             why: TaskWords.why(task), needsDate: TaskWords.needsDate(task),
             doneLine: TaskWords.doneLine(task, locale: locale), isTicked: isTicked, canTick: canTick(task),
             canTakeOn: flags.takeOn, canRelease: flags.release, canHandOver: flags.handOver,
-            canSetDate: flags.setDate, tickLabel: TaskWords.tickLabel(task),
+            canSetDate: flags.setDate, parkedLine: TaskWords.parkedLine(task, locale: locale),
+            canWait: canWait(task, isTicked: isTicked), isWaiting: task.waitingUntil != nil,
+            canSnooze: !isTicked && !task.isDone && snoozeRange(for: task) != nil,
+            isSnoozed: task.snoozedUntil != nil, tickLabel: TaskWords.tickLabel(task),
             accessibilityLabel: TaskWords.accessibilityLabel(task, me: myName, locale: locale)
         )
     }
@@ -299,7 +314,7 @@ public final class MyTasksModel {
     /// The server's group; a group this app does not know goes by whether the task has a date (never dropped).
     private static func group(of task: WorkspaceTask) -> TaskGroup {
         switch task.group {
-        case .overdue, .withinWeek, .later, .noDate: task.group
+        case .overdue, .withinWeek, .later, .noDate, .waiting, .snoozed: task.group
         case .none, .unknown: task.deadline == nil ? .noDate : .later
         }
     }
@@ -329,6 +344,12 @@ extension MyTasksModel {
         public let canRelease: Bool
         public let canHandOver: Bool
         public let canSetDate: Bool
+        /// "Wacht op reactie tot 3 dec", "Wachten voorbij sinds 3 dec", "Uitgesteld tot 1 dec".
+        public let parkedLine: String?
+        public let canWait: Bool
+        public let isWaiting: Bool
+        public let canSnooze: Bool
+        public let isSnoozed: Bool
         public let tickLabel: String
         public let accessibilityLabel: String
     }

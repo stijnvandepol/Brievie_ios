@@ -12,6 +12,11 @@ struct DoneSections: View {
     let onShowQuote: (String) -> Void
 
     var body: some View {
+        if let confirmed {
+            LetterStatusSection(model: confirmed)
+        } else if let badge = LetterStatusWords.badge(for: detail.summary) {
+            Section { LetterStatusBadge(badge: badge) }
+        }
         if detail.summary.confirmedByAI {
             Section {
                 AdaptiveLabel(DocumentStrings.automaticByAI, systemImage: "sparkles")

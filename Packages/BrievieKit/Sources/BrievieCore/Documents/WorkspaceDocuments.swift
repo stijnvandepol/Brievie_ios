@@ -37,6 +37,15 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case taskWithoutLetter
     /// Someone else does the task already; only they or an admin can hand it on.
     case taskTaken
+    /// "Brief afhandelen": the letter's tasks changed meanwhile (409 `tasks_changed`); show them again.
+    case tasksChanged
+    /// A payment task needs the tick "De betaling is gedaan of geregeld".
+    case paymentNotConfirmed
+    /// The letter is not checked yet; the task is done already.
+    case notReviewed
+    case taskDone
+    /// "Uitstellen" cannot go past the task's date.
+    case snoozeAfterDeadline
     /// The account must set up two-step verification on the web first; the pairing stays (no revocation).
     case secondFactorRequired
     case cancelled
@@ -178,6 +187,31 @@ public struct WorkspaceDocuments: Sendable {
         try await perform { try await server.myTasks(part: part, status: status, in: $0) }
     }
 
+    /// "Mijn taken" with the groups "Wacht op reactie" and "Uitgesteld" (host PR #50).
+    public func myTasks(
+        part: MyTasksPart, status: MyTasksStatus, includeWaiting: Bool
+    ) async throws(DocumentsError) -> MyTasks {
+        try await perform {
+            try await server.myTasks(part: part, status: status, includeWaiting: includeWaiting, in: $0)
+        }
+    }
+
+    public func handleDocument(
+        _ id: UUID, taskIDs: [UUID], paymentsConfirmed: Bool
+    ) async throws(DocumentsError) -> DocumentDetail {
+        try await perform {
+            try await server.handleDocument(id, taskIDs: taskIDs, paymentsConfirmed: paymentsConfirmed, in: $0)
+        }
+    }
+
+    public func setTaskWaiting(_ id: UUID, until: CalendarDate?) async throws(DocumentsError) -> WorkspaceTask {
+        try await perform { try await server.setTaskWaiting(id, until: until, in: $0) }
+    }
+
+    public func snoozeTask(_ id: UUID, until: CalendarDate?) async throws(DocumentsError) -> WorkspaceTask {
+        try await perform { try await server.snoozeTask(id, until: until, in: $0) }
+    }
+
     public func myTaskCounts() async throws(DocumentsError) -> MyTaskCounts {
         try await perform { try await server.myTaskCounts(in: $0) }
     }
@@ -235,6 +269,16 @@ public struct WorkspaceDocuments: Sendable {
     public func phoneTasks(_ part: MyTasksPart) async throws(DocumentsError) -> [WorkspaceTask] {
         do {
             return try await myTasks(part: part == .all ? .all : .mine, status: .open).items
+        } catch .notSupported {
+            return try await openTasks()
+        }
+    }
+
+    /// The tasks the phone's reminders follow: the member's own, with the ones that wait for a reply or are
+    /// snoozed (host PR #50; `ReminderPlanner` sorts them). An older server ignores that and gives the plain list.
+    public func reminderTasks() async throws(DocumentsError) -> [WorkspaceTask] {
+        do {
+            return try await myTasks(part: .mine, status: .open, includeWaiting: true).items
         } catch .notSupported {
             return try await openTasks()
         }
@@ -311,6 +355,8 @@ public struct WorkspaceDocuments: Sendable {
         "task_without_letter": .taskWithoutLetter,
         "task_taken": .taskTaken,
         "second_factor_required": .secondFactorRequired,
+        "tasks_changed": .tasksChanged, "payment_not_confirmed": .paymentNotConfirmed,
+        "document_not_reviewed": .notReviewed, "task_done": .taskDone, "snooze_after_deadline": .snoozeAfterDeadline,
         "http_404": .notSupported
     ]
 

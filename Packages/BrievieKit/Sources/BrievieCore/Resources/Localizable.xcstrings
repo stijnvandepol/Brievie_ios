@@ -181,6 +181,24 @@
         }
       }
     },
+    "reminders.body.sender.waitOver": {
+      "comment": "As reminders.body.waitOver, with the sender the user chose to show.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting ended: check whether %@ replied."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachten voorbij: kijk of %@ heeft gereageerd."
+          }
+        }
+      }
+    },
     "reminders.body.today": {
       "comment": "Text of a deadline reminder on its day. On the lock screen: nothing from the letter.",
       "extractionState": "manual",
@@ -213,6 +231,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Een termijn loopt morgen af."
+          }
+        }
+      }
+    },
+    "reminders.body.waitOver": {
+      "comment": "Reminder on the day waiting for a reply ends; nothing from the letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting ended: check whether a reply came."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachten voorbij: kijk of er een reactie is."
           }
         }
       }

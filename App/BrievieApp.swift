@@ -28,7 +28,7 @@ struct BrievieApp: App {
         let reminders = DeadlineReminders(
             center: UserNotificationsReminderCenter(), settings: UserDefaultsReminderSettings(),
             // Reminders follow the member's own tasks ("Mijn taken"); "Op te pakken" gets none.
-            tasks: AppCalendar.phoneTasks(store: store, server: server, revocations: revocations)
+            tasks: AppCalendar.reminderTasks(store: store, server: server, revocations: revocations)
         )
         let reminderRouter = ReminderRouter()
         AppDelegate.reminderRouter = reminderRouter

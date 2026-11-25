@@ -136,6 +136,19 @@ struct AppCalendar {
             ).phoneTasks(part(workspace))
         }
     }
+
+    /// The member's own open tasks for the reminders, with the ones that wait for a reply ("Wachten voorbij").
+    static func reminderTasks(
+        store: ConnectionStore, server: LiveBrievieServer, revocations: RevocationRelay
+    ) -> CalendarSync.TaskSource {
+        { workspace in
+            guard let stored = try store.load() else { throw DocumentsError.missingPairing }
+            return try await WorkspaceDocuments(
+                workspaceID: workspace, connection: stored.connection, store: store, server: server,
+                onRevoked: revocations.revoked
+            ).reminderTasks()
+        }
+    }
 }
 
 /// The names of the loaded workspaces, readable from any isolation.

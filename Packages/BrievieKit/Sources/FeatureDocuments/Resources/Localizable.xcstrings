@@ -2275,6 +2275,24 @@
         }
       }
     },
+    "error.dateRange": {
+      "comment": "422 on a waiting or snooze date.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a date after today, within a year."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies een datum na vandaag, binnen een jaar."
+          }
+        }
+      }
+    },
     "error.forbidden": {
       "comment": "The server refused: the member's role may not do this (403 forbidden). The host's sentence.",
       "extractionState": "manual",
@@ -2311,6 +2329,42 @@
         }
       }
     },
+    "error.notReviewed": {
+      "comment": "409 document_not_reviewed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This letter has not been checked yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze brief is nog niet nagekeken."
+          }
+        }
+      }
+    },
+    "error.paymentNotConfirmed": {
+      "comment": "409 payment_not_confirmed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tick that the payment has been made or arranged."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vink aan dat de betaling is gedaan of geregeld."
+          }
+        }
+      }
+    },
     "error.secondFactorRequired": {
       "comment": "The account must set up two-step verification before this phone may continue; the pairing stays.",
       "extractionState": "manual",
@@ -2325,6 +2379,168 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stel eerst tweestapsverificatie in op de webinterface."
+          }
+        }
+      }
+    },
+    "error.snoozeAfterDeadline": {
+      "comment": "422 snooze_after_deadline.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You cannot snooze past the task's date."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je kunt niet uitstellen tot na de datum van de taak."
+          }
+        }
+      }
+    },
+    "error.taskDone": {
+      "comment": "409 task_done.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This task is already done."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze taak is al afgerond."
+          }
+        }
+      }
+    },
+    "error.tasksChanged": {
+      "comment": "409 tasks_changed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The tasks of this letter just changed. Please look at them again."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De taken van deze brief zijn net veranderd. Bekijk ze opnieuw."
+          }
+        }
+      }
+    },
+    "handle.button": {
+      "comment": "Button on a letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark letter as handled"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief afhandelen"
+          }
+        }
+      }
+    },
+    "handle.confirm": {
+      "comment": "Confirmation button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as handled"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afhandelen"
+          }
+        }
+      }
+    },
+    "handle.noTasks": {
+      "comment": "Confirmation sheet without tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No task is open any more."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er staat geen taak meer open."
+          }
+        }
+      }
+    },
+    "handle.payment": {
+      "comment": "Required toggle when a payment task is closed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The payment has been made or arranged"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De betaling is gedaan of geregeld"
+          }
+        }
+      }
+    },
+    "handle.tasks": {
+      "comment": "Confirmation sheet, above the tasks.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These tasks will be ticked off:"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze taken worden afgevinkt:"
+          }
+        }
+      }
+    },
+    "handle.title": {
+      "comment": "Confirmation sheet title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark this letter as handled?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brief afhandelen?"
           }
         }
       }
@@ -4861,6 +5077,204 @@
         }
       }
     },
+    "snooze.action": {
+      "comment": "Task action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snooze…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitstellen…"
+          }
+        }
+      }
+    },
+    "snooze.hint": {
+      "comment": "Date sheet hint.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only you see that you snoozed this. On that day the task is back in your list. You can snooze until the task's date."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen jij ziet dat je dit uitstelt. Op die dag staat de taak weer in je lijst. Uitstellen kan tot de datum van de taak."
+          }
+        }
+      }
+    },
+    "snooze.question": {
+      "comment": "Date sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Until when do you want to snooze this?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tot wanneer stel je dit uit?"
+          }
+        }
+      }
+    },
+    "snooze.stop": {
+      "comment": "Task action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsnooze"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet meer uitstellen"
+          }
+        }
+      }
+    },
+    "snooze.until": {
+      "comment": "Badge; %@ is a day.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snoozed until %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitgesteld tot %@"
+          }
+        }
+      }
+    },
+    "status.handled": {
+      "comment": "Letter status: nothing open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handled"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afgehandeld"
+          }
+        }
+      }
+    },
+    "status.new": {
+      "comment": "Letter status: not checked yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nieuw"
+          }
+        }
+      }
+    },
+    "status.open": {
+      "comment": "Letter status: a task is open.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Openstaand"
+          }
+        }
+      }
+    },
+    "status.overdue": {
+      "comment": "Marker: an open task's date has passed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overdue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te laat"
+          }
+        }
+      }
+    },
+    "status.waiting": {
+      "comment": "Letter status: every open task waits for a reply.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for a reply"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht op reactie"
+          }
+        }
+      }
+    },
+    "status.waitingUntil": {
+      "comment": "Badge; %@ is a day like '3 dec'.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for a reply until %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht op reactie tot %@"
+          }
+        }
+      }
+    },
     "tabs.labels": {
       "comment": "Menu entry and screen title: the workspace's labels.",
       "extractionState": "manual",
@@ -5577,6 +5991,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Te laat"
+          }
+        }
+      }
+    },
+    "tasks.group.snoozed": {
+      "comment": "Mijn taken group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snoozed"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uitgesteld"
+          }
+        }
+      }
+    },
+    "tasks.group.waiting": {
+      "comment": "Mijn taken group.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for a reply"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht op reactie"
           }
         }
       }
@@ -6915,6 +7365,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "Herinnering"
+          }
+        }
+      }
+    },
+    "wait.action": {
+      "comment": "Task action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for a reply…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wacht op reactie…"
+          }
+        }
+      }
+    },
+    "wait.hint": {
+      "comment": "Date sheet hint.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On that day the task comes back in My tasks. Everyone who sees this letter sees that you are waiting."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op die dag komt de taak terug in Mijn taken. Iedereen die deze brief ziet, ziet dat je wacht."
+          }
+        }
+      }
+    },
+    "wait.over": {
+      "comment": "Marker; %@ is a day.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting ended on %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wachten voorbij sinds %@"
+          }
+        }
+      }
+    },
+    "wait.question": {
+      "comment": "Date sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Until when are you waiting for a reply?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tot wanneer wacht je op een reactie?"
+          }
+        }
+      }
+    },
+    "wait.stop": {
+      "comment": "Task action.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop waiting"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet meer wachten"
           }
         }
       }

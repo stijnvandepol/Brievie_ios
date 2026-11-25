@@ -18,7 +18,9 @@ extension ServerError {
         // The host blocks the device token until two-step verification is set up (a 401, but no revocation).
         "second_factor_required",
         // Pairing and address lists only over a CA-pinned connection (host PR #53, security review point 5).
-        "pair_at_home"
+        "pair_at_home",
+        // Letter status (host PR #50).
+        "document_not_reviewed", "tasks_changed", "payment_not_confirmed", "task_done", "snooze_after_deadline"
     ]
 
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.

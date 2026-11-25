@@ -6,10 +6,18 @@ import OpenAPIRuntime
 /// task. A server before that answers 404 without a Brievie code (`http_404`, read as "not supported").
 extension LiveBrievieServer {
     public func myTasks(part: MyTasksPart, status: MyTasksStatus, in scope: DocumentScope) async throws -> MyTasks {
+        try await myTasks(part: part, status: status, includeWaiting: false, in: scope)
+    }
+
+    /// With `includeWaiting` the server adds the groups `waiting` and `snoozed` (host PR #50); without, an older
+    /// caller never gets them. A server before that ignores the parameter.
+    public func myTasks(
+        part: MyTasksPart, status: MyTasksStatus, includeWaiting: Bool, in scope: DocumentScope
+    ) async throws -> MyTasks {
         try await withClient(scope.url, trust: scope.trust, token: scope.token) { client in
             let output = try await client.listMyTasks(
                 path: .init(workspaceId: scope.workspaceID.apiString),
-                query: .init(part: part.rawValue, status: status.rawValue)
+                query: .init(part: part.rawValue, status: status.rawValue, includeWaiting: includeWaiting ? true : nil)
             )
             switch output {
             case let .ok(response):
@@ -34,7 +42,8 @@ extension LiveBrievieServer {
                 let counts = try response.body.json
                 return MyTaskCounts(
                     mine: counts.mine, overdue: counts.overdue, withinWeek: counts.withinWeek,
-                    needsDate: counts.needsDate, toPickUp: counts.toPickUp
+                    needsDate: counts.needsDate, toPickUp: counts.toPickUp, waiting: counts.waiting ?? 0,
+                    snoozed: counts.snoozed ?? 0
                 )
             case let .unauthorized(response):
                 throw ServerError(status: 401, code: try? response.body.json.code)

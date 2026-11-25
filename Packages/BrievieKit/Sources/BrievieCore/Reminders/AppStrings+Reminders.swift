@@ -42,8 +42,26 @@ extension AppStrings {
     }
 
     /// Every reminder text by catalog key, for the parity test.
+    /// "Wachten voorbij" (host PR #50): the day a task's waiting for a reply ends.
+    static var reminderWaitOver: String {
+        String(
+            localized: "reminders.body.waitOver", defaultValue: "Wachten voorbij: kijk of er een reactie is.",
+            bundle: .module
+        )
+    }
+
+    /// `%@` is the sender.
+    static var reminderSenderWaitOverFormat: String {
+        String(
+            localized: "reminders.body.sender.waitOver", defaultValue: "Wachten voorbij: kijk of %@ heeft gereageerd.",
+            bundle: .module
+        )
+    }
+
     static var reminderTexts: [String: String] {
         [
+            "reminders.body.waitOver": reminderWaitOver,
+            "reminders.body.sender.waitOver": reminderSenderWaitOverFormat,
             "reminders.body.today": reminderToday,
             "reminders.body.tomorrow": reminderTomorrow,
             "reminders.body.days": reminderInDaysFormat,

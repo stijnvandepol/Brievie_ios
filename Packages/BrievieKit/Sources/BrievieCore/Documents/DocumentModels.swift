@@ -36,6 +36,12 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
     public let openDuplicateCount: Int
     /// "Ongelezen": the member has not opened this letter yet (false from a server before host PR #44).
     public var isUnread: Bool
+    /// The letter's status (`.none` from a server before host PR #50).
+    public let letterStatus: LetterStatus
+    /// "Te laat": an open task's date has passed (and it does not wait for a reply).
+    public let isOverdue: Bool
+    /// Until when the letter waits for a reply (when every open task waits).
+    public let waitingUntil: CalendarDate?
 
     /// "Dubbel?": the letter is in a pair that still waits for a choice.
     public var isPossibleDuplicate: Bool { openDuplicateCount > 0 }
@@ -48,7 +54,8 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         documentType: String, letterDate: CalendarDate?, inboxState: InboxState = .sorted,
         addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0,
         confirmedByAI: Bool = false, autoLabelIDs: [UUID] = [], autoAddresseeIDs: [UUID] = [],
-        proposedSender: String = "", openDuplicateCount: Int = 0, isUnread: Bool = false
+        proposedSender: String = "", openDuplicateCount: Int = 0, isUnread: Bool = false,
+        letterStatus: LetterStatus = .none, isOverdue: Bool = false, waitingUntil: CalendarDate? = nil
     ) {
         self.id = id
         self.clientID = clientID
@@ -68,6 +75,9 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         self.proposedSender = proposedSender
         self.openDuplicateCount = openDuplicateCount
         self.isUnread = isUnread
+        self.letterStatus = letterStatus
+        self.isOverdue = isOverdue
+        self.waitingUntil = waitingUntil
     }
 }
 
@@ -96,49 +106,6 @@ public struct Proposal: Equatable, Sendable {
         self.needsAttention = needsAttention
         self.provider = provider
         self.model = model
-    }
-}
-
-public struct ConfirmedTask: Equatable, Sendable, Identifiable {
-    public let id: UUID
-    public let type: String
-    public let description: String
-    public let deadline: CalendarDate?
-    public let deadlineSource: String
-    public let deadlineQuote: String
-    /// Ticked off (`status` is `done`).
-    public var isDone: Bool
-    /// The AI made this task when it confirmed the letter by itself.
-    public let createdByAI: Bool
-    /// The amount of a payment; `nil` when unknown (or from a server before "Mijn taken").
-    public let amount: Decimal?
-    /// The term the letter names without a date ("binnen zes weken").
-    public let termQuote: String
-    /// Who does the task; `nil` and empty when nobody has it yet.
-    public var assignedToID: UUID?
-    public var assignedToName: String
-    /// What the server lets this member do with the task; `nil` from a server before host PR #44.
-    public var permissions: TaskPermissions?
-
-    public init(
-        id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
-        deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false, amount: Decimal? = nil,
-        termQuote: String = "", assignedToID: UUID? = nil, assignedToName: String = "",
-        permissions: TaskPermissions? = nil
-    ) {
-        self.id = id
-        self.type = type
-        self.description = description
-        self.deadline = deadline
-        self.deadlineSource = deadlineSource
-        self.deadlineQuote = deadlineQuote
-        self.isDone = isDone
-        self.createdByAI = createdByAI
-        self.amount = amount
-        self.termQuote = termQuote
-        self.assignedToID = assignedToID
-        self.assignedToName = assignedToName
-        self.permissions = permissions
     }
 }
 
@@ -305,6 +272,18 @@ public protocol DocumentServer: Sendable {
     func markRead(_ ids: [UUID], in scope: DocumentScope) async throws -> Int
     /// "Blijft liggen" (organisations, for sorters and admins; empty otherwise).
     func lingeringLetters(in scope: DocumentScope) async throws -> LingeringLetters
+    /// "Mijn taken" with, when `includeWaiting`, the groups "Wacht op reactie" and "Uitgesteld" (host PR #50).
+    func myTasks(
+        part: MyTasksPart, status: MyTasksStatus, includeWaiting: Bool, in scope: DocumentScope
+    ) async throws -> MyTasks
+    /// "Brief afhandelen": ticks off exactly `taskIDs` (the open tasks the member saw) and handles the letter.
+    func handleDocument(
+        _ id: UUID, taskIDs: [UUID], paymentsConfirmed: Bool, in scope: DocumentScope
+    ) async throws -> DocumentDetail
+    /// "Wacht op reactie" until `until`; `nil` stops waiting.
+    func setTaskWaiting(_ id: UUID, until: CalendarDate?, in scope: DocumentScope) async throws -> WorkspaceTask
+    /// "Uitstellen" until `until` for this member only; `nil` unsnoozes.
+    func snoozeTask(_ id: UUID, until: CalendarDate?, in scope: DocumentScope) async throws -> WorkspaceTask
 }
 
 public extension DocumentServer {
