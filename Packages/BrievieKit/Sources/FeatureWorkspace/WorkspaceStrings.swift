@@ -23,6 +23,11 @@ enum WorkspaceStrings {
             """,
         bundle: .module
     )
+    static let secondFactorRequired = String(
+        localized: "error.secondFactorRequired",
+        defaultValue: "Stel eerst tweestapsverificatie in op de webinterface.",
+        bundle: .module
+    )
     static let generic = String(
         localized: "error.generic",
         defaultValue: "Er ging iets mis. Probeer het opnieuw.",
@@ -213,6 +218,7 @@ enum WorkspaceStrings {
         "workspaces.error.unreachable": unreachable,
         "workspaces.error.notVerified": notVerified,
         "error.generic": generic,
+        "error.secondFactorRequired": secondFactorRequired,
         "workspaces.unpair.message": unpairMessage,
         "workspaces.pill": pillFormat,
         "workspaces.pill.switch": pillSwitchFormat,

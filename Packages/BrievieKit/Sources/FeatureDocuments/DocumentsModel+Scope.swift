@@ -290,6 +290,7 @@ extension DocumentsModel {
         case .forbidden: DocumentStrings.forbidden
         case .busy: DocumentStrings.busy
         case .inTrash: DocumentStrings.inTrash
+        case .secondFactorRequired: DocumentStrings.secondFactorRequired
         default: DocumentStrings.generic
         }
     }

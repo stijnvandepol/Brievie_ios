@@ -37,6 +37,8 @@ public enum DocumentsError: Error, Equatable, Sendable {
     case taskWithoutLetter
     /// Someone else does the task already; only they or an admin can hand it on.
     case taskTaken
+    /// The account must set up two-step verification on the web first; the pairing stays (no revocation).
+    case secondFactorRequired
     case cancelled
     case failed
 }
@@ -308,6 +310,7 @@ public struct WorkspaceDocuments: Sendable {
         "assignee_cannot_read": .assigneeCannotRead,
         "task_without_letter": .taskWithoutLetter,
         "task_taken": .taskTaken,
+        "second_factor_required": .secondFactorRequired,
         "http_404": .notSupported
     ]
 

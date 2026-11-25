@@ -13,6 +13,11 @@ import Testing
         #expect(ServerError(status: 401, code: "not_authenticated") == .unauthorized)
     }
 
+    /// The host's 401 for an account that must set up two-step verification first: blocked, not revoked.
+    @Test func secondFactorRequiredIsNoRevocation() {
+        #expect(ServerError(status: 401, code: "second_factor_required") == .other("second_factor_required"))
+    }
+
     @Test(arguments: [nil, "invalid_credentials", "proxy_login"] as [String?])
     func anyOther401IsNot(code: String?) {
         #expect(ServerError(status: 401, code: code) == .other("http_401"))
