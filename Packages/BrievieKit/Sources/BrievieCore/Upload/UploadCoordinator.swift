@@ -263,7 +263,10 @@ public actor UploadCoordinator {
             itemID: fresh.id,
             deviceID: paired.connection.deviceID,
             attemptID: attemptID,
-            url: BackgroundUploadTransport.uploadURL(base: urls[fresh.urlIndex], workspaceID: fresh.workspaceID),
+            url: BackgroundUploadTransport.uploadURL(
+                base: urls.indices.contains(fresh.urlIndex) ? urls[fresh.urlIndex] : urls[0],
+                workspaceID: fresh.workspaceID
+            ),
             bodyFile: await store.bodyFile(for: fresh.id),
             boundary: fresh.boundary,
             token: paired.token,
