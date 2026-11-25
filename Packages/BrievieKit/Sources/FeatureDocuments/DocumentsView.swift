@@ -5,17 +5,19 @@ import BrievieUI
 import PhotosUI
 import SwiftUI
 
-/// The post of one workspace, with a button to scan a new letter. The app's root screen: the app adds the
-/// settings button to its navigation bar.
+/// One list of a workspace's post (Inbox, Mijn post, Alle post), with a button to scan a new letter. The root of a
+/// tab: the tabs add the workspace pill to its navigation bar.
 public struct DocumentsView<Destination: View, Compare: View>: View {
     private let model: DocumentsModel
     private let scanModel: ScanFlowModel
-    /// The workspace's name: the header of the scope menu.
-    private let title: String
-    /// The workspace's name when the user has more than one, so the screen says which post this is; `nil` with one.
-    private let workspaceName: String?
     /// A warning above the post (the device has no passcode); `nil` for none.
     private let warning: String?
+    /// "Mijn taken: 4 open" on top of the Inbox: the "Taken" tab.
+    private let showMyTasks: () -> Void
+    /// "Bekijk Alle post" under the empty Inbox.
+    private let showAllPost: () -> Void
+    /// Count cards and round actions on top (tab roots); `nil` for none.
+    private let header: PostHeader?
     /// What a document on the server opens (the review screen).
     private let destination: (UUID) -> Destination
     /// What a pair in "Dubbel?" opens (the compare screen).
@@ -24,26 +26,24 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
     @State private var showsScanner = false
     @State private var showsPhotoPicker = false
     @State private var pickedPhotos: [PhotosPickerItem] = []
-    /// Made once per push of the Prullenbak screen.
-    @State private var trashModel: TrashModel?
-    /// Made once, on the first show of "Mijn taken".
-    @State private var myTasksModel: MyTasksModel?
     @Environment(\.scenePhase) private var scenePhase
 
     public init(
         model: DocumentsModel,
         scanModel: ScanFlowModel,
-        title: String,
-        workspaceName: String? = nil,
         warning: String? = nil,
+        showMyTasks: @escaping () -> Void = {},
+        showAllPost: @escaping () -> Void = {},
+        header: PostHeader? = nil,
         @ViewBuilder destination: @escaping (UUID) -> Destination,
         @ViewBuilder compare: @escaping (UUID) -> Compare
     ) {
         self.model = model
         self.scanModel = scanModel
-        self.title = title
-        self.workspaceName = workspaceName
         self.warning = warning
+        self.showMyTasks = showMyTasks
+        self.showAllPost = showAllPost
+        self.header = header
         self.destination = destination
         self.compare = compare
     }
@@ -51,14 +51,20 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
     public var body: some View {
         @Bindable var model = model
         content
-            .modifier(SearchField(search: model.search, isAvailable: model.searchIsAvailable))
-            .navigationTitle(navigationTitle)
-            .workspaceSubtitle(workspaceName)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarTitleMenu { scopeMenu }
+            .modifier(SearchField(
+                search: model.search, isAvailable: model.searchIsAvailable, isPresented: $model.isSearchPresented
+            ))
+            .navigationTitle(model.scopeTitle)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 if model.canScan {
                     ToolbarItem(placement: .primaryAction) { scanButton }
+                }
+                if model.offersForWhom {
+                    ToolbarItem(placement: .topBarTrailing) { forWhomMenu }
+                }
+                if model.isMyPost, model.offersReading {
+                    ToolbarItem(placement: .topBarTrailing) { unreadOnlyButton }
                 }
             }
             .refreshable { await model.load() }
@@ -104,9 +110,6 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             ) {
                 ScanFlowView(model: scanModel)
             }
-            .navigationDestination(isPresented: $model.isShowingTrash) {
-                if let trashModel { TrashView(model: trashModel) }
-            }
             // A letter opened by a tapped reminder (or again after "Ongedaan maken").
             .navigationDestination(item: $model.openedDocument) { documentID in
                 destination(documentID)
@@ -119,10 +122,6 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             .onChange(of: model.undo?.documentID) { _, id in
                 if id != nil { AccessibilityNotification.Announcement(DocumentStrings.undoTrashed).post() }
             }
-            // The post list does not refresh itself behind "Mijn taken".
-            .onChange(of: model.isShowingMyTasks) { _, isShowing in
-                if isShowing { model.stopPolling() } else { model.startPolling() }
-            }
             .onChange(of: scanModel.phase) { _, phase in
                 guard phase == .finished else { return }
                 scanModel.reset()
@@ -130,11 +129,9 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             }
     }
 
-    /// "Mijn taken"; the search results while a term is typed in "Alle post"; otherwise the post list.
+    /// The search results while a term is typed in "Alle post"; otherwise the post list.
     @ViewBuilder private var content: some View {
-        if model.isShowingMyTasks, let myTasksModel {
-            MyTasksView(model: myTasksModel, destination: destination)
-        } else if model.searchIsAvailable, model.search.isActive {
+        if model.searchIsAvailable, model.search.isActive {
             DocumentSearchList(
                 model: model.search, undo: model.undo, isUndoing: model.isUndoing,
                 undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() }
@@ -153,7 +150,7 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
             duplicates: model.duplicates,
             empty: DocumentsList.Empty(
                 text: model.emptyText, hint: model.emptyHint,
-                showAllPost: model.emptyOffersAllPost ? { Task { await model.select(.all) } } : nil
+                showAllPost: model.emptyOffersAllPost ? showAllPost : nil
             ),
             notices: DocumentsList.Notices(
                 warning: warning, camera: model.cameraNotice, removed: model.removedNotice,
@@ -162,6 +159,14 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
                 undoAction: { Task { await model.undoTrash() } }, closeUndo: { model.closeUndo() },
                 closeDuplicate: { model.closeDuplicateNotice() }
             ),
+            header: header,
+            scan: startScan,
+            reading: model.offersReading
+                ? ReadingControls(
+                    markRead: { id in Task { await model.markRead(id) } },
+                    markUnread: { id in Task { await model.markUnread(id) } }
+                )
+                : nil,
             myTasksLink: model.myTasksLink,
             showMyTasks: showMyTasks,
             retryLoad: { Task { await model.load() } },
@@ -172,44 +177,49 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
         )
     }
 
-    private var navigationTitle: String {
-        var hasSubtitle = false
-        if #available(iOS 26, *) { hasSubtitle = true }
-        return DocumentStrings.navigationTitle(
-            scope: model.screenTitle, workspace: workspaceName, hasSubtitle: hasSubtitle
-        )
+    private static var filterOnSymbol: String { "line.3.horizontal.decrease.circle.fill" }
+    private static var filterOffSymbol: String { "line.3.horizontal.decrease.circle" }
+
+    /// "Alleen ongelezen" in "Mijn post": on or off.
+    private var unreadOnlyButton: some View {
+        let isOn = model.scope == .myPostUnread
+        return Button {
+            Task { await model.select(isOn ? .myPost : .myPostUnread) }
+        } label: {
+            Label(DocumentStrings.unreadOnly, systemImage: isOn ? Self.filterOnSymbol : Self.filterOffSymbol)
+        }
+        .accessibilityAddTraits(isOn ? .isSelected : [])
     }
 
-    /// "Mijn taken" (with its count) above "Inbox", "Alle post" or the post of one person; the current one is
-    /// ticked. Then "Prullenbak".
-    @ViewBuilder private var scopeMenu: some View {
-        Section(title) {
-            if model.hasMyTasks {
-                Button(action: showMyTasks) {
-                    Label(model.myTasksMenuTitle, systemImage: myTasksSymbol)
-                }
-            }
+    /// The round "Scannen": the camera, or the photos where there is no camera.
+    private func startScan() {
+        guard DocumentScannerView.isSupported else {
+            showsPhotoPicker = true
+            return
+        }
+        Task {
+            if await model.prepareScanner() { showsScanner = true }
+        }
+    }
+
+    /// "Voor wie": everyone's post, or the post of one person (the persons who are not archived).
+    private var forWhomMenu: some View {
+        Menu {
             Picker(
-                selection: Binding<DocumentsModel.Scope?>(
-                    get: { model.isShowingMyTasks ? nil : model.scope },
-                    set: { scope in if let scope { Task { await model.select(scope) } } }
+                selection: Binding<DocumentsModel.Scope>(
+                    get: { model.scope },
+                    set: { scope in Task { await model.select(scope) } }
                 )
             ) {
-                ForEach(model.scopeTitles, id: \.0) { scope, name in
-                    Text(name).tag(Optional(scope))
+                ForEach(model.forWhomChoices, id: \.0) { scope, name in
+                    Text(name).tag(scope)
                 }
             } label: {
-                Text(model.screenTitle)
+                Text(DocumentStrings.forWhom)
             }
             .pickerStyle(.inline)
-        }
-        if model.hasTrash {
-            Section {
-                Button(DocumentStrings.trashTitle, systemImage: "trash") {
-                    trashModel = model.makeTrashModel()
-                    model.isShowingTrash = true
-                }
-            }
+        } label: {
+            Label(DocumentStrings.forWhom, systemImage: "person.crop.circle")
         }
     }
 
@@ -241,17 +251,6 @@ public struct DocumentsView<Destination: View, Compare: View>: View {
                 Label(DocumentStrings.importPhotos, systemImage: "photo.on.rectangle")
             }
         }
-    }
-
-    /// Ticked while it shows, as the picker ticks the current scope.
-    private var myTasksSymbol: String {
-        if model.isShowingMyTasks { return "checkmark" }
-        return "checklist"
-    }
-
-    private func showMyTasks() {
-        if myTasksModel == nil { myTasksModel = model.makeMyTasksModel() }
-        model.showMyTasks()
     }
 
     /// Opens the scan's preview, which reads and turns the pages first.

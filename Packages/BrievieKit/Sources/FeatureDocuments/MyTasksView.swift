@@ -8,18 +8,38 @@ import SwiftUI
 /// "Taken" tab later. It opens a letter itself (its own navigation destination).
 public struct MyTasksView<Destination: View>: View {
     private let model: MyTasksModel
+    /// The list a letter opened from here reports its trash to: its "Ongedaan maken" stands here too, where the
+    /// letter was deleted, not only in that list's tab.
+    private let trashList: DocumentsModel?
     private let destination: (UUID) -> Destination
     @State private var openedLetter: LetterLink?
     @Environment(\.scenePhase) private var scenePhase
 
-    public init(model: MyTasksModel, @ViewBuilder destination: @escaping (UUID) -> Destination) {
+    public init(
+        model: MyTasksModel, trashList: DocumentsModel? = nil, @ViewBuilder destination: @escaping (UUID) -> Destination
+    ) {
         self.model = model
+        self.trashList = trashList
         self.destination = destination
     }
 
     public var body: some View {
         @Bindable var model = model
         List {
+            if let trashList, let undo = trashList.undo {
+                Section {
+                    UndoRow(
+                        notice: undo, isUndoing: trashList.isUndoing,
+                        undo: {
+                            Task {
+                                await trashList.undoTrash(reopen: false)
+                                await model.load()
+                            }
+                        },
+                        close: { trashList.closeUndo() }
+                    )
+                }
+            }
             intro
             pickers
             switch model.state {

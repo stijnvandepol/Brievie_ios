@@ -16,11 +16,16 @@ public extension BrievieColor {
             ? UIColor(red: 0xFF / 255, green: 0xB2 / 255, blue: 0x7D / 255, alpha: 1)
             : UIColor(red: 0x8A / 255, green: 0x37 / 255, blue: 0x07 / 255, alpha: 1)
     })
+    /// The dot of an unread letter: the brand colour, never alone (the row's title is bold and VoiceOver says
+    /// "Ongelezen").
+    static let unread = brand
 }
 
 public enum BrievieRadius {
     /// A card's corners.
     public static let card: CGFloat = 16
+    /// A round quick-action button's diameter (scaled with Dynamic Type where it is used).
+    public static let roundAction: CGFloat = 56
 }
 
 public extension View {

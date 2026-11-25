@@ -3,20 +3,22 @@ import BrievieUI
 import SwiftUI
 
 /// One letter in the post list: sender, date and pages, the persons it is addressed to, its labels, and
-/// where it stands.
+/// where it stands. An unread letter has a dot in the brand colour and a bold title (VoiceOver says "Ongelezen").
+/// The letter status badge (host PR #50) will stand on the title line, after the dot and the title.
 struct DocumentRowView: View {
     let row: DocumentsModel.Row
+    @ScaledMetric(relativeTo: .headline) private var dotSize: CGFloat = 9
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if row.titleIsProposal {
-                // As in the web: italic, and "(voorstel)" in words, so it is never read as a fact.
-                (Text(row.title).italic() + Text(verbatim: " ") + Text(DocumentStrings.proposedMark)
-                    .foregroundStyle(.secondary))
-                    .font(.headline)
-            } else {
-                Text(row.title)
-                    .font(.headline)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                if row.isUnread {
+                    Circle()
+                        .fill(BrievieColor.unread)
+                        .frame(width: dotSize, height: dotSize)
+                        .accessibilityHidden(true)
+                }
+                title
             }
             Text(row.subtitle)
                 .font(.subheadline)
@@ -54,6 +56,19 @@ struct DocumentRowView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(progressValue)
+    }
+
+    @ViewBuilder private var title: some View {
+        let weight: Font.Weight = row.isUnread ? .bold : .semibold
+        if row.titleIsProposal {
+            // As in the web: italic, and "(voorstel)" in words, so it is never read as a fact.
+            (Text(row.title).italic() + Text(verbatim: " ") + Text(DocumentStrings.proposedMark)
+                .foregroundStyle(.secondary))
+                .font(.headline.weight(weight))
+        } else {
+            Text(row.title)
+                .font(.headline.weight(weight))
+        }
     }
 
     private var progressValue: String {

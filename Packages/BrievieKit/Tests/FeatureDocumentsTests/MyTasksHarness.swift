@@ -55,12 +55,13 @@ struct MyTasksHarness {
         deadline: CalendarDate? = CalendarDate(year: 2026, month: 12, day: 1), daysLeft: Int? = 10,
         reason: TaskReason = .addressee, assignedTo: UUID? = nil, assignedToName: String = "",
         documentID: UUID? = UUID(), canEdit: Bool? = true, done: Bool = false, completedBy: String = "",
-        completedAt: Date? = nil
+        completedAt: Date? = nil, permissions: TaskPermissions? = nil
     ) -> WorkspaceTask {
         WorkspaceTask(
             id: id, type: "pay", description: description, deadline: deadline, isDone: done, documentID: documentID,
             sender: "Belastingdienst", daysLeft: daysLeft, group: group, reason: reason, assignedToID: assignedTo,
-            assignedToName: assignedToName, completedByName: completedBy, completedAt: completedAt, canEdit: canEdit
+            assignedToName: assignedToName, completedByName: completedBy, completedAt: completedAt, canEdit: canEdit,
+            permissions: permissions
         )
     }
 }

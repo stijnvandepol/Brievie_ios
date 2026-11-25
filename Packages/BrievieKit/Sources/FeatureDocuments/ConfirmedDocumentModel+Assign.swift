@@ -21,12 +21,18 @@ extension ConfirmedDocumentModel {
     }
 
     /// "Ik doe dit": only on an open task nobody has (never someone else's), for a member or admin.
+    /// The server's `can_take` decides when it sends it (host PR #44); otherwise the app's own rule.
     public func canTakeOn(_ task: ConfirmedTask) -> Bool {
-        canEdit && currentUserID != nil && !task.isDone && task.assignedToID == nil && task.assignedToName.isEmpty
+        guard canEdit, currentUserID != nil, !task.isDone else { return false }
+        if let permissions = task.permissions { return permissions.canTake }
+        return task.assignedToID == nil && task.assignedToName.isEmpty
     }
 
+    /// "Niet meer aan mij": on one's own task (for an admin on someone else's, the server says so in `can_release`;
+    /// this screen offers only one's own).
     public func canRelease(_ task: ConfirmedTask) -> Bool {
-        canEdit && !task.isDone && isMine(task)
+        guard canEdit, !task.isDone, isMine(task) else { return false }
+        return task.permissions?.canRelease ?? true
     }
 
     /// "Jij doet dit" or "Bij Anne"; `nil` when nobody has the task.

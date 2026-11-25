@@ -93,12 +93,25 @@ public struct Suggestion: Equatable, Sendable, Identifiable {
 public struct DocumentFilter: Equatable, Sendable {
     public var inboxState: InboxState?
     public var personID: UUID?
+    public var labelID: UUID?
+    /// "Mijn post": only letters addressed to the member's own person (host PR #44; an older server ignores it,
+    /// so the app asks only after `menuCounts` answered).
+    public var addressedToMe: Bool
+    /// Only the letters the member has not opened.
+    public var unreadOnly: Bool
 
     public static let all = DocumentFilter()
+    public static let myPost = DocumentFilter(addressedToMe: true)
 
-    public init(inboxState: InboxState? = nil, personID: UUID? = nil) {
+    public init(
+        inboxState: InboxState? = nil, personID: UUID? = nil, labelID: UUID? = nil, addressedToMe: Bool = false,
+        unreadOnly: Bool = false
+    ) {
         self.inboxState = inboxState
         self.personID = personID
+        self.labelID = labelID
+        self.addressedToMe = addressedToMe
+        self.unreadOnly = unreadOnly
     }
 }
 
@@ -162,6 +175,9 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
     /// Whether this member may tick the task off; `nil` when the server did not say (fall back to the role).
     public let canEdit: Bool?
     public let createdByAI: Bool
+    /// Who may pick up, hand over or release the task, as the server decides it; `nil` from a server before host
+    /// PR #44 (the app then falls back to its own rule).
+    public let permissions: TaskPermissions?
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, isDone: Bool, documentID: UUID?,
@@ -169,7 +185,8 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
         needsDeadline: Bool = false, amount: Decimal? = nil, daysLeft: Int? = nil, group: TaskGroup = .none,
         reason: TaskReason = .none, forNames: [String] = [], assignedToID: UUID? = nil, assignedToName: String = "",
         assignedByName: String = "", completedByName: String = "", completedAt: Date? = nil,
-        documentType: String = "", canEdit: Bool? = nil, createdByAI: Bool = false
+        documentType: String = "", canEdit: Bool? = nil, createdByAI: Bool = false,
+        permissions: TaskPermissions? = nil
     ) {
         self.id = id
         self.type = type
@@ -195,5 +212,6 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
         self.documentType = documentType
         self.canEdit = canEdit
         self.createdByAI = createdByAI
+        self.permissions = permissions
     }
 }

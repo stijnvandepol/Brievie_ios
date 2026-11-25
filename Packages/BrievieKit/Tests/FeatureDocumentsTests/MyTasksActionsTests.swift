@@ -195,4 +195,22 @@ import Testing
         #expect(!harness.server.calls.contains { if case .assignTask = $0 { true } else { false } })
         #expect(harness.model.sheet == nil)
     }
+
+    @Test func theServersFlagsReplaceTheAppsRule() async throws {
+        // An admin on a colleague's task: the server lets them hand it on and release it, not take it over.
+        let colleagues = Harness.task(
+            "bij een collega", reason: .other, assignedTo: UUID(), assignedToName: "Een collega",
+            permissions: TaskPermissions(canTake: false, canHandOver: true, canRelease: true)
+        )
+        // The server says no where the app's own rule would say yes.
+        let refused = Harness.task(
+            "geweigerd", reason: .unassigned, permissions: TaskPermissions(canTake: false, canHandOver: false)
+        )
+        let harness = try await loaded([colleagues, refused])
+
+        let flags = [colleagues, refused].map { task in
+            row(harness, task.id).map { [$0.canTakeOn, $0.canRelease, $0.canHandOver] } ?? []
+        }
+        #expect(flags == [[false, true, true], [false, false, false]])
+    }
 }

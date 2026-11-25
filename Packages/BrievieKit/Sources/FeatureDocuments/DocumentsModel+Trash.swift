@@ -35,7 +35,8 @@ extension DocumentsModel {
 
     /// "Ongedaan maken": the letter comes back (its tasks too, so the calendar follows) and opens again, unless
     /// the user went elsewhere meanwhile (another letter, the Prullenbak). A failure stays on the notice.
-    public func undoTrash() async {
+    /// - Parameter reopen: `false` from another tab (Taken): the letter comes back without opening on this list's tab.
+    public func undoTrash(reopen: Bool = true) async {
         guard let notice = undo, !isUndoing else { return }
         isUndoing = true
         defer { isUndoing = false }
@@ -44,7 +45,7 @@ extension DocumentsModel {
             if undo?.documentID == notice.documentID { undo = nil }
             onTasksChanged()
             await load()
-            if openedDocument == nil, !isShowingTrash { openedDocument = notice.documentID }
+            if reopen, openedDocument == nil, !isShowingTrash { openedDocument = notice.documentID }
         } catch .revoked {
             onRevoked()
         } catch .missingPairing {

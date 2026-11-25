@@ -55,11 +55,16 @@ public final class WorkspacesModel {
         return []
     }
 
-    /// More than one workspace: the inbox says which one it shows. With one the user never sees the word.
-    public var showsWorkspaceName: Bool { rows.count > 1 }
-
     /// The settings are pushed on the root screen.
     public var isShowingSettings = false
+    /// The workspace picker (the sheet of the workspace pill) is open.
+    public var isShowingPicker = false
+
+    /// The workspace the post shows; `nil` while loading, after a failed load, and without workspaces.
+    public var currentRow: Row? { rows.first { $0.id == currentWorkspaceID } }
+
+    /// There is another workspace to go to: the pill is a button with a chevron. With one it is a label.
+    public var canSwitch: Bool { rows.count > 1 }
     /// "Meldingen voor termijnen"; `nil` without reminder support.
     public let reminderModel: ReminderSettingModel?
 
@@ -130,12 +135,33 @@ public final class WorkspacesModel {
         currentWorkspace.remember(workspace, forDevice: connection.deviceID)
     }
 
+    /// The workspace pill: opens the picker, only when there is another workspace.
+    public func showPicker() {
+        guard canSwitch else { return }
+        isShowingPicker = true
+    }
+
+    /// A workspace chosen in the picker. The picker closes; the current one changes nothing else, another one
+    /// becomes the shown workspace (whose screens start anew, on "Mijn post").
+    public func choose(_ workspace: UUID) {
+        isShowingPicker = false
+        guard workspace != currentWorkspaceID else { return }
+        isShowingSettings = false
+        select(workspace)
+    }
+
+    /// What VoiceOver says for the pill: the workspace, and with more than one that another can be chosen.
+    public func pillAccessibilityLabel(for row: Row) -> String {
+        String(format: canSwitch ? WorkspaceStrings.pillSwitchFormat : WorkspaceStrings.pillFormat, row.name)
+    }
+
     /// A tapped reminder: shows its workspace (closing the settings) when this phone still has it. `false` when the
     /// workspaces are not loaded or no longer list it: then nothing changes.
     @discardableResult
     public func show(_ target: ReminderTarget) -> Bool {
         guard rows.contains(where: { $0.id == target.workspaceID }) else { return false }
         isShowingSettings = false
+        isShowingPicker = false
         select(target.workspaceID)
         return true
     }

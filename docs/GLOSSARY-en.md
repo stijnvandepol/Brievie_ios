@@ -46,6 +46,14 @@ same terms the app uses plus the app-only ones. When they differ, the host's glo
 | Ik doe dit | I'll do it | Taking a task nobody has yet. |
 | Geef aan…, Niet meer aan mij | Hand over…, Not mine any more | |
 | Te laat, Binnen 7 dagen | Overdue, Within 7 days | Never "this week". |
+| Mijn post | My post | The member's own letters and the start screen; the one place where "post" stays "post" (host decision B1). |
+| Ongelezen; Markeer als gelezen / ongelezen; Alles gelezen; Alleen ongelezen | Unread; Mark as read / Mark as unread; Mark all read; Unread only | Per member. Swipe actions: "Read" / "Unread". |
+| Blijft liggen; In de Inbox te lang; Nog niet geopend | Lying too long; Too long in the Inbox; Not opened yet | "Ligt er 4 dagen": "Waiting 4 days". |
+| Taken (tab), Meer | Tasks, More | The tab bar; the task screen itself is "My tasks". |
+| Instellingen | Settings | |
+| Voor wie; Iedereen | For whom; Everyone | The filter of All mail. |
+| Werkruimte kiezen | Choose workspace | The pill's sheet. VoiceOver: "Workspace: Thuis. Choose another workspace". |
+| Scannen, Zoeken, Naam kiezen | Scan, Search, Choose a name | Round quick actions. |
 
 ## Rules
 

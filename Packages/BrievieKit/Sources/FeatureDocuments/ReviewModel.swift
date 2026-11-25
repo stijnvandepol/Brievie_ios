@@ -57,6 +57,10 @@ public final class ReviewModel {
     public var asksToTrash = false
     /// Called with the letter's id once it went to the trash: the post list offers the undo.
     public var onTrashed: (@MainActor (UUID) -> Void)?
+    /// The letter was marked read on the server (once per opening): the list that opened it follows.
+    @ObservationIgnored public var onRead: (@MainActor () -> Void)?
+    /// `markDocumentRead` went out for this opening (or the server does not know it).
+    @ObservationIgnored var askedToMarkRead = false
     /// The server has a trash; a 1d server does not, and then there is no "Verwijderen".
     public let trashAvailable: Bool
     /// Called after the letter was confirmed and after one of its tasks was ticked off or opened again. Handed
@@ -140,6 +144,7 @@ public final class ReviewModel {
                 confirmed?.showLists(persons: fresh.persons, labels: fresh.labels)
             }
             show(detail)
+            await markReadOnce()
         } catch .inTrash {
             state = .inTrash
         } catch {

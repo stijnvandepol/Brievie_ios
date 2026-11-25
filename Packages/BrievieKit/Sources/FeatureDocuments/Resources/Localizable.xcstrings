@@ -1,6 +1,222 @@
 {
   "sourceLanguage": "nl",
   "strings": {
+    "actions.allRead": {
+      "comment": "Round quick action in My post: mark the letters on screen read.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark all read"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles gelezen"
+          }
+        }
+      }
+    },
+    "actions.chooseName": {
+      "comment": "Round quick action in the Inbox: open the first letter that needs a name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a name"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naam kiezen"
+          }
+        }
+      }
+    },
+    "actions.scan": {
+      "comment": "Round quick action: scan a letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scannen"
+          }
+        }
+      }
+    },
+    "actions.search": {
+      "comment": "Round quick action: search the letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoeken"
+          }
+        }
+      }
+    },
+    "cards.lingering": {
+      "comment": "Caption under the number of letters lying too long (organisations).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lying too long"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "blijven liggen"
+          }
+        }
+      }
+    },
+    "cards.lingering.label": {
+      "comment": "VoiceOver label of the lying-too-long card. %lld is the number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lying too long: %lld"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blijft liggen: %lld"
+          }
+        }
+      }
+    },
+    "cards.tasks": {
+      "comment": "Caption under the number of open tasks on a count card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "taken"
+          }
+        }
+      }
+    },
+    "cards.tasks.label": {
+      "comment": "VoiceOver label of the task card without overdue tasks. %lld is the number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks: %lld open"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken: %lld open"
+          }
+        }
+      }
+    },
+    "cards.tasks.label.late": {
+      "comment": "VoiceOver label of the task card. The first %lld is the open tasks, the second the overdue ones.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My tasks: %lld open, %lld overdue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn taken: %lld open, %lld te laat"
+          }
+        }
+      }
+    },
+    "cards.tasks.late": {
+      "comment": "Under the task count: how many are overdue. %lld is the number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld overdue"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld te laat"
+          }
+        }
+      }
+    },
+    "cards.unread": {
+      "comment": "Caption under the number of unread letters on a count card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unread"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ongelezen"
+          }
+        }
+      }
+    },
+    "cards.unread.label": {
+      "comment": "VoiceOver label of the unread card. %lld is the number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My post: %lld unread"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn post: %lld ongelezen"
+          }
+        }
+      }
+    },
     "document.change.failed": {
       "comment": "A change to a confirmed letter (name, label, suggestion, task) did not reach the server.",
       "extractionState": "manual",
@@ -343,6 +559,42 @@
         }
       }
     },
+    "documents.forWhom": {
+      "comment": "Filter in All mail: whose letters the list shows.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For whom"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voor wie"
+          }
+        }
+      }
+    },
+    "documents.forWhom.everyone": {
+      "comment": "First choice of the For whom filter: every letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iedereen"
+          }
+        }
+      }
+    },
     "documents.import": {
       "comment": "Button that picks page photos from the library (no scanner available).",
       "extractionState": "manual",
@@ -483,6 +735,96 @@
           "stringUnit": {
             "state": "translated",
             "value": "Post laden…"
+          }
+        }
+      }
+    },
+    "documents.markRead": {
+      "comment": "VoiceOver action and menu item on an unread letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as read"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markeer als gelezen"
+          }
+        }
+      }
+    },
+    "documents.markUnread": {
+      "comment": "VoiceOver action and menu item on a read letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as unread"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markeer als ongelezen"
+          }
+        }
+      }
+    },
+    "documents.myPost.allRead": {
+      "comment": "My post with Unread only, when nothing is unread.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have read everything."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je hebt alles gelezen."
+          }
+        }
+      }
+    },
+    "documents.myPost.empty": {
+      "comment": "My post without letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no mail addressed to you yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is nog geen post op jouw naam."
+          }
+        }
+      }
+    },
+    "documents.myPost.noPerson": {
+      "comment": "My post when the account is not linked to a person.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account is not linked to a person yet. Ask an admin to link it. Then your mail shows here."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je account is nog niet aan een persoon gekoppeld. Vraag een beheerder om dat te doen. Daarna staat hier de post op jouw naam."
           }
         }
       }
@@ -681,6 +1023,24 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inbox"
+          }
+        }
+      }
+    },
+    "documents.scope.myPost": {
+      "comment": "Name of the letters addressed to the member: a tab, a screen title and a menu entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My post"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn post"
           }
         }
       }
@@ -955,20 +1315,38 @@
         }
       }
     },
-    "documents.title.inWorkspace": {
-      "comment": "Title of the post list before iOS 26 when the user has more than one workspace: %1$@ is the scope (\"Inbox\"), %2$@ the workspace (\"Thuis\").",
+    "documents.swipe.read": {
+      "comment": "Swipe action on an unread letter.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · %2$@"
+            "value": "Read"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ · %2$@"
+            "value": "Gelezen"
+          }
+        }
+      }
+    },
+    "documents.swipe.unread": {
+      "comment": "Swipe action on a read letter.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongelezen"
           }
         }
       }
@@ -1059,6 +1437,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "Onbekende afzender"
+          }
+        }
+      }
+    },
+    "documents.unread": {
+      "comment": "Said first by VoiceOver on a letter the member has not opened.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongelezen"
+          }
+        }
+      }
+    },
+    "documents.unreadOnly": {
+      "comment": "Filter in My post: only the letters the member has not opened.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread only"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alleen ongelezen"
           }
         }
       }
@@ -1893,6 +2307,216 @@
           "stringUnit": {
             "state": "translated",
             "value": "Er ging iets mis. Probeer het opnieuw."
+          }
+        }
+      }
+    },
+    "labels.empty": {
+      "comment": "Labels screen without labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workspace has no labels yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze werkruimte heeft nog geen labels."
+          }
+        }
+      }
+    },
+    "labels.footer": {
+      "comment": "Under the labels: where they are made.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You create and change labels on the website."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels maak en wijzig je op de website."
+          }
+        }
+      }
+    },
+    "labels.letters.empty": {
+      "comment": "The letters of one label, when there are none.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is no mail with this label yet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is nog geen post met dit label."
+          }
+        }
+      }
+    },
+    "lingering.days.inbox": {
+      "comment": "How long a letter waits in the Inbox. %lld is the number of days.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Waiting %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Waiting %lld days"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ligt er %lld dag"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Ligt er %lld dagen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lingering.days.unopened": {
+      "comment": "How long a confirmed letter has not been opened by its addressee. %lld is the number of days.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Not opened for %lld day"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Not opened for %lld days"
+                }
+              }
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dag niet geopend"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld dagen niet geopend"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lingering.empty": {
+      "comment": "Lying too long without letters.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing is lying too long."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er blijft niets liggen."
+          }
+        }
+      }
+    },
+    "lingering.notOpened": {
+      "comment": "Group in Lying too long: confirmed letters their addressee has not opened.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not opened yet"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nog niet geopend"
+          }
+        }
+      }
+    },
+    "lingering.title": {
+      "comment": "Screen title (organisations): letters that lie too long.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lying too long"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blijft liggen"
+          }
+        }
+      }
+    },
+    "lingering.tooLong": {
+      "comment": "Group in Lying too long: letters that wait too long in the Inbox.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too long in the Inbox"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In de Inbox te lang"
           }
         }
       }
@@ -4215,6 +4839,78 @@
           "stringUnit": {
             "state": "translated",
             "value": "Typ minstens twee tekens."
+          }
+        }
+      }
+    },
+    "tabs.labels": {
+      "comment": "Menu entry and screen title: the workspace's labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Labels"
+          }
+        }
+      }
+    },
+    "tabs.more": {
+      "comment": "Tab with the rest of the menu: All mail, Labels, Trash, Settings.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meer"
+          }
+        }
+      }
+    },
+    "tabs.settings": {
+      "comment": "Menu entry and screen title of the settings, at the bottom of the menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instellingen"
+          }
+        }
+      }
+    },
+    "tabs.tasks": {
+      "comment": "Tab with the member's own tasks (the screen is called My tasks).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
           }
         }
       }

@@ -44,6 +44,12 @@ filter:
     - getDuplicate
     - mergeDuplicate
     - dismissDuplicate
+    # Navigation and Mijn post (host PR #44)
+    - getMenuCounts
+    - markDocumentRead
+    - markDocumentUnread
+    - markDocumentsRead
+    - listLingeringLetters
   # The JSON inside the `metadata` field of the multipart upload (createDocument), which the
   # app sends through a background URLSession, not through the generated client.
   schemas:

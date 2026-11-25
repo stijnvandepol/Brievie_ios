@@ -142,7 +142,7 @@ import Testing
         #expect(model.labels.isEmpty)
         #expect(model.rows.map(\.id) == [document.id])
         #expect(model.rows.first?.addressees == [])
-        #expect(model.scopeTitles.map(\.1) == [DocumentStrings.scopeInbox, DocumentStrings.scopeAll])
+        #expect(model.forWhomChoices.map(\.1) == [DocumentStrings.forEveryone])
     }
 
     @Test func queuedScansShowInInboxAndAllOnly() async throws {
@@ -161,7 +161,7 @@ import Testing
         #expect(model.rows.isEmpty)
     }
 
-    @Test func scopeTitlesListActivePersonsOnly() async throws {
+    @Test func forWhomListsActivePersonsOnly() async throws {
         let archived = Person(id: UUID(), displayName: "Opa", nameVariants: [], isArchived: true)
         server.onPersons { _ in DocumentFixtures.persons + [archived] }
         let model = try model()
@@ -170,11 +170,10 @@ import Testing
 
         let stijn = DocumentFixtures.persons[0]
         let anne = DocumentFixtures.persons[1]
-        #expect(model.scopeTitles.map(\.0) == [.inbox, .all, .person(stijn.id), .person(anne.id)])
-        #expect(model.scopeTitles.map(\.1) == [
-            DocumentStrings.scopeInbox, DocumentStrings.scopeAll, "Stijn", "Anne"
-        ])
+        #expect(model.forWhomChoices.map(\.0) == [.all, .person(stijn.id), .person(anne.id)])
+        #expect(model.forWhomChoices.map(\.1) == [DocumentStrings.forEveryone, "Stijn", "Anne"])
         #expect(model.scopeTitle == DocumentStrings.scopeInbox)
+        #expect(!model.offersForWhom)
     }
 
     @Test func unknownInboxStateShowsInAllPostOnly() async throws {
@@ -205,7 +204,7 @@ import Testing
         }
     }
 
-    @Test func aPersonTheServerNoLongerKnowsFallsBackToTheInbox() async throws {
+    @Test func aPersonTheServerNoLongerKnowsFallsBackToAllPost() async throws {
         let stijn = DocumentFixtures.persons[0]
         server.onList { _, filter in
             if filter.personID != nil { throw ServerError.other("person_not_found") }
@@ -216,11 +215,11 @@ import Testing
 
         await model.select(.person(stijn.id))
 
-        #expect(model.scope == .inbox)
+        #expect(model.scope == .all)
         #expect(model.state == .loaded)
     }
 
-    @Test func anArchivedPersonFallsBackToTheInbox() async throws {
+    @Test func anArchivedPersonFallsBackToAllPost() async throws {
         let stijn = DocumentFixtures.persons[0]
         let model = try model()
         await model.load()
@@ -230,7 +229,7 @@ import Testing
 
         await model.select(.person(stijn.id))
 
-        #expect(model.scope == .inbox)
+        #expect(model.scope == .all)
         #expect(model.state == .loaded)
     }
 
@@ -270,24 +269,5 @@ import Testing
         await toAnne.value
         #expect(model.state == .loaded)
         #expect(model.rows.map(\.id) == [annesLetter.id])
-    }
-}
-
-/// Where the inbox names its workspace: in the subtitle from iOS 26, in the title before it, and nowhere when
-/// the user has one workspace.
-@Suite struct DocumentsTitleTests {
-    @Test func withOneWorkspaceTheTitleIsTheScope() {
-        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: false) == "Inbox")
-        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: nil, hasSubtitle: true) == "Inbox")
-    }
-
-    @Test func withASubtitleTheWorkspaceGoesThere() {
-        #expect(DocumentStrings.navigationTitle(scope: "Alle post", workspace: "Zaak", hasSubtitle: true)
-            == "Alle post")
-    }
-
-    @Test func withoutASubtitleTheTitleNamesTheWorkspace() {
-        #expect(DocumentStrings.navigationTitle(scope: "Inbox", workspace: "Thuis", hasSubtitle: false)
-            == "Inbox · Thuis")
     }
 }

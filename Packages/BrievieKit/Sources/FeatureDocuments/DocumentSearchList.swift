@@ -1,3 +1,13 @@
+import Foundation
+
+/// A search hit opened from the results. `DocumentsView` registers its destination
+/// (`navigationDestination(for:)`), outside the results list: that list exists only while a term is typed, and a
+/// letter pushed by a link inside it was owned by a view the search could replace while the letter was open.
+/// Its own type, so it does not meet the `UUID` of `navigationDestination(item: $model.openedDocument)`.
+struct SearchHitLink: Hashable {
+    let documentID: UUID
+}
+
 #if os(iOS)
 import BrievieCore
 import BrievieUI
@@ -125,30 +135,24 @@ struct DocumentSearchList: View {
     }
 }
 
-/// A search hit opened from the results. `DocumentsView` registers its destination
-/// (`navigationDestination(for:)`), outside the results list: that list exists only while a term is typed, and a
-/// letter pushed by a link inside it was owned by a view the search could replace while the letter was open.
-/// Its own type, so it does not meet the `UUID` of `navigationDestination(item: $model.openedDocument)`.
-struct SearchHitLink: Hashable {
-    let documentID: UUID
-}
-
 /// The system search field, only in "Alle post". Return searches at once; typing searches after a pause.
 struct SearchField: ViewModifier {
     let search: DocumentSearchModel
     let isAvailable: Bool
+    /// The field is active (focused); set by "Zoeken" elsewhere to open it.
+    @Binding var isPresented: Bool
 
     func body(content: Content) -> some View {
         if isAvailable {
             @Bindable var search = search
             content
                 .searchable(
-                    text: $search.query, placement: .navigationBarDrawer(displayMode: .automatic),
-                    prompt: DocumentStrings.searchPrompt
+                    text: $search.query, isPresented: $isPresented,
+                    placement: .navigationBarDrawer(displayMode: .always), prompt: DocumentStrings.searchPrompt
                 )
                 // While searching, the bar stays: a hit opened from a hidden bar came back with neither the bar nor
-                // the search field, with no way out but a restart. (A search field that iOS 26 puts at the bottom
-                // still goes after a hit and back; the title menu, which now stays, brings it back.)
+                // the search field, with no way out but a restart. The field sits in the navigation bar and always
+                // shows (`.always`), not at the bottom where iOS 26 put it and lost it after a hit and back.
                 .searchPresentationToolbarBehavior(.avoidHidingContent)
                 // The keyboard does not learn what is searched for in letters.
                 .autocorrectionDisabled()

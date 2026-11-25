@@ -243,8 +243,10 @@ import Testing
         let model = try model()
         await model.load()
 
-        #expect(model.scopeTitles.prefix(2).map(\.1) == ["Inbox", "Alle post"])
         #expect(model.scopeTitle == "Inbox")
+        await model.select(.all)
+        #expect(model.scopeTitle == "Alle post")
+        #expect(model.offersForWhom)
     }
 
     @Test func aLetterWithoutSenderIsNamedByWhereItIs() async throws {

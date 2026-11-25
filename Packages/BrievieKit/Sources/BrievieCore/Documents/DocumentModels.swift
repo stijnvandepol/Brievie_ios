@@ -34,6 +34,8 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
     public let proposedSender: String
     /// How many open duplicate pairs this letter is in (0 from a server before host PR #34).
     public let openDuplicateCount: Int
+    /// "Ongelezen": the member has not opened this letter yet (false from a server before host PR #44).
+    public var isUnread: Bool
 
     /// "Dubbel?": the letter is in a pair that still waits for a choice.
     public var isPossibleDuplicate: Bool { openDuplicateCount > 0 }
@@ -46,7 +48,7 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         documentType: String, letterDate: CalendarDate?, inboxState: InboxState = .sorted,
         addresseeIDs: [UUID] = [], labelIDs: [UUID] = [], openSuggestionCount: Int = 0,
         confirmedByAI: Bool = false, autoLabelIDs: [UUID] = [], autoAddresseeIDs: [UUID] = [],
-        proposedSender: String = "", openDuplicateCount: Int = 0
+        proposedSender: String = "", openDuplicateCount: Int = 0, isUnread: Bool = false
     ) {
         self.id = id
         self.clientID = clientID
@@ -65,6 +67,7 @@ public struct DocumentSummary: Equatable, Sendable, Identifiable {
         self.autoAddresseeIDs = autoAddresseeIDs
         self.proposedSender = proposedSender
         self.openDuplicateCount = openDuplicateCount
+        self.isUnread = isUnread
     }
 }
 
@@ -114,11 +117,14 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
     /// Who does the task; `nil` and empty when nobody has it yet.
     public var assignedToID: UUID?
     public var assignedToName: String
+    /// What the server lets this member do with the task; `nil` from a server before host PR #44.
+    public var permissions: TaskPermissions?
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, deadlineSource: String,
         deadlineQuote: String, isDone: Bool = false, createdByAI: Bool = false, amount: Decimal? = nil,
-        termQuote: String = "", assignedToID: UUID? = nil, assignedToName: String = ""
+        termQuote: String = "", assignedToID: UUID? = nil, assignedToName: String = "",
+        permissions: TaskPermissions? = nil
     ) {
         self.id = id
         self.type = type
@@ -132,6 +138,7 @@ public struct ConfirmedTask: Equatable, Sendable, Identifiable {
         self.termQuote = termQuote
         self.assignedToID = assignedToID
         self.assignedToName = assignedToName
+        self.permissions = permissions
     }
 }
 
@@ -289,6 +296,15 @@ public protocol DocumentServer: Sendable {
     func setTaskDeadline(_ id: UUID, to deadline: CalendarDate?, in scope: DocumentScope) async throws -> WorkspaceTask
     /// The signed-in user's id, for "Ik doe dit".
     func currentUserID(in scope: DocumentScope) async throws -> UUID
+    /// The numbers of the menu (host PR #44; an older server answers 404).
+    func menuCounts(in scope: DocumentScope) async throws -> MenuCounts
+    /// The member opened the letter: it is no longer "Ongelezen" for them.
+    func markRead(_ id: UUID, in scope: DocumentScope) async throws
+    func markUnread(_ id: UUID, in scope: DocumentScope) async throws
+    /// "Alles gelezen": at most 200 letters; the answer is how many the server marked.
+    func markRead(_ ids: [UUID], in scope: DocumentScope) async throws -> Int
+    /// "Blijft liggen" (organisations, for sorters and admins; empty otherwise).
+    func lingeringLetters(in scope: DocumentScope) async throws -> LingeringLetters
 }
 
 public extension DocumentServer {
@@ -353,6 +369,27 @@ public extension DocumentServer {
     }
 
     func currentUserID(in scope: DocumentScope) async throws -> UUID {
+        throw ServerError.other("http_404")
+    }
+
+    /// For servers that predate "Mijn post" and "Ongelezen": the 404 of a server without the endpoint.
+    func menuCounts(in scope: DocumentScope) async throws -> MenuCounts {
+        throw ServerError.other("http_404")
+    }
+
+    func markRead(_ id: UUID, in scope: DocumentScope) async throws {
+        throw ServerError.other("http_404")
+    }
+
+    func markUnread(_ id: UUID, in scope: DocumentScope) async throws {
+        throw ServerError.other("http_404")
+    }
+
+    func markRead(_ ids: [UUID], in scope: DocumentScope) async throws -> Int {
+        throw ServerError.other("http_404")
+    }
+
+    func lingeringLetters(in scope: DocumentScope) async throws -> LingeringLetters {
         throw ServerError.other("http_404")
     }
 

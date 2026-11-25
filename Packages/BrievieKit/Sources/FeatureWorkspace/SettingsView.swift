@@ -3,18 +3,19 @@ import BrievieCore
 import BrievieUI
 import SwiftUI
 
-/// The settings: the workspaces (which one the inbox shows, and the calendar switch of each), the reminders, the
-/// server and "Ontkoppelen". Pushed from the root screen by `WorkspaceRootView`.
-struct SettingsView: View {
+/// The settings: the deadline reminders, the calendar switch of each workspace, the server and "Ontkoppelen". The
+/// workspace is chosen with the pill at the top of the post (`WorkspacePickerSheet`), not here.
+public struct SettingsView: View {
     let model: WorkspacesModel
-    /// The user chose a workspace: back to the inbox, which now shows it.
-    let didChoose: () -> Void
 
-    var body: some View {
+    public init(model: WorkspacesModel) {
+        self.model = model
+    }
+
+    public var body: some View {
         @Bindable var model = model
         SettingsList(
             state: model.state,
-            currentWorkspaceID: model.currentWorkspaceID,
             serverAddress: model.serverAddress,
             userName: model.userName,
             unpair: UnpairControl(
@@ -28,11 +29,7 @@ struct SettingsView: View {
             ),
             retry: { model.retry() },
             calendarModel: { model.calendarModel(for: $0.id) },
-            reminders: model.reminderModel,
-            choose: { workspace in
-                model.select(workspace)
-                didChoose()
-            }
+            reminders: model.reminderModel
         )
         .refreshable { await model.load() }
         // Each visit loads the list again, and with it syncs the calendars and checks calendar access.
@@ -55,8 +52,6 @@ struct UnpairControl {
 /// The rendering of `SettingsView`, free of the model so that previews can feed it plain values.
 struct SettingsList: View {
     let state: WorkspacesModel.State
-    /// The workspace the inbox shows: it carries the checkmark.
-    let currentWorkspaceID: UUID?
     let serverAddress: String?
     let userName: String
     let unpair: UnpairControl
@@ -65,19 +60,13 @@ struct SettingsList: View {
     let calendarModel: (WorkspacesModel.Row) -> CalendarSettingModel?
     /// "Meldingen voor termijnen"; `nil` shows no section.
     var reminders: ReminderSettingModel?
-    /// The user tapped a workspace.
-    let choose: (UUID) -> Void
 
     var body: some View {
         List {
-            Section {
-                content
-            } header: {
-                Text("workspaces.section.workspaces", bundle: .module)
-            }
             if let reminders {
                 ReminderSettingsSection(model: reminders)
             }
+            calendarSections
             serverSection
             // Its own section, last, away from everything else on the screen.
             unpairSection
@@ -87,43 +76,32 @@ struct SettingsList: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    @ViewBuilder private var content: some View {
+    /// "Agenda": the calendar switch of each workspace, under the workspace's name when there is more than one.
+    /// While the workspaces load or failed to load, the state stands here.
+    @ViewBuilder private var calendarSections: some View {
         switch state {
         case .loading:
-            WorkspacesLoadingRow()
-        case .loaded(let rows):
-            if rows.isEmpty {
-                WorkspacesEmptyRow()
-            }
-            ForEach(rows) { row in
-                workspaceButton(row)
-                if let calendar = calendarModel(row) {
-                    CalendarSwitchRow(model: calendar)
-                }
-            }
+            Section { WorkspacesLoadingRow() } header: { Text("settings.section.calendar", bundle: .module) }
         case .failed(let message):
-            WorkspacesErrorRow(message: message, retry: retry)
-        }
-    }
-
-    private func workspaceButton(_ row: WorkspacesModel.Row) -> some View {
-        let isCurrent = row.id == currentWorkspaceID
-        return Button {
-            choose(row.id)
-        } label: {
-            HStack(spacing: 12) {
-                WorkspaceRowView(row: row)
-                if isCurrent {
-                    Image(systemName: "checkmark")
-                        .font(.body.weight(.semibold))
-                        .foregroundStyle(.tint)
-                        .accessibilityHidden(true)
+            Section {
+                WorkspacesErrorRow(message: message, retry: retry)
+            } header: {
+                Text("settings.section.calendar", bundle: .module)
+            }
+        case .loaded(let rows):
+            let calendars = rows.compactMap { row in calendarModel(row).map { (row, $0) } }
+            ForEach(calendars, id: \.0.id) { row, calendar in
+                Section {
+                    CalendarSwitchRows(model: calendar)
+                } header: {
+                    if rows.count > 1 {
+                        Text(String(format: WorkspaceStrings.calendarSectionFormat, row.name))
+                    } else {
+                        Text("settings.section.calendar", bundle: .module)
+                    }
                 }
             }
-            .foregroundStyle(.primary)
         }
-        .accessibilityAddTraits(isCurrent ? .isSelected : [])
-        .accessibilityHint(isCurrent ? Text(verbatim: "") : Text("settings.workspace.hint", bundle: .module))
     }
 
     private var serverSection: some View {
@@ -196,14 +174,14 @@ extension SettingsList {
     }
 }
 
-/// "Zet termijnen in mijn agenda" under a workspace, with why it went back off and the "ook verwijderen?"
-/// question when it is turned off.
-private struct CalendarSwitchRow: View {
+/// "Zet termijnen in mijn agenda" of one workspace, with why it went back off and the "ook verwijderen?" question
+/// when it is turned off. Each control is a row of its own: in one shared row a tap had to be held before the
+/// switch reacted (seen in the simulator, 21-11-2026).
+private struct CalendarSwitchRows: View {
     @Bindable var model: CalendarSettingModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // The row sits under its workspace and the footer names the calendar: no subtitle with the name.
+        VStack(alignment: .leading, spacing: 6) {
             Toggle(isOn: Binding(get: { model.isOn }, set: { model.toggle($0) })) {
                 Text("workspaces.calendar.toggle", bundle: .module)
             }
@@ -211,34 +189,6 @@ private struct CalendarSwitchRow: View {
             Text(model.footer)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
-            if model.isOn {
-                Toggle(isOn: Binding(get: { model.showsDetails }, set: { model.setShowsDetails($0) })) {
-                    Text("workspaces.calendar.details.toggle", bundle: .module)
-                }
-                .accessibilityHint(model.detailsFooter)
-                Text(model.detailsFooter)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Picker(
-                    WorkspaceStrings.calendarTasksLabel,
-                    selection: Binding(get: { model.taskPart }, set: { model.setTaskPart($0) })
-                ) {
-                    Text(WorkspaceStrings.calendarTasksMine).tag(MyTasksPart.mine)
-                    Text(WorkspaceStrings.calendarTasksAll).tag(MyTasksPart.all)
-                }
-                .accessibilityHint(WorkspaceStrings.calendarTasksFooter)
-                Text(WorkspaceStrings.calendarTasksFooter)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            if let message = model.message {
-                ErrorBanner(
-                    message,
-                    actionTitle: model.showsOpenSettings
-                        ? String(localized: "workspaces.calendar.openSettings", bundle: .module) : nil,
-                    action: { model.openSettings() }
-                )
-            }
         }
         .confirmationDialog(model.removeQuestion, isPresented: $model.isAskingToRemove, titleVisibility: .visible) {
             Button(role: .destructive) {
@@ -265,32 +215,38 @@ private struct CalendarSwitchRow: View {
                 Text("workspaces.calendar.consent.no", bundle: .module)
             }
         }
-    }
-}
-
-private struct WorkspaceRowView: View {
-    let row: WorkspacesModel.Row
-
-    @ScaledMetric(relativeTo: .body) private var tileSize: CGFloat = 40
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: row.iconName)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(BrievieColor.onBrand)
-                .frame(width: tileSize, height: tileSize)
-                .background(BrievieColor.brand, in: RoundedRectangle(cornerRadius: tileSize / 4, style: .continuous))
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(row.name)
-                    .font(.headline)
-                Text(row.subtitle)
-                    .font(.subheadline)
+        if model.isOn {
+            VStack(alignment: .leading, spacing: 6) {
+                Toggle(isOn: Binding(get: { model.showsDetails }, set: { model.setShowsDetails($0) })) {
+                    Text("workspaces.calendar.details.toggle", bundle: .module)
+                }
+                .accessibilityHint(model.detailsFooter)
+                Text(model.detailsFooter)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
+                StackedPicker(
+                    WorkspaceStrings.calendarTasksLabel,
+                    selection: Binding(get: { model.taskPart }, set: { model.setTaskPart($0) })
+                ) {
+                    Text(WorkspaceStrings.calendarTasksMine).tag(MyTasksPart.mine)
+                    Text(WorkspaceStrings.calendarTasksAll).tag(MyTasksPart.all)
+                }
+                .accessibilityHint(WorkspaceStrings.calendarTasksFooter)
+                Text(WorkspaceStrings.calendarTasksFooter)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
-        .accessibilityElement(children: .combine)
+        if let message = model.message {
+            ErrorBanner(
+                message,
+                actionTitle: model.showsOpenSettings
+                    ? String(localized: "workspaces.calendar.openSettings", bundle: .module) : nil,
+                action: { model.openSettings() }
+            )
+        }
     }
 }
 
@@ -321,8 +277,8 @@ private var previewUnpair: UnpairControl {
 private func previewSettings(_ state: WorkspacesModel.State) -> some View {
     NavigationStack {
         SettingsList(
-            state: state, currentWorkspaceID: previewCurrent, serverAddress: "brievie.local", userName: "Beheerder",
-            unpair: previewUnpair, retry: {}, calendarModel: { _ in nil }, choose: { _ in }
+            state: state, serverAddress: "brievie.local", userName: "Beheerder",
+            unpair: previewUnpair, retry: {}, calendarModel: { _ in nil }
         )
     }
     .tint(BrievieColor.brand)

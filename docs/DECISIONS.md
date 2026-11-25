@@ -322,3 +322,37 @@ Plan `docs/superpowers/plans/2026-11-21-ios-trash-duplicates.md`, contract from 
 - **A pair decided elsewhere** (409 `duplicate_not_open`): the compare screen closes and "Te doen" reloads with "Over deze twee brieven is al gekozen." as its notice (a message on a screen that closes would never be read). 409 `duplicate_visibility_differs` removes "Het is dezelfde brief" and shows the visibility sentence; "Het zijn twee brieven" stays.
 - **The letter reader takes any page source** (`LetterPageSource`): the review, or one letter of a pair (`DuplicateLetterReader`, its first page already loaded by the compare screen). No second reader.
 - **Not verified on a device or simulator** (tests and `make build` only): delete, undo and reopening, the Prullenbak screen as member and viewer, "Dubbel?", the chip, the compare screen with merge, "Taak ook afronden", undo after a merge, dismiss, a pair with different visibility, and the largest Dynamic Type and VoiceOver on the trash rows, the undo row, the pair rows and the compare rows.
+
+## Navigation, Mijn post and unread letters (2026-11-24)
+
+Design: host `docs/superpowers/specs/2026-11-21-navigatie-en-persoonlijke-inbox-design.md` (branch
+`docs/navigation-design`), iOS steps I1–I8 of its plan; contract from host `main` (PR #44).
+
+- **Tabs, not the title menu.** A workspace is a tab bar in the web's order: Inbox, Mijn post, Taken, Meer (Alle
+  post, Labels, Prullenbak, Instellingen). The app opens on Mijn post, also after a workspace switch (ruling N9):
+  the screens and their models are made anew per workspace (`WorkspaceScreens`, keyed by `InboxIdentity`), so
+  nothing of one workspace shows in another. A person's post is the "Voor wie" filter of Alle post. On an iPad
+  (regular width) a `NavigationSplitView` sidebar holds the same places in the web's order, Instellingen apart at
+  the bottom; compact width falls back to the tabs. Mensen stays on the website (PA 11).
+- **The workspace pill replaces the workspace list in Instellingen.** With one workspace it is a label, not a
+  button (the web's "dead switch"). The picker shows no counts of other workspaces (ruling N6); choosing the current
+  one only closes it. The calendar switch per workspace stays in Instellingen, under "Agenda", each control a row of
+  its own.
+- **Mijn post waits for `getMenuCounts`.** An older server ignores `addressed_to_me` and would list all post under
+  that name, so Mijn post lists nothing until the counts answered: a 404 removes the tab and the app starts on the
+  Inbox; another failure keeps Mijn post waiting with the reason and "Opnieuw proberen". Without `countMyTasks` the
+  Taken tab goes too. Read marks ("Gelezen", "Alles gelezen", "Alleen ongelezen") are offered only once the counts
+  answered.
+- **Ongelezen, never in the Inbox** (ruling N4): a brand-coloured dot and a bold title in Mijn post, Alle post and a
+  label's letters; VoiceOver says "Ongelezen" first. The letter's screen calls `markDocumentRead` once per opening,
+  after its detail loaded (not on a refresh); the list that opened it shows the row read at once and the menu counts
+  again. Whether that opening counts as "opened by an addressee" is the server's matter.
+- **Task actions follow the server's `can_take` / `can_hand_over` / `can_release`** when it sends them; the app's own
+  rule (never someone else's task) stays for an older server.
+- **Notices per workspace** (`NoticeOut.workspace_id`): the app shows no account notices, so nothing changes here.
+- **The letter status badge** (host PR #50, not merged) is not built; the row's title line has room for it after the
+  unread dot.
+- **Not verified on a device or simulator** (tests and `make build` only): the tabs and their badges, the pill and
+  picker with one and two workspaces, Mijn post's cards and round actions, swipe Gelezen/Ongelezen, "Alleen
+  ongelezen", Zoeken opening the search of Alle post, Blijft liggen, Labels, the iPad sidebar, and VoiceOver and the
+  largest Dynamic Type on all of them.

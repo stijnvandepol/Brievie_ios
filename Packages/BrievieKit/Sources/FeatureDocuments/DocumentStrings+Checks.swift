@@ -53,17 +53,6 @@ extension DocumentStrings {
     // The post list: scopes, names, labels
     static let scopeInbox = String(localized: "documents.scope.inbox", defaultValue: "Inbox", bundle: .module)
     static let scopeAll = String(localized: "documents.scope.all", defaultValue: "Alle post", bundle: .module)
-    /// The title before iOS 26 with more than one workspace: `%1$@` is the scope, `%2$@` the workspace.
-    static let titleInWorkspaceFormat = String(
-        localized: "documents.title.inWorkspace", defaultValue: "%1$@ · %2$@", bundle: .module
-    )
-
-    /// The post list's title: the scope, followed by the workspace when there is one to name and no subtitle
-    /// to name it in (before iOS 26).
-    static func navigationTitle(scope: String, workspace: String?, hasSubtitle: Bool) -> String {
-        guard let workspace, !hasSubtitle else { return scope }
-        return String(format: titleInWorkspaceFormat, scope, workspace)
-    }
     static let inboxEmpty = String(
         localized: "documents.inbox.empty",
         defaultValue: "Je bent klaar. Er is niets te doen.",

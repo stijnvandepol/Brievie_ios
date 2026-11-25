@@ -119,6 +119,13 @@ extension MyTasksModel {
     /// those replace this rule.
     func actionFlags(for task: WorkspaceTask, isTicked: Bool) -> ActionFlags {
         guard canTick(task), !isTicked else { return ActionFlags() }
+        // The server's own rule (host PR #44) wins; the app's rule below is for an older server.
+        if let permissions = task.permissions {
+            return ActionFlags(
+                takeOn: permissions.canTake, release: permissions.canRelease, handOver: permissions.canHandOver,
+                setDate: task.deadline == nil
+            )
+        }
         let hasLetter = task.documentID != nil
         let nobodyHasIt = task.assignedToID == nil && task.assignedToName.isEmpty
         let mine = task.reason == .assigned

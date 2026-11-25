@@ -1,9 +1,8 @@
 import BrievieCore
 import Foundation
 
-// "Mijn taken" next to the Inbox: the entry in the title menu with its count, a link row on top of the Inbox, and
-// switching between the post list and the tasks. A thin adapter: the screen itself is `MyTasksModel`, which a
-// "Taken" tab can own later without this file.
+// "Mijn taken" next to the Inbox: its counts, the link row on top of the Inbox, and making the screen of the
+// "Taken" tab. A thin adapter: the screen itself is `MyTasksModel`.
 extension DocumentsModel {
     /// The row on top of the Inbox that opens "Mijn taken".
     public struct MyTasksLink: Equatable, Sendable {
@@ -38,24 +37,14 @@ extension DocumentsModel {
         case .notSupported:
             myTaskCounts = nil
             hasMyTasks = false
-            isShowingMyTasks = false
         case .unknown:
             break
         }
     }
 
-    /// The menu entry: "Mijn taken · 4 open, 1 te laat" (a menu shows no colour, so the words carry it).
-    public var myTasksMenuTitle: String {
-        guard let counts = myTaskCounts, counts.mine > 0 else { return DocumentStrings.myTasksTitle }
-        if counts.overdue > 0 {
-            return String(format: DocumentStrings.myTasksMenuCountLateFormat, counts.mine, counts.overdue)
-        }
-        return String(format: DocumentStrings.myTasksMenuCountFormat, counts.mine)
-    }
-
     /// "Mijn taken: 4 open, waarvan 1 te laat" on top of the Inbox; `nil` without open tasks or counts.
     public var myTasksLink: MyTasksLink? {
-        guard scope == .inbox, !isShowingMyTasks, let counts = myTaskCounts, counts.mine > 0 else { return nil }
+        guard scope == .inbox, let counts = myTaskCounts, counts.mine > 0 else { return nil }
         if counts.overdue > 0 {
             return MyTasksLink(
                 text: String(format: DocumentStrings.myTasksLinkCountLateFormat, counts.mine, counts.overdue),
@@ -65,28 +54,10 @@ extension DocumentsModel {
         return MyTasksLink(text: String(format: DocumentStrings.myTasksLinkCountFormat, counts.mine), isLate: false)
     }
 
-    /// The title of what the screen shows: "Mijn taken", or the scope.
-    public var screenTitle: String {
-        isShowingMyTasks ? DocumentStrings.myTasksTitle : scopeTitle
-    }
-
-    public func showMyTasks() {
-        guard hasMyTasks else { return }
-        undo = nil
-        duplicateNotice = nil
-        // Leaving "Alle post" forgets the search term, as picking another scope does.
-        search.forget()
-        isShowingMyTasks = true
-    }
-
-    /// "Naar Inbox" in "Mijn taken".
-    public func showInbox() async {
-        await select(.inbox)
-    }
-
     /// The "Mijn taken" screen of this workspace. A change there lets the calendar and reminders follow and
     /// counts again.
-    public func makeMyTasksModel() -> MyTasksModel {
+    /// - Parameter showInbox: "Naar Inbox" under the waiting letters (the Inbox tab).
+    public func makeMyTasksModel(showInbox: @escaping @MainActor () -> Void) -> MyTasksModel {
         MyTasksModel(
             documents: documents, canEdit: canScan, locale: locale,
             onTasksChanged: { [weak self] in
@@ -94,10 +65,7 @@ extension DocumentsModel {
                 onTasksChanged()
                 Task { await self.refreshMyTaskCounts() }
             },
-            onShowInbox: { [weak self] in
-                guard let self else { return }
-                Task { await self.showInbox() }
-            },
+            onShowInbox: showInbox,
             onRevoked: onRevoked, onMissingPairing: onMissingPairing
         )
     }
