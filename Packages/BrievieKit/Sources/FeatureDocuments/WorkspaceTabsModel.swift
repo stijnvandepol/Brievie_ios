@@ -55,8 +55,8 @@ public final class WorkspaceTabsModel {
     public var detailPath = NavigationPath()
     /// What "Meer" has pushed: a place, then a search hit of "Alle post".
     public var morePath = NavigationPath()
-    /// "Blijft liggen" is pushed on the Inbox.
-    public var isShowingLingering = false
+    /// The root "Blijft liggen" is pushed on: the one whose card was tapped (Inbox or Mijn post); `nil` when closed.
+    public var lingeringShownIn: Tab?
     public private(set) var myPostSupport: Support = .unknown
     /// Why the numbers could not be asked while "Mijn post" still waits for them; `nil` otherwise.
     public private(set) var countFailure: String?
@@ -160,11 +160,23 @@ public final class WorkspaceTabsModel {
         sidebarSelection = .inbox
     }
 
-    /// The "Blijft liggen" card: the Inbox with its letters that lie too long.
-    public func showLingering() {
-        selection = .inbox
-        sidebarSelection = .inbox
-        isShowingLingering = true
+    /// The "Blijft liggen" card: the letters that lie too long, pushed on the root the card is on. The tab bar
+    /// stays where it is.
+    public func showLingering(from root: Tab) {
+        lingeringShownIn = root
+    }
+
+    /// Whether "Blijft liggen" is pushed on `root`, as a binding for `navigationDestination(isPresented:)`.
+    func isShowingLingering(on root: Tab) -> Bool {
+        lingeringShownIn == root
+    }
+
+    func setShowingLingering(_ isShowing: Bool, on root: Tab) {
+        if isShowing {
+            lingeringShownIn = root
+        } else if lingeringShownIn == root {
+            lingeringShownIn = nil
+        }
     }
 
     public func showTasks() {

@@ -130,17 +130,23 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
     }
 
     private var inboxRoot: some View {
-        @Bindable var tabs = tabs
-        return DocumentsView(
+        DocumentsView(
             model: screens.inbox, scanModel: screens.inboxScan, warning: warning,
             showMyTasks: { tabs.showTasks() }, showAllPost: { tabs.showAllPost() }, header: inboxHeader,
             destination: { id in destination(id, screens.inbox) },
             compare: { id in compare(id, screens.inbox) }
         )
         .toolbar { pillItem }
-        .navigationDestination(isPresented: $tabs.isShowingLingering) {
+        .navigationDestination(isPresented: lingeringBinding(on: .inbox)) {
             LingeringView(model: screens.lingering) { id in destination(id, screens.inbox) }
         }
+    }
+
+    private func lingeringBinding(on root: WorkspaceTabsModel.Tab) -> Binding<Bool> {
+        Binding(
+            get: { tabs.isShowingLingering(on: root) },
+            set: { tabs.setShowingLingering($0, on: root) }
+        )
     }
 
     /// The Inbox: for sorters in an organisation the "Blijft liggen" card; Scannen and Naam kiezen.
@@ -151,7 +157,7 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
         return PostHeader(
             cards: tabs.cards.filter { $0.kind == .lingering }, actions: actions,
             disabled: list.firstLetterNeedingName == nil ? [.chooseName] : [],
-            openCard: { _ in tabs.isShowingLingering = true },
+            openCard: { _ in tabs.showLingering(from: .inbox) },
             perform: { action in
                 if action == .chooseName, let id = list.firstLetterNeedingName { list.openedDocument = id }
             }
@@ -167,6 +173,9 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
                 compare: { id in compare(id, screens.myPost) }
             )
             .toolbar { pillItem }
+            .navigationDestination(isPresented: lingeringBinding(on: .myPost)) {
+                LingeringView(model: screens.lingering) { id in destination(id, screens.myPost) }
+            }
         case .unknown, .notSupported:
             MyPostWaiting(failure: tabs.countFailure) { Task { await tabs.refreshCounts() } }
                 .toolbar { pillItem }
@@ -187,7 +196,7 @@ public struct WorkspaceTabsView<Destination: View, Compare: View, Pill: View, Se
                 switch kind {
                 case .unread: Task { await list.select(.myPostUnread) }
                 case .tasks: tabs.showTasks()
-                case .lingering: tabs.showLingering()
+                case .lingering: tabs.showLingering(from: .myPost)
                 }
             },
             perform: { action in

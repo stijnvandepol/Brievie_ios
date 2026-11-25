@@ -267,7 +267,7 @@ enum MyTasksPreviews {
         }
         let store = ConnectionStore(secrets: InMemorySecretStore())
         let connection = ServerConnection(
-            urls: [URL(fileURLWithPath: "/")], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn"
+            urls: [URL(fileURLWithPath: "/")], caCertificateDER: nil, deviceID: UUID(), userName: "Lid"
         )
         try? store.save(connection, token: "preview")
         let documents = WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server)
@@ -288,7 +288,7 @@ enum MyTasksPreviews {
         WorkspaceTask(
             id: UUID(), type: "respond", description: "Reageer op de brief", deadline: nil, isDone: false,
             documentID: UUID(), sender: "Gemeente", termQuote: "binnen zes weken na dagtekening",
-            needsDeadline: true, group: .noDate, reason: .assigned, assignedByName: "Anne", canEdit: true
+            needsDeadline: true, group: .noDate, reason: .assigned, assignedByName: "Beheerder", canEdit: true
         )
     ]
 
