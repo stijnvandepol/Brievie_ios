@@ -74,6 +74,14 @@ import Testing
         #expect(server.calls.count == 2)
     }
 
+    @Test func secondFactorRequiredKeepsThePairingAndStopsAtOnce() async throws {
+        server.onList { _ in throw ServerError.other("second_factor_required") }
+
+        await #expect(throws: DocumentsError.secondFactorRequired) { try await documents().list() }
+        #expect(server.calls == [.list(Self.local, .all)])
+        #expect(try store.load() != nil)
+    }
+
     @Test func missingPairingIsReported() async throws {
         await #expect(throws: DocumentsError.missingPairing) { try await documents(paired: false).list() }
         #expect(server.calls.isEmpty)

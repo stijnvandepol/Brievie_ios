@@ -4,21 +4,23 @@ import SwiftUI
 
 /// One letter in the post list: sender, date and pages, the persons it is addressed to, its labels, and
 /// where it stands. An unread letter has a dot in the brand colour and a bold title (VoiceOver says "Ongelezen").
-/// The letter status badge (host PR #50) will stand on the title line, after the dot and the title.
+/// The letter status badge (host PR #50) stands on the title line, after the dot and the title; below it when
+/// the line has no room (large Dynamic Type).
 struct DocumentRowView: View {
     let row: DocumentsModel.Row
     @ScaledMetric(relativeTo: .headline) private var dotSize: CGFloat = 9
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                if row.isUnread {
-                    Circle()
-                        .fill(BrievieColor.unread)
-                        .frame(width: dotSize, height: dotSize)
-                        .accessibilityHidden(true)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    titleLine
+                    badge
                 }
-                title
+                VStack(alignment: .leading, spacing: 4) {
+                    titleLine
+                    badge
+                }
             }
             Text(row.subtitle)
                 .font(.subheadline)
@@ -56,6 +58,24 @@ struct DocumentRowView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(row.accessibilityLabel)
         .accessibilityValue(progressValue)
+    }
+
+    private var titleLine: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            if row.isUnread {
+                Circle()
+                    .fill(BrievieColor.unread)
+                    .frame(width: dotSize, height: dotSize)
+                    .accessibilityHidden(true)
+            }
+            title
+        }
+    }
+
+    @ViewBuilder private var badge: some View {
+        if let badge = row.letterBadge {
+            LetterStatusBadge(badge: badge)
+        }
     }
 
     @ViewBuilder private var title: some View {

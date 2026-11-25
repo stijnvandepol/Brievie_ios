@@ -85,11 +85,25 @@ import Testing
 
     @Test func theLingeringCardOpensItOnTheInbox() throws {
         let screens = try screens()
+        screens.tabs.selection = .inbox
 
-        screens.tabs.showLingering()
+        screens.tabs.showLingering(from: .inbox)
 
         #expect(screens.tabs.selection == .inbox)
-        #expect(screens.tabs.isShowingLingering)
+        #expect(screens.tabs.lingeringShownIn == .inbox)
+    }
+
+    /// Tapping the card in "Mijn post" opens the list there: the tab bar does not jump to the Inbox.
+    @Test func theLingeringCardInMyPostStaysInMyPost() throws {
+        let screens = try screens()
+        screens.tabs.selection = .myPost
+        screens.tabs.sidebarSelection = .myPost
+
+        screens.tabs.showLingering(from: .myPost)
+
+        #expect(screens.tabs.selection == .myPost)
+        #expect(screens.tabs.sidebarSelection == .myPost)
+        #expect(screens.tabs.lingeringShownIn == .myPost)
     }
 
     @Test func naamKiezenOpensTheFirstLetterWithoutAName() async throws {

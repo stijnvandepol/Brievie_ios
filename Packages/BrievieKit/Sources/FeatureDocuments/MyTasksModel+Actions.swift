@@ -9,11 +9,16 @@ extension MyTasksModel {
         case handOver(taskID: UUID, title: String, people: [TaskAssignee])
         /// The term the letter names, and the date the task has now.
         case setDate(taskID: UUID, title: String, term: String?, current: CalendarDate?)
+        /// "Wacht op reactie…" and "Uitstellen…": the date the task has now, and the days that may be chosen.
+        case waiting(taskID: UUID, title: String, current: CalendarDate?, range: ClosedRange<CalendarDate>)
+        case snooze(taskID: UUID, title: String, current: CalendarDate?, range: ClosedRange<CalendarDate>)
 
         public var id: String {
             switch self {
             case let .handOver(taskID, _, _): "handOver-\(taskID)"
             case let .setDate(taskID, _, _, _): "setDate-\(taskID)"
+            case let .waiting(taskID, _, _, _): "waiting-\(taskID)"
+            case let .snooze(taskID, _, _, _): "snooze-\(taskID)"
             }
         }
     }

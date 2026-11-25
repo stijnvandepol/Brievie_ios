@@ -58,6 +58,6 @@ public struct StoredConnectionTrustProvider: UploadTrustProvider {
     public func currentTrust() -> ServerTrust? {
         guard let stored = try? store.load() else { return nil }
         // A server with a public certificate has no pinned CA: system trust is then the right check.
-        return ServerTrust(caCertificateDER: stored.connection.caCertificateDER)
+        return stored.connection.trust
     }
 }

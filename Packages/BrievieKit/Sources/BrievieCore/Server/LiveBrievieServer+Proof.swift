@@ -13,8 +13,9 @@ extension LiveBrievieServer {
                 return nonce
             case .tooManyRequests:
                 throw ServerError.tooManyAttempts
-            case let .undocumented(status, _):
-                throw ServerError(status: status, code: nil)
+            case let .undocumented(status, payload):
+                // The host's 403 `pair_at_home` on its public route is not in the contract: read its code.
+                throw await LiveBrievieServer.undocumentedError(status: status, payload: payload)
             }
         }
     }
@@ -43,8 +44,9 @@ extension LiveBrievieServer {
                 throw ServerError(status: 422, code: try? response.body.json.code)
             case .tooManyRequests:
                 throw ServerError.tooManyAttempts
-            case let .undocumented(status, _):
-                throw ServerError(status: status, code: nil)
+            case let .undocumented(status, payload):
+                // The host's 403 `pair_at_home` on its public route is not in the contract: read its code.
+                throw await LiveBrievieServer.undocumentedError(status: status, payload: payload)
             }
         }
     }
@@ -53,6 +55,9 @@ extension LiveBrievieServer {
 extension PairedDevice {
     init(pairOut: Components.Schemas.PairOut) throws(ServerError) {
         guard let deviceID = UUID(uuidString: pairOut.deviceId) else { throw .incompatible }
-        self.init(deviceID: deviceID, token: pairOut.token, userName: pairOut.user.name)
+        self.init(
+            deviceID: deviceID, token: pairOut.token, userName: pairOut.user.name,
+            publicURLs: (pairOut.publicUrls ?? []).compactMap(PairingPayload.httpsURL(from:))
+        )
     }
 }

@@ -79,8 +79,9 @@ public struct LiveBrievieServer: BrievieServer {
                 throw ServerError(status: 422, code: try? response.body.json.code)
             case .tooManyRequests:
                 throw ServerError.tooManyAttempts
-            case let .undocumented(status, _):
-                throw ServerError(status: status, code: nil)
+            case let .undocumented(status, payload):
+                // The host's 403 `pair_at_home` on its public route is not in the contract: read its code.
+                throw await Self.undocumentedError(status: status, payload: payload)
             }
         }
     }

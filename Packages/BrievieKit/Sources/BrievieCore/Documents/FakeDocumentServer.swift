@@ -40,6 +40,9 @@ public final class FakeDocumentServer: DocumentServer {
         case markUnread(URL, UUID)
         case markManyRead(URL, [UUID])
         case lingering(URL)
+        case handleDocument(URL, UUID, [UUID], paymentsConfirmed: Bool)
+        case setTaskWaiting(URL, UUID, CalendarDate?)
+        case snoozeTask(URL, UUID, CalendarDate?)
     }
 
     /// The user `currentUserID` answers with unless a test sets another.
@@ -349,5 +352,11 @@ struct FakeServerState {
     var markManyRead: @Sendable (URL, [UUID]) throws -> Int = { _, ids in ids.count }
     var lingering: @Sendable (URL) throws -> LingeringLetters = { _ in
         LingeringLetters(tooLongInInbox: [], notOpened: [], inboxDays: 2, unopenedDays: 5)
+    }
+    var handleDocument: @Sendable (URL, UUID, [UUID], Bool) throws -> DocumentDetail = { _, id, _, _ in
+        DocumentFixtures.detail(id: id)
+    }
+    var taskChange: @Sendable (URL, UUID, CalendarDate?) throws -> WorkspaceTask = { _, id, _ in
+        WorkspaceTask(id: id, type: "", description: "", deadline: nil, isDone: false, documentID: nil, sender: "")
     }
 }

@@ -24,6 +24,8 @@ public struct DeadlineReminder: Equatable, Sendable {
         case ahead
         /// On the day of the deadline.
         case onTheDay = "day"
+        /// "Wachten voorbij": on the day a task's waiting for a reply ends (host PR #50).
+        case waitOver = "waitover"
     }
 
     /// `deadline.<workspace>.<task>.<kind>`: the same task and kind always replace the same reminder.
@@ -83,8 +85,15 @@ public enum ReminderPlanner {
         calendar.timeZone = timeZone
         let context = CatchUpContext(now: now, calendar: calendar, leadDays: leadDays, earlier: catchUps)
         let candidates = tasks.flatMap { item -> [DeadlineReminder] in
-            guard !item.task.isDone, let deadline = item.task.deadline else { return [] }
+            guard !item.task.isDone, item.task.group != .snoozed else { return [] }
             let sender = showsSender ? shortSender(item.task.sender) : nil
+            // A task that waits for a reply gets no deadline reminder, only one on the day the waiting ends.
+            if item.task.group == .waiting {
+                guard let until = item.task.waitingUntil else { return [] }
+                return [reminder(item, kind: .waitOver, day: until, sender: sender, calendar: calendar)]
+                    .filter { $0.fireDate > now }
+            }
+            guard let deadline = item.task.deadline else { return [] }
             var reminders = [reminder(item, kind: .onTheDay, day: deadline, sender: sender, calendar: calendar)]
             if let first = firstNotice(for: item, deadline: deadline, context: context) {
                 reminders.insert(reminder(item, kind: .ahead, day: first, sender: sender, calendar: calendar), at: 0)
@@ -120,7 +129,7 @@ public enum ReminderPlanner {
             identifier: identifier(workspace: item.workspaceID, task: item.task.id, kind: kind),
             workspaceID: item.workspaceID, taskID: item.task.id, documentID: item.task.documentID, kind: kind,
             day: day, hour: hour, minute: minute, fireDate: calendar.date(from: components) ?? .distantPast,
-            body: body(daysLeft: daysLeft, sender: sender)
+            body: kind == .waitOver ? waitOverBody(sender: sender) : body(daysLeft: daysLeft, sender: sender)
         )
     }
 
@@ -144,6 +153,10 @@ public enum ReminderPlanner {
         case let (1, sender?): String(format: AppStrings.reminderSenderTomorrowFormat, sender)
         case let (_, sender?): String(format: AppStrings.reminderSenderInDaysFormat, sender, daysLeft)
         }
+    }
+
+    static func waitOverBody(sender: String?) -> String {
+        sender.map { String(format: AppStrings.reminderSenderWaitOverFormat, $0) } ?? AppStrings.reminderWaitOver
     }
 
     /// The sender on one line, cut when long; `nil` when there is none.

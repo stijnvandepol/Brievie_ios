@@ -14,7 +14,13 @@ extension ServerError {
         "document_not_reviewable", "document_not_failed", "device_not_found", "person_not_found",
         "label_not_found", "suggestion_not_found", "person_exists", "document_processing", "task_not_found",
         "document_in_trash", "forbidden", "duplicate_not_found", "duplicate_not_open", "duplicate_visibility_differs",
-        "assignee_cannot_read", "task_without_letter", "task_taken"
+        "assignee_cannot_read", "task_without_letter", "task_taken",
+        // The host blocks the device token until two-step verification is set up (a 401, but no revocation).
+        "second_factor_required",
+        // Pairing and address lists only over a CA-pinned connection (host PR #53, security review point 5).
+        "pair_at_home",
+        // Letter status (host PR #50).
+        "document_not_reviewed", "tasks_changed", "payment_not_confirmed", "task_done", "snooze_after_deadline"
     ]
 
     /// A non-2xx answer. `code` is the `code` field of the server's `{code, message}` error body.

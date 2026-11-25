@@ -260,7 +260,10 @@ extension DocumentSummary {
                 addresseeIDs: summary.autoAddresseeIds
             ),
             proposedSender: summary.proposedSender, openDuplicateCount: summary.openDuplicateCount,
-            unread: summary.unread
+            unread: summary.unread,
+            letter: LetterStatusFields(
+                letterStatus: summary.letterStatus, overdue: summary.overdue, waitingUntil: summary.waitingUntil
+            )
         )
     }
 
@@ -270,7 +273,7 @@ extension DocumentSummary {
         apiID: String, clientID: String, status: String, pageCount: Int, createdAt: Date, sender: String,
         documentType: String, letterDate: String?, inboxState: String?, addresseeIDs: [String]?,
         labelIDs: [String]?, openSuggestionCount: Int?, automatic: AutomaticMarks, proposedSender: String?,
-        openDuplicateCount: Int?, unread: Bool? = nil
+        openDuplicateCount: Int?, unread: Bool? = nil, letter: LetterStatusFields = LetterStatusFields()
     ) throws(ServerError) {
         guard let id = UUID(uuidString: apiID), let clientID = UUID(uuidString: clientID) else {
             throw .incompatible
@@ -286,7 +289,8 @@ extension DocumentSummary {
             autoLabelIDs: try uuids(automatic.labelIDs ?? []),
             autoAddresseeIDs: try uuids(automatic.addresseeIDs ?? []),
             proposedSender: proposedSender ?? "", openDuplicateCount: openDuplicateCount ?? 0,
-            isUnread: unread ?? false
+            isUnread: unread ?? false, letterStatus: LetterStatus(api: letter.letterStatus),
+            isOverdue: letter.overdue ?? false, waitingUntil: letter.waitingUntil.flatMap(CalendarDate.init(iso:))
         )
     }
 }
@@ -331,25 +335,14 @@ extension DocumentDetail {
                 addresseeIDs: document.autoAddresseeIds
             ),
             proposedSender: document.proposedSender, openDuplicateCount: document.openDuplicateCount,
-            unread: document.unread
+            unread: document.unread,
+            letter: LetterStatusFields(
+                letterStatus: document.letterStatus, overdue: document.overdue, waitingUntil: document.waitingUntil
+            )
         )
         var tasks: [ConfirmedTask] = []
         for task in document.tasks {
-            guard let taskID = UUID(uuidString: task.id) else { throw .incompatible }
-            var assignedToID: UUID?
-            if let text = task.assignedToId {
-                guard let id = UUID(uuidString: text) else { throw .incompatible }
-                assignedToID = id
-            }
-            tasks.append(ConfirmedTask(
-                id: taskID, type: task._type, description: task.description,
-                deadline: task.deadline.flatMap(CalendarDate.init(iso:)), deadlineSource: task.deadlineSource,
-                deadlineQuote: task.deadlineQuote, isDone: task.status == "done",
-                createdByAI: task.createdByAi ?? false, amount: task.amount.flatMap(TaskAmount.parse(api:)),
-                termQuote: task.termQuote ?? "", assignedToID: assignedToID,
-                assignedToName: task.assignedToName ?? "",
-                permissions: TaskPermissions(take: task.canTake, handOver: task.canHandOver, release: task.canRelease)
-            ))
+            tasks.append(try ConfirmedTask(task: task))
         }
         self.init(
             summary: summary,

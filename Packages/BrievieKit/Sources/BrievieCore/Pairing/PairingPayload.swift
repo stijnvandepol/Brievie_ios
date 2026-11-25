@@ -10,6 +10,9 @@ public struct PairingPayload: Equatable, Sendable {
     public let code: String
     /// SHA-256 of the server's CA certificate (DER) in lower-case hex; `nil` when the server uses a public certificate.
     public let caSHA256: String?
+    /// The entries of `urls` the server serves with a public certificate (a tunnel); empty in a home QR. Only
+    /// https entries of `urls` are kept (host PR #53: added to version 1, only when a public name exists).
+    public let publicURLs: [URL]
 
     static let supportedVersion = 1
 
@@ -47,6 +50,9 @@ public struct PairingPayload: Equatable, Sendable {
         self.urls = urls
         self.code = wire.code
         self.caSHA256 = caSHA256
+        self.publicURLs = ServerConnection.publicEntries(
+            (wire.publicURLs ?? []).compactMap(Self.httpsURL(from:)), of: urls
+        )
     }
 
     /// An `https` URL with a host and no user info; shared with `ServerLink`.
@@ -115,10 +121,12 @@ private struct WirePayload: Decodable {
     let urls: [String]
     let code: String
     let caSHA256: String?
+    let publicURLs: [String]?
 
     enum CodingKeys: String, CodingKey {
         case urls
         case code
         case caSHA256 = "ca_sha256"
+        case publicURLs = "public_urls"
     }
 }

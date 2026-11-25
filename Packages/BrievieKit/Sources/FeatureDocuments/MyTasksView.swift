@@ -93,6 +93,18 @@ public struct MyTasksView<Destination: View>: View {
                     save: { date in Task { await model.setDate(date, for: taskID) } },
                     cancel: { model.closeSheet() }
                 )
+            case let .waiting(taskID, title, current, range):
+                ParkDateSheet(
+                    kind: .waiting, title: title, current: current, range: range, error: model.sheetError,
+                    save: { date in Task { await model.setWaiting(date, for: taskID) } },
+                    cancel: { model.closeSheet() }
+                )
+            case let .snooze(taskID, title, current, range):
+                ParkDateSheet(
+                    kind: .snooze, title: title, current: current, range: range, error: model.sheetError,
+                    save: { date in Task { await model.snooze(date, for: taskID) } },
+                    cancel: { model.closeSheet() }
+                )
             }
         }
         .navigationDestination(item: $openedLetter) { link in
@@ -155,6 +167,16 @@ public struct MyTasksView<Destination: View>: View {
         ForEach(model.sections) { section in
             taskSection(section)
         }
+        // "Wacht op reactie (n)", "Uitgesteld (n)": collapsed below the groups.
+        ForEach(model.parkedSections) { section in
+            Section {
+                DisclosureGroup {
+                    ForEach(section.rows) { row in taskRow(row) }
+                } label: {
+                    sectionHeader(section.header)
+                }
+            }
+        }
         if let toPickUp = model.toPickUp {
             if let empty = model.toPickUpEmptyText {
                 Section {
@@ -212,7 +234,11 @@ public struct MyTasksView<Destination: View>: View {
                 release: row.canRelease ? { Task { await model.release(row.id) } } : nil,
                 handOver: row.canHandOver ? { Task { await model.startHandOver(row.id) } } : nil,
                 setDate: row.canSetDate ? { model.startSettingDate(row.id) } : nil,
-                openLetter: row.documentID.map { id in { openedLetter = LetterLink(documentID: id) } }
+                openLetter: row.documentID.map { id in { openedLetter = LetterLink(documentID: id) } },
+                wait: row.canWait && !row.isWaiting ? { model.startWaiting(row.id) } : nil,
+                stopWaiting: row.canWait && row.isWaiting ? { Task { await model.setWaiting(nil, for: row.id) } } : nil,
+                snooze: row.canSnooze && !row.isSnoozed ? { model.startSnoozing(row.id) } : nil,
+                unsnooze: row.isSnoozed && !row.isTicked ? { Task { await model.snooze(nil, for: row.id) } } : nil
             ),
             undoLabel: model.tab == .open ? DocumentStrings.myTasksUndo : DocumentStrings.myTasksNotDone
         )
@@ -267,7 +293,7 @@ enum MyTasksPreviews {
         }
         let store = ConnectionStore(secrets: InMemorySecretStore())
         let connection = ServerConnection(
-            urls: [URL(fileURLWithPath: "/")], caCertificateDER: nil, deviceID: UUID(), userName: "Stijn"
+            urls: [URL(fileURLWithPath: "/")], caCertificateDER: nil, deviceID: UUID(), userName: "Lid"
         )
         try? store.save(connection, token: "preview")
         let documents = WorkspaceDocuments(workspaceID: UUID(), connection: connection, store: store, server: server)
@@ -288,7 +314,7 @@ enum MyTasksPreviews {
         WorkspaceTask(
             id: UUID(), type: "respond", description: "Reageer op de brief", deadline: nil, isDone: false,
             documentID: UUID(), sender: "Gemeente", termQuote: "binnen zes weken na dagtekening",
-            needsDeadline: true, group: .noDate, reason: .assigned, assignedByName: "Anne", canEdit: true
+            needsDeadline: true, group: .noDate, reason: .assigned, assignedByName: "Beheerder", canEdit: true
         )
     ]
 

@@ -23,6 +23,10 @@ public final class ConfirmedDocumentModel {
     public private(set) var personError: String?
     /// Called after a task was ticked off or opened again (the calendar follows the open tasks).
     public var onTasksChanged: (@MainActor () -> Void)?
+    /// "Brief afhandelen?": the tasks it ticks off (host PR #50); `nil` while the sheet is closed.
+    public var handleSheet: HandleSheet?
+    /// Why handling did not work, shown in the sheet.
+    public internal(set) var handleError: String?
 
     private enum Change {
         case addressees(Set<UUID>)

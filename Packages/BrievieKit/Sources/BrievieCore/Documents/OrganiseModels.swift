@@ -178,6 +178,10 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
     /// Who may pick up, hand over or release the task, as the server decides it; `nil` from a server before host
     /// PR #44 (the app then falls back to its own rule).
     public let permissions: TaskPermissions?
+    /// "Wacht op reactie" until this day; the waiting date has come (`waitOver`); "Uitgesteld tot" for this member.
+    public let waitingUntil: CalendarDate?
+    public let waitOver: Bool
+    public let snoozedUntil: CalendarDate?
 
     public init(
         id: UUID, type: String, description: String, deadline: CalendarDate?, isDone: Bool, documentID: UUID?,
@@ -186,7 +190,8 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
         reason: TaskReason = .none, forNames: [String] = [], assignedToID: UUID? = nil, assignedToName: String = "",
         assignedByName: String = "", completedByName: String = "", completedAt: Date? = nil,
         documentType: String = "", canEdit: Bool? = nil, createdByAI: Bool = false,
-        permissions: TaskPermissions? = nil
+        permissions: TaskPermissions? = nil, waitingUntil: CalendarDate? = nil, waitOver: Bool = false,
+        snoozedUntil: CalendarDate? = nil
     ) {
         self.id = id
         self.type = type
@@ -213,5 +218,8 @@ public struct WorkspaceTask: Identifiable, Equatable, Sendable {
         self.canEdit = canEdit
         self.createdByAI = createdByAI
         self.permissions = permissions
+        self.waitingUntil = waitingUntil
+        self.waitOver = waitOver
+        self.snoozedUntil = snoozedUntil
     }
 }

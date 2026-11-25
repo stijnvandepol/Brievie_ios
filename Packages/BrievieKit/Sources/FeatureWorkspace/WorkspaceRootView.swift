@@ -33,7 +33,11 @@ public struct WorkspaceRootView<Content: View>: View {
             .task { await model.load() }
             .onDisappear { model.stop() }
             .onChange(of: scenePhase) { _, phase in
-                if phase != .active { model.sceneLeftForeground() }
+                if phase == .active {
+                    model.retryIfFailed()
+                } else {
+                    model.sceneLeftForeground()
+                }
             }
     }
 

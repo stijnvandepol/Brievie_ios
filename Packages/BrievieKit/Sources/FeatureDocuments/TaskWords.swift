@@ -27,8 +27,22 @@ enum TaskWords {
         case .withinWeek: DocumentStrings.taskGroupWithinWeek
         case .later: DocumentStrings.taskGroupLater
         case .noDate: DocumentStrings.taskGroupNoDate
+        case .waiting: DocumentStrings.groupWaiting
+        case .snoozed: DocumentStrings.groupSnoozed
         case .none, .unknown: nil
         }
+    }
+
+    /// "Wachten voorbij sinds 3 dec", "Wacht op reactie tot 3 dec" or "Uitgesteld tot 1 dec"; `nil` otherwise.
+    static func parkedLine(_ task: WorkspaceTask, locale: Locale = .autoupdatingCurrent) -> String? {
+        if let until = task.waitingUntil {
+            let format = task.waitOver ? DocumentStrings.waitOverFormat : DocumentStrings.letterStatusWaitingUntilFormat
+            return String(format: format, day(until, locale: locale))
+        }
+        if let until = task.snoozedUntil {
+            return String(format: DocumentStrings.snoozeUntilFormat, day(until, locale: locale))
+        }
+        return nil
     }
 
     /// "€ 1.234,56" in the user's notation; `nil` when unknown.

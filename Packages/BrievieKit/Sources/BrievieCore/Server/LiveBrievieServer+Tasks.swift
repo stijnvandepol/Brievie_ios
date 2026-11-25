@@ -82,7 +82,9 @@ extension WorkspaceTask {
             assignedByName: task.assignedByName ?? "", completedByName: task.completedByName ?? "",
             completedAt: task.completedAt, documentType: task.documentType ?? "", canEdit: task.canEdit,
             createdByAI: task.createdByAi ?? false,
-            permissions: TaskPermissions(take: task.canTake, handOver: task.canHandOver, release: task.canRelease)
+            permissions: TaskPermissions(take: task.canTake, handOver: task.canHandOver, release: task.canRelease),
+            waitingUntil: task.waitingUntil.flatMap(CalendarDate.init(iso:)), waitOver: task.waitOver ?? false,
+            snoozedUntil: task.snoozedUntil.flatMap(CalendarDate.init(iso:))
         )
     }
 

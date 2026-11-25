@@ -19,6 +19,24 @@
         }
       }
     },
+    "error.secondFactorRequired": {
+      "comment": "The account must set up two-step verification before this phone may continue; the pairing stays.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up two-step verification on the web interface first."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stel eerst tweestapsverificatie in op de webinterface."
+          }
+        }
+      }
+    },
     "home.title": {
       "comment": "Title of the start screen while the workspaces load, could not be loaded, or there are none.",
       "extractionState": "manual",

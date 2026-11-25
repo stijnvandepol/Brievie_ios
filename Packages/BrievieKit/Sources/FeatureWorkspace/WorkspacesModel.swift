@@ -193,6 +193,19 @@ public final class WorkspacesModel {
         for model in calendarModels.values { model.sceneLeftForeground() }
     }
 
+    /// The app is in front again: a list that failed (say, until two-step verification was set up on the web)
+    /// loads again by itself.
+    public func sceneBecameActive() async {
+        guard case .failed = state else { return }
+        await load()
+    }
+
+    /// `sceneBecameActive()` for the view, tied to this model like `retry()`.
+    public func retryIfFailed() {
+        guard case .failed = state else { return }
+        retry()
+    }
+
     /// For the retry button: loads again, tied to this model so that `stop()` can cancel it.
     public func retry() {
         retryTask?.cancel()
@@ -290,12 +303,17 @@ public final class WorkspacesModel {
     }
 
     private func fetch(token: String) async -> Outcome {
-        let trust = ServerTrust(caCertificateDER: connection.caCertificateDER)
+        let trust = connection.trust
         var sawUntrusted = false
         var sawForeign401 = false
         for url in connection.urls {
             do {
-                return .workspaces(try await server.workspaces(at: url, trust: trust, token: token))
+                let workspaces = try await server.workspaces(at: url, trust: trust, token: token)
+                // The stored pairing learns the server's addresses; this screen keeps its own until the next start.
+                await AddressRefresh.refresh(
+                    store: store, server: server, deviceID: connection.deviceID, at: url, token: token
+                )
+                return .workspaces(workspaces)
             } catch ServerError.unauthorized {
                 return .revoked
             } catch ServerError.unreachable {
@@ -305,6 +323,9 @@ public final class WorkspacesModel {
             } catch ServerError.other("http_401") {
                 // Not the host's verdict (no `not_authenticated`): try the next address, never a revocation.
                 sawForeign401 = true
+            } catch ServerError.other("second_factor_required") {
+                // The host's own verdict, but no revocation: the pairing stays until two-step verification is on.
+                return .failed(message: WorkspaceStrings.secondFactorRequired)
             } catch is CancellationError {
                 return .cancelled
             } catch {

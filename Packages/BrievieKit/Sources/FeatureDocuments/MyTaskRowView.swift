@@ -9,6 +9,11 @@ struct MyTaskRowActions {
     var handOver: (() -> Void)?
     var setDate: (() -> Void)?
     var openLetter: (() -> Void)?
+    /// "Wacht op reactie…" / "Niet meer wachten", "Uitstellen…" / "Niet meer uitstellen" (host PR #50).
+    var wait: (() -> Void)?
+    var stopWaiting: (() -> Void)?
+    var snooze: (() -> Void)?
+    var unsnooze: (() -> Void)?
 }
 
 /// One task: the tick box, what to do, when (late in the warning colour and in words), the amount, from and for
@@ -86,6 +91,9 @@ struct MyTaskRowView<Badge: View>: View {
                 .foregroundStyle(row.isTicked ? .secondary : .primary)
             if let typeWord = row.typeWord {
                 Text(typeWord).font(.subheadline).foregroundStyle(.secondary)
+            }
+            if let parked = row.parkedLine {
+                Label(parked, systemImage: "hourglass").font(.subheadline).foregroundStyle(.secondary)
             }
             if row.when != nil || row.amount != nil {
                 AdaptiveStack(spacing: 12) {
@@ -165,6 +173,10 @@ struct MyTaskRowView<Badge: View>: View {
         if let release = actions.release { Button(DocumentStrings.myTasksRelease, action: release) }
         if let handOver = actions.handOver { Button(DocumentStrings.myTasksHandOver, action: handOver) }
         if let setDate = actions.setDate { Button(DocumentStrings.myTasksSetDate, action: setDate) }
+        if let wait = actions.wait { Button(DocumentStrings.waitAction, action: wait) }
+        if let stopWaiting = actions.stopWaiting { Button(DocumentStrings.waitStop, action: stopWaiting) }
+        if let snooze = actions.snooze { Button(DocumentStrings.snoozeAction, action: snooze) }
+        if let unsnooze = actions.unsnooze { Button(DocumentStrings.snoozeStop, action: unsnooze) }
         if let openLetter = actions.openLetter { Button(DocumentStrings.myTasksOpenLetter, action: openLetter) }
     }
 }

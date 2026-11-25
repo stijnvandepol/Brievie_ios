@@ -56,6 +56,29 @@
         "title": "AcceptedInvitationOut",
         "type": "object"
       },
+      "AddressOut": {
+        "properties": {
+          "certificate": {
+            "title": "Certificate",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "kind",
+          "certificate"
+        ],
+        "title": "AddressOut",
+        "type": "object"
+      },
       "AddresseesIn": {
         "properties": {
           "person_ids": {
@@ -428,6 +451,84 @@
         "title": "AuditEventOut",
         "type": "object"
       },
+      "BackupRunOut": {
+        "properties": {
+          "run_id": {
+            "format": "uuid",
+            "title": "Run Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id"
+        ],
+        "title": "BackupRunOut",
+        "type": "object"
+      },
+      "BackupStatusOut": {
+        "description": "What the web interface shows of the back-up. No path, key, credential or address.",
+        "properties": {
+          "destination": {
+            "title": "Destination",
+            "type": "string"
+          },
+          "last_check_at": {
+            "format": "date-time",
+            "title": "Last Check At",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_failure_at": {
+            "format": "date-time",
+            "title": "Last Failure At",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_failure_reason": {
+            "title": "Last Failure Reason",
+            "type": "string"
+          },
+          "last_success_at": {
+            "format": "date-time",
+            "title": "Last Success At",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_success_size_bytes": {
+            "title": "Last Success Size Bytes",
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "late": {
+            "title": "Late",
+            "type": "boolean"
+          },
+          "running": {
+            "title": "Running",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "destination",
+          "last_success_at",
+          "last_success_size_bytes",
+          "last_failure_at",
+          "last_failure_reason",
+          "last_check_at",
+          "running",
+          "late"
+        ],
+        "title": "BackupStatusOut",
+        "type": "object"
+      },
       "CaCertificateOut": {
         "properties": {
           "pem": {
@@ -439,6 +540,54 @@
           "pem"
         ],
         "title": "CaCertificateOut",
+        "type": "object"
+      },
+      "CheckOut": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "level"
+        ],
+        "title": "CheckOut",
+        "type": "object"
+      },
+      "ClearSecondFactorIn": {
+        "properties": {
+          "password": {
+            "maxLength": 128,
+            "title": "Password",
+            "type": "string"
+          },
+          "revoke_devices": {
+            "default": true,
+            "title": "Revoke Devices",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "title": "ClearSecondFactorIn",
+        "type": "object"
+      },
+      "ClearSecondFactorOut": {
+        "properties": {
+          "devices_revoked": {
+            "default": 0,
+            "title": "Devices Revoked",
+            "type": "integer"
+          }
+        },
+        "title": "ClearSecondFactorOut",
         "type": "object"
       },
       "ConfirmIn": {
@@ -695,6 +844,14 @@
             "title": "Note",
             "type": "string"
           },
+          "on_date": {
+            "format": "date",
+            "title": "On Date",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "origin": {
             "title": "Origin",
             "type": "string"
@@ -828,6 +985,11 @@
               "null"
             ]
           },
+          "letter_status": {
+            "default": "",
+            "title": "Letter Status",
+            "type": "string"
+          },
           "new_person_suggestions": {
             "items": {
               "$ref": "#/components/schemas/NewPersonSuggestionOut"
@@ -844,6 +1006,16 @@
             "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
+          },
+          "open_task_count": {
+            "default": 0,
+            "title": "Open Task Count",
+            "type": "integer"
+          },
+          "overdue": {
+            "default": false,
+            "title": "Overdue",
+            "type": "boolean"
           },
           "page_count": {
             "title": "Page Count",
@@ -935,6 +1107,14 @@
             "default": "workspace",
             "title": "Visibility",
             "type": "string"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -1035,6 +1215,11 @@
               "null"
             ]
           },
+          "letter_status": {
+            "default": "",
+            "title": "Letter Status",
+            "type": "string"
+          },
           "open_duplicate_count": {
             "default": 0,
             "title": "Open Duplicate Count",
@@ -1044,6 +1229,16 @@
             "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
+          },
+          "open_task_count": {
+            "default": 0,
+            "title": "Open Task Count",
+            "type": "integer"
+          },
+          "overdue": {
+            "default": false,
+            "title": "Overdue",
+            "type": "boolean"
           },
           "page_count": {
             "title": "Page Count",
@@ -1098,6 +1293,14 @@
             "default": "workspace",
             "title": "Visibility",
             "type": "string"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -1296,6 +1499,11 @@
               "null"
             ]
           },
+          "letter_status": {
+            "default": "",
+            "title": "Letter Status",
+            "type": "string"
+          },
           "open_duplicate_count": {
             "default": 0,
             "title": "Open Duplicate Count",
@@ -1305,6 +1513,16 @@
             "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
+          },
+          "open_task_count": {
+            "default": 0,
+            "title": "Open Task Count",
+            "type": "integer"
+          },
+          "overdue": {
+            "default": false,
+            "title": "Overdue",
+            "type": "boolean"
           },
           "page_count": {
             "title": "Page Count",
@@ -1352,6 +1570,14 @@
             "default": "workspace",
             "title": "Visibility",
             "type": "string"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -1661,6 +1887,81 @@
         "title": "ErrorOut",
         "type": "object"
       },
+      "ExternalAccessOut": {
+        "properties": {
+          "addresses": {
+            "items": {
+              "$ref": "#/components/schemas/AddressOut"
+            },
+            "title": "Addresses",
+            "type": "array"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CheckOut"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "docs_url": {
+            "title": "Docs Url",
+            "type": "string"
+          },
+          "hostname": {
+            "title": "Hostname",
+            "type": "string"
+          },
+          "public_hostname": {
+            "default": "",
+            "title": "Public Hostname",
+            "type": "string"
+          },
+          "public_web": {
+            "title": "Public Web",
+            "type": "boolean"
+          },
+          "second_factor_available": {
+            "title": "Second Factor Available",
+            "type": "boolean"
+          },
+          "seen_as": {
+            "$ref": "#/components/schemas/SeenAsOut"
+          },
+          "trusted_proxies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trusted Proxies",
+            "type": "array"
+          },
+          "tunnel": {
+            "$ref": "#/components/schemas/TunnelOut"
+          },
+          "untrusted_public_name_peer": {
+            "default": "",
+            "title": "Untrusted Public Name Peer",
+            "type": "string"
+          },
+          "vpn_hostname": {
+            "default": "",
+            "title": "Vpn Hostname",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hostname",
+          "addresses",
+          "public_web",
+          "tunnel",
+          "trusted_proxies",
+          "second_factor_available",
+          "seen_as",
+          "checks",
+          "docs_url"
+        ],
+        "title": "ExternalAccessOut",
+        "type": "object"
+      },
       "FolderIn": {
         "properties": {
           "name": {
@@ -1714,6 +2015,27 @@
           "parent_id"
         ],
         "title": "FolderOut",
+        "type": "object"
+      },
+      "HandleDocumentIn": {
+        "description": "\"Brief afhandelen\": the ids of the open tasks the person was shown (all of them,\nwaiting ones included) and whether they confirmed that a payment among them was made\nor arranged. The server completes nothing when the ids differ from the letter's open\ntasks (409 `tasks_changed`) or a payment is not confirmed (409 `payment_not_confirmed`).",
+        "properties": {
+          "payments_confirmed": {
+            "default": false,
+            "title": "Payments Confirmed",
+            "type": "boolean"
+          },
+          "task_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Task Ids",
+            "type": "array"
+          }
+        },
+        "title": "HandleDocumentIn",
         "type": "object"
       },
       "HealthOut": {
@@ -2081,6 +2403,38 @@
         "title": "LanguageIn",
         "type": "object"
       },
+      "LetterStatusCountsOut": {
+        "description": "How many letters the caller sees in each status (and how many of them are late), of\nall post or of one person's. Only letters the caller may read are counted.",
+        "properties": {
+          "handled": {
+            "default": 0,
+            "title": "Handled",
+            "type": "integer"
+          },
+          "new": {
+            "default": 0,
+            "title": "New",
+            "type": "integer"
+          },
+          "open": {
+            "default": 0,
+            "title": "Open",
+            "type": "integer"
+          },
+          "overdue": {
+            "default": 0,
+            "title": "Overdue",
+            "type": "integer"
+          },
+          "waiting": {
+            "default": 0,
+            "title": "Waiting",
+            "type": "integer"
+          }
+        },
+        "title": "LetterStatusCountsOut",
+        "type": "object"
+      },
       "LingeringLetterOut": {
         "properties": {
           "addressee_ids": {
@@ -2165,6 +2519,11 @@
               "null"
             ]
           },
+          "letter_status": {
+            "default": "",
+            "title": "Letter Status",
+            "type": "string"
+          },
           "open_duplicate_count": {
             "default": 0,
             "title": "Open Duplicate Count",
@@ -2174,6 +2533,16 @@
             "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
+          },
+          "open_task_count": {
+            "default": 0,
+            "title": "Open Task Count",
+            "type": "integer"
+          },
+          "overdue": {
+            "default": false,
+            "title": "Overdue",
+            "type": "boolean"
           },
           "page_count": {
             "title": "Page Count",
@@ -2221,6 +2590,14 @@
             "default": "workspace",
             "title": "Visibility",
             "type": "string"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -2563,8 +2940,18 @@
             "title": "Overdue",
             "type": "integer"
           },
+          "snoozed": {
+            "default": 0,
+            "title": "Snoozed",
+            "type": "integer"
+          },
           "to_pick_up": {
             "title": "To Pick Up",
+            "type": "integer"
+          },
+          "waiting": {
+            "default": 0,
+            "title": "Waiting",
             "type": "integer"
           },
           "within_week": {
@@ -2786,6 +3173,13 @@
             "format": "uuid",
             "title": "Device Id",
             "type": "string"
+          },
+          "public_urls": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Public Urls",
+            "type": "array"
           },
           "token": {
             "title": "Token",
@@ -3323,6 +3717,12 @@
       },
       "ReauthenticateIn": {
         "properties": {
+          "code": {
+            "default": "",
+            "maxLength": 20,
+            "title": "Code",
+            "type": "string"
+          },
           "password": {
             "maxLength": 128,
             "title": "Password",
@@ -3333,6 +3733,43 @@
           "password"
         ],
         "title": "ReauthenticateIn",
+        "type": "object"
+      },
+      "RecoveryCodesOut": {
+        "description": "Shown once: ten recovery codes, each usable once instead of a code.",
+        "properties": {
+          "recovery_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Recovery Codes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "recovery_codes"
+        ],
+        "title": "RecoveryCodesOut",
+        "type": "object"
+      },
+      "RemoveSecondFactorIn": {
+        "properties": {
+          "code": {
+            "maxLength": 20,
+            "title": "Code",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "password",
+          "code"
+        ],
+        "title": "RemoveSecondFactorIn",
         "type": "object"
       },
       "RenewInvitationIn": {
@@ -3350,6 +3787,25 @@
           }
         },
         "title": "RenewInvitationIn",
+        "type": "object"
+      },
+      "ReplaceSecondFactorIn": {
+        "description": "Exactly one: a code from the old app, or a recovery code when the old phone is\ngone.",
+        "properties": {
+          "code": {
+            "default": "",
+            "maxLength": 20,
+            "title": "Code",
+            "type": "string"
+          },
+          "recovery_code": {
+            "default": "",
+            "maxLength": 30,
+            "title": "Recovery Code",
+            "type": "string"
+          }
+        },
+        "title": "ReplaceSecondFactorIn",
         "type": "object"
       },
       "RuleActionSchema": {
@@ -3722,6 +4178,114 @@
         "title": "RuleTestOut",
         "type": "object"
       },
+      "SecondFactorCodeIn": {
+        "properties": {
+          "code": {
+            "maxLength": 20,
+            "title": "Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "title": "SecondFactorCodeIn",
+        "type": "object"
+      },
+      "SecondFactorOut": {
+        "description": "The caller's two-step verification (\"Beveiliging\").",
+        "properties": {
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "grace_until": {
+            "title": "Grace Until",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "recovery_codes_left": {
+            "default": 0,
+            "title": "Recovery Codes Left",
+            "type": "integer"
+          },
+          "required": {
+            "default": false,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "required_by": {
+            "default": "none",
+            "title": "Required By",
+            "type": "string"
+          },
+          "required_by_workspaces": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Required By Workspaces",
+            "type": "array"
+          }
+        },
+        "title": "SecondFactorOut",
+        "type": "object"
+      },
+      "SeenAsOut": {
+        "properties": {
+          "client_ip": {
+            "title": "Client Ip",
+            "type": "string"
+          },
+          "peer_ip": {
+            "title": "Peer Ip",
+            "type": "string"
+          },
+          "route": {
+            "title": "Route",
+            "type": "string"
+          },
+          "secure": {
+            "title": "Secure",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "route",
+          "secure",
+          "client_ip",
+          "peer_ip"
+        ],
+        "title": "SeenAsOut",
+        "type": "object"
+      },
+      "ServerAddressesOut": {
+        "properties": {
+          "public_urls": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Public Urls",
+            "type": "array"
+          },
+          "urls": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Urls",
+            "type": "array"
+          }
+        },
+        "required": [
+          "urls",
+          "public_urls"
+        ],
+        "title": "ServerAddressesOut",
+        "type": "object"
+      },
       "SessionOut": {
         "description": "A web session of the caller (\"Waar je bent ingelogd\").",
         "properties": {
@@ -3751,6 +4315,11 @@
           "method": {
             "title": "Method",
             "type": "string"
+          },
+          "second_factor": {
+            "default": false,
+            "title": "Second Factor",
+            "type": "boolean"
           },
           "started_at": {
             "format": "date-time",
@@ -3846,6 +4415,25 @@
         "title": "SetupOut",
         "type": "object"
       },
+      "SetupSecretOut": {
+        "description": "Shown once: the secret for an authenticator app, as text in groups of four and as\nthe otpauth link a QR code carries.",
+        "properties": {
+          "otpauth_uri": {
+            "title": "Otpauth Uri",
+            "type": "string"
+          },
+          "secret": {
+            "title": "Secret",
+            "type": "string"
+          }
+        },
+        "required": [
+          "secret",
+          "otpauth_uri"
+        ],
+        "title": "SetupSecretOut",
+        "type": "object"
+      },
       "SetupStatusOut": {
         "properties": {
           "needs_setup": {
@@ -3857,6 +4445,44 @@
           "needs_setup"
         ],
         "title": "SetupStatusOut",
+        "type": "object"
+      },
+      "SignInCodeIn": {
+        "description": "Exactly one of the two: the six digits from the authenticator app, or a recovery\ncode (XXXXX-XXXXX; case, spaces and hyphens do not matter).",
+        "properties": {
+          "code": {
+            "default": "",
+            "maxLength": 20,
+            "title": "Code",
+            "type": "string"
+          },
+          "recovery_code": {
+            "default": "",
+            "maxLength": 30,
+            "title": "Recovery Code",
+            "type": "string"
+          }
+        },
+        "title": "SignInCodeIn",
+        "type": "object"
+      },
+      "SignInStepOut": {
+        "description": "202: the password (or the invitation, the reset, the setup) was right, and a second\nstep follows before the browser is signed in. `code`: send the code from the\nauthenticator app or a recovery code to `verifySignInCode`. `setup`: two-step\nverification is required and must be set up first (`beginSecondFactorSetup`). The\nbrowser holds the pending step for `expires_in_seconds`; it is not signed in.",
+        "properties": {
+          "expires_in_seconds": {
+            "default": 300,
+            "title": "Expires In Seconds",
+            "type": "integer"
+          },
+          "step": {
+            "title": "Step",
+            "type": "string"
+          }
+        },
+        "required": [
+          "step"
+        ],
+        "title": "SignInStepOut",
         "type": "object"
       },
       "SnippetPartOut": {
@@ -3876,6 +4502,20 @@
           "hit"
         ],
         "title": "SnippetPartOut",
+        "type": "object"
+      },
+      "SnoozeIn": {
+        "properties": {
+          "until": {
+            "format": "date",
+            "title": "Until",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "title": "SnoozeIn",
         "type": "object"
       },
       "SortsPostIn": {
@@ -4167,6 +4807,14 @@
             "title": "Sender",
             "type": "string"
           },
+          "snoozed_until": {
+            "format": "date",
+            "title": "Snoozed Until",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -4184,6 +4832,19 @@
             "format": "date-time",
             "title": "Updated At",
             "type": "string"
+          },
+          "wait_over": {
+            "default": false,
+            "title": "Wait Over",
+            "type": "boolean"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -4274,6 +4935,14 @@
             "title": "Id",
             "type": "string"
           },
+          "snoozed_until": {
+            "format": "date",
+            "title": "Snoozed Until",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "status": {
             "title": "Status",
             "type": "string"
@@ -4286,6 +4955,19 @@
           "type": {
             "title": "Type",
             "type": "string"
+          },
+          "wait_over": {
+            "default": false,
+            "title": "Wait Over",
+            "type": "boolean"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -4435,6 +5117,11 @@
               "null"
             ]
           },
+          "letter_status": {
+            "default": "",
+            "title": "Letter Status",
+            "type": "string"
+          },
           "open_duplicate_count": {
             "default": 0,
             "title": "Open Duplicate Count",
@@ -4444,6 +5131,16 @@
             "default": 0,
             "title": "Open Suggestion Count",
             "type": "integer"
+          },
+          "open_task_count": {
+            "default": 0,
+            "title": "Open Task Count",
+            "type": "integer"
+          },
+          "overdue": {
+            "default": false,
+            "title": "Overdue",
+            "type": "boolean"
           },
           "page_count": {
             "title": "Page Count",
@@ -4506,6 +5203,14 @@
             "default": "workspace",
             "title": "Visibility",
             "type": "string"
+          },
+          "waiting_until": {
+            "format": "date",
+            "title": "Waiting Until",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -4521,6 +5226,24 @@
           "purge_after"
         ],
         "title": "TrashedDocumentOut",
+        "type": "object"
+      },
+      "TunnelOut": {
+        "properties": {
+          "connected": {
+            "title": "Connected",
+            "type": "string"
+          },
+          "token_set": {
+            "title": "Token Set",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "token_set",
+          "connected"
+        ],
+        "title": "TunnelOut",
         "type": "object"
       },
       "UploadMetadataIn": {
@@ -4555,6 +5278,11 @@
           "explanation_language": {
             "title": "Explanation Language",
             "type": "string"
+          },
+          "has_second_factor": {
+            "default": false,
+            "title": "Has Second Factor",
+            "type": "boolean"
           },
           "id": {
             "format": "uuid",
@@ -4838,6 +5566,20 @@
         "title": "VisibilityPreviewOut",
         "type": "object"
       },
+      "WaitingIn": {
+        "properties": {
+          "until": {
+            "format": "date",
+            "title": "Until",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "title": "WaitingIn",
+        "type": "object"
+      },
       "WorkspaceOut": {
         "properties": {
           "id": {
@@ -4984,6 +5726,11 @@
         "scheme": "bearer",
         "type": "http"
       },
+      "PendingSetupAuth": {
+        "in": "cookie",
+        "name": "sessionid",
+        "type": "apiKey"
+      },
       "SessionAuth": {
         "in": "cookie",
         "name": "sessionid",
@@ -5000,7 +5747,7 @@
   "paths": {
     "/api/v1/auth/login": {
       "post": {
-        "description": "429 too_many_attempts with Retry-After: five wrong passwords for this email from this address, thirty from this address, or, from a browser that never signed in to this account, more than ten for the account from anywhere (then a wait that doubles from 15 seconds to at most 15 minutes).",
+        "description": "429 too_many_attempts with Retry-After: five wrong passwords for this email from this address, thirty from this address, or, from a browser that never signed in to this account, more than ten for the account from anywhere (then a wait that doubles from 15 seconds to at most 15 minutes). On the public route (tunnel, own reverse proxy) an account without two-step verification cannot sign in: the right password answers 401 invalid_credentials and counts, exactly as a wrong one (the sentence says both). 202 when a second step follows (SignInStepOut): the browser is not signed in yet; `code` asks verifySignInCode, `setup` asks to set up two-step verification first.",
         "operationId": "login",
         "parameters": [],
         "requestBody": {
@@ -5023,6 +5770,16 @@
               }
             },
             "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInStepOut"
+                }
+              }
+            },
+            "description": "Accepted"
           },
           "400": {
             "content": {
@@ -5091,6 +5848,99 @@
         ]
       }
     },
+    "/api/v1/auth/login/code": {
+      "post": {
+        "description": "The second step of a sign-in that answered 202 with step `code`: the six digits from the authenticator app (`code`) or a recovery code (`recovery_code`), exactly one (422 otherwise). 200 signs the browser in. 401 second_factor_invalid for a wrong, used or old code; 401 sign_in_expired without a pending sign-in (it lives five minutes, and five wrong codes end it: sign in with the password again); 429 second_factor_locked (Retry-After) after five wrong codes for the account, from anywhere, within 15 minutes: the lock doubles each time, up to a day.",
+        "operationId": "verifySignInCode",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInCodeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "summary": "Verify Sign In Code",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
     "/api/v1/auth/logout": {
       "post": {
         "description": "Web session only: a bearer token answers 401 not_authenticated.",
@@ -5134,7 +5984,7 @@
     },
     "/api/v1/auth/password-reset": {
       "post": {
-        "description": "Set a new password with the token from a reset link's fragment and sign in; every other session of the account ends. 400 reset_link_invalid for an unknown, used, expired or revoked link, or when its maker may no longer act on the account; 422 when the password rules refuse it (the link stays usable). Every paired device and every other open reset link of the account is revoked.",
+        "description": "Set a new password with the token from a reset link's fragment and sign in; every other session of the account ends. 400 reset_link_invalid for an unknown, used, expired or revoked link, or when its maker may no longer act on the account; 422 when the password rules refuse it (the link stays usable). Every paired device and every other open reset link of the account is revoked. On the public route (tunnel, own reverse proxy) an account without two-step verification cannot sign in: 403 second_factor_needed_outside, nothing changes. The link stays usable at home. 202 when a second step follows (SignInStepOut): the browser is not signed in yet; `code` asks verifySignInCode, `setup` asks to set up two-step verification first.",
         "operationId": "completePasswordReset",
         "parameters": [],
         "requestBody": {
@@ -5158,6 +6008,16 @@
             },
             "description": "OK"
           },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInStepOut"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
           "400": {
             "content": {
               "application/json": {
@@ -5167,6 +6027,16 @@
               }
             },
             "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
           },
           "413": {
             "content": {
@@ -5217,7 +6087,7 @@
     },
     "/api/v1/auth/reauthenticate": {
       "post": {
-        "description": "Web session only: a bearer token answers 401 not_authenticated. Type the password again before an action that needs a recent sign-in (creating a pairing code answers 403 reauthentication_required otherwise). 400 wrong_password; wrong passwords count for the same lockout as signing in (429).",
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Type the password again before an action that needs a recent sign-in (creating a pairing code answers 403 reauthentication_required otherwise). 400 wrong_password; wrong passwords count for the same lockout as signing in (429). With two-step verification on, `code` from the app too: 400 second_factor_invalid, 429 second_factor_locked; the session has then passed the second step. On the public route an account without two-step verification gets 403 second_factor_needed_outside before the password is checked.",
         "operationId": "reauthenticate",
         "parameters": [],
         "requestBody": {
@@ -5711,7 +6581,7 @@
     },
     "/api/v1/invitations/accept": {
       "post": {
-        "description": "Join with the invitation's role and sign in. account `new`: name, email address and password (the rules of every account; 409 account_exists when the address has an account, which says that it has one, as registering does). account `existing`: the account's email address and password, with the sign-in lockout (401 invalid_credentials, 429 too_many_attempts); a deactivated account is reactivated. 403 invitation_email_mismatch when the invitation is for another address; 409 already_member, invitation_person_taken; 422 for another account kind. 400 invitation_invalid for an unknown, used, expired or revoked link, or one whose maker is no admin of the workspace any more (one sentence for all).",
+        "description": "Join with the invitation's role and sign in. account `new`: name, email address and password (the rules of every account; 409 account_exists when the address has an account, which says that it has one, as registering does). account `existing`: the account's email address and password, with the sign-in lockout (401 invalid_credentials, 429 too_many_attempts); a deactivated account is reactivated. 403 invitation_email_mismatch when the invitation is for another address; 409 already_member, invitation_person_taken; 422 for another account kind. 400 invitation_invalid for an unknown, used, expired or revoked link, or one whose maker is no admin of the workspace any more (one sentence for all). 202 when a second step follows (SignInStepOut): the browser is not signed in yet; `code` asks verifySignInCode, `setup` asks to set up two-step verification first. An account with two-step verification joins at once; only its sign-in waits. On the public route (tunnel, own reverse proxy): account `new` gets 403 second_factor_needed_outside before anything is made, and an existing account without two-step verification answers 401 invalid_credentials, exactly as a wrong password; the invitation stays usable at home.",
         "operationId": "acceptInvitation",
         "parameters": [],
         "requestBody": {
@@ -5734,6 +6604,16 @@
               }
             },
             "description": "OK"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInStepOut"
+                }
+              }
+            },
+            "description": "Accepted"
           },
           "400": {
             "content": {
@@ -6280,6 +7160,692 @@
         ]
       }
     },
+    "/api/v1/me/second-factor": {
+      "delete": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Switch two-step verification off with the password and a code; every other session ends. 400 wrong_password (counted like a sign-in), 400 second_factor_invalid; 409 second_factor_required while a rule asks it.",
+        "operationId": "removeMySecondFactor",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveSecondFactorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Remove My Second Factor",
+        "tags": [
+          "accounts"
+        ]
+      },
+      "get": {
+        "description": "Whether the caller has two-step verification, whether a rule asks it, and how many recovery codes are left. A web session, or a sign-in that answered 202 with step `setup` (it reaches only the set-up operations).",
+        "operationId": "getMySecondFactor",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecondFactorOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "PendingSetupAuth": []
+          }
+        ],
+        "summary": "Get My Second Factor",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/me/second-factor/recovery-codes": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Ten new recovery codes after a code from the app; the old ones stop working. 400 second_factor_invalid; 429 second_factor_locked. The answer is shown once and not stored by the browser (Cache-Control: no-store).",
+        "operationId": "renewRecoveryCodes",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorCodeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Renew Recovery Codes",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/me/second-factor/replacement": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. A new phone: a code from the old app (`code`) or a recovery code (`recovery_code`, used up), exactly one; answers a new secret to scan. The old app keeps working until the new one is confirmed. 400 second_factor_invalid; 409 second_factor_not_set; 429 second_factor_locked. The answer is shown once and not stored by the browser (Cache-Control: no-store).",
+        "operationId": "beginSecondFactorReplacement",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplaceSecondFactorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupSecretOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Begin Second Factor Replacement",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/me/second-factor/replacement/confirm": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Move two-step verification to the new phone with a code from its app: the old app stops, ten new recovery codes replace the old ones, every other session ends. 400 second_factor_invalid; 409 second_factor_clock_drift; 409 second_factor_setup_missing without a new phone begun within the hour. The answer is shown once and not stored by the browser (Cache-Control: no-store).",
+        "operationId": "confirmSecondFactorReplacement",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorCodeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Confirm Second Factor Replacement",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/me/second-factor/setup": {
+      "post": {
+        "description": "Begin setting up two-step verification: a new secret to scan (an unfinished set-up is replaced). 409 second_factor_exists when it is on; 403 reauthentication_required from a session that signed in more than 15 minutes ago (call reauthenticate first). A web session, or a sign-in that answered 202 with step `setup` (it reaches only the set-up operations). The answer is shown once and not stored by the browser (Cache-Control: no-store).",
+        "operationId": "beginSecondFactorSetup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupSecretOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "PendingSetupAuth": []
+          }
+        ],
+        "summary": "Begin Second Factor Setup",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/me/second-factor/setup/confirm": {
+      "post": {
+        "description": "Switch two-step verification on with a code from the app; answers ten recovery codes. A sign-in at step `setup` is then signed in; every other session of the account ends. 400 second_factor_invalid for a wrong code; 409 second_factor_clock_drift when the phone's or the server's clock is off; 409 second_factor_setup_missing without a set-up begun. A web session, or a sign-in that answered 202 with step `setup` (it reaches only the set-up operations). The answer is shown once and not stored by the browser (Cache-Control: no-store).",
+        "operationId": "confirmSecondFactorSetup",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorCodeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          },
+          {
+            "PendingSetupAuth": []
+          }
+        ],
+        "summary": "Confirm Second Factor Setup",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
     "/api/v1/me/sessions": {
       "get": {
         "description": "Web session only: a bearer token answers 401 not_authenticated.",
@@ -6381,6 +7947,47 @@
         "summary": "End My Session",
         "tags": [
           "accounts"
+        ]
+      }
+    },
+    "/api/v1/server/addresses": {
+      "get": {
+        "description": "The addresses of this server, home first, and those of them served with a public certificate (a tunnel or an own reverse proxy). A paired app refreshes its addresses from here over a verified connection only.",
+        "operationId": "getServerAddresses",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerAddressesOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get Server Addresses",
+        "tags": [
+          "server"
         ]
       }
     },
@@ -6640,6 +8247,122 @@
         ]
       }
     },
+    "/api/v1/server/backup-runs": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated; a session without a valid CSRF token answers 403. Server admins only. Queues one back-up now (the keeper makes it) and records backup_requested in the log. 409 not_configured without a destination; 409 backup_running while one is open.",
+        "operationId": "createBackupRun",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupRunOut"
+                }
+              }
+            },
+            "description": "Accepted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create Backup Run",
+        "tags": [
+          "backup"
+        ]
+      }
+    },
+    "/api/v1/server/backup-status": {
+      "get": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Server admins only. What the back-up panel shows: the kind of destination (never its path or address), the last good back-up and the last failure since, and whether one is running or late.",
+        "operationId": "getBackupStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupStatusOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get Backup Status",
+        "tags": [
+          "backup"
+        ]
+      }
+    },
     "/api/v1/server/ca-certificate": {
       "get": {
         "operationId": "getCaCertificate",
@@ -6672,6 +8395,122 @@
         ]
       }
     },
+    "/api/v1/server/external-access": {
+      "get": {
+        "description": "Server admins only, web session only (a device token answers 401). What is set for reaching this server from outside the home network, what works and what not, as check codes. Compose decides; nothing here changes a setting. Never a token or secret: only whether a tunnel token is set. Waits up to 2 seconds for the tunnel, outside a transaction. Cache-Control: no-store.",
+        "operationId": "getExternalAccess",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExternalAccessOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Get External Access",
+        "tags": [
+          "server"
+        ]
+      }
+    },
+    "/api/v1/server/recovery-sheet": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated; a session without a valid CSRF token answers 403. Server admins only (403 forbidden). The sheet carries the master key: the session must have signed in or called reauthenticate within 15 minutes (403 reauthentication_required), and with two-step verification on it must have passed the code (403 second_factor_session_required). Answers the page as a download (Cache-Control: no-store) and records recovery_sheet_viewed in the log. 409 recovery_sheet_not_here on a server that is not a compose install: there the sheet is made on the server with ./brievie recovery-sheet. POST, never GET: a GET would be cached and logged on the way.",
+        "operationId": "createRecoverySheet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "The recovery sheet, a printable HTML page"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Create Recovery Sheet",
+        "tags": [
+          "backup"
+        ]
+      }
+    },
     "/api/v1/setup": {
       "get": {
         "operationId": "getSetupStatus",
@@ -6694,6 +8533,7 @@
         ]
       },
       "post": {
+        "description": "Create the first account and workspace, and sign in. 403 second_factor_needed_outside on the public route (tunnel, own reverse proxy): set up at home or through a VPN. 202 when a second step follows (SignInStepOut): the browser is not signed in yet; `code` asks verifySignInCode, `setup` asks to set up two-step verification first.",
         "operationId": "setupServer",
         "parameters": [],
         "requestBody": {
@@ -6716,6 +8556,16 @@
               }
             },
             "description": "Created"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInStepOut"
+                }
+              }
+            },
+            "description": "Accepted"
           },
           "400": {
             "content": {
@@ -7023,6 +8873,135 @@
           }
         ],
         "summary": "Create Password Reset",
+        "tags": [
+          "accounts"
+        ]
+      }
+    },
+    "/api/v1/users/{user_id}/second-factor/clear": {
+      "post": {
+        "description": "Web session only: a bearer token answers 401 not_authenticated. Clear the two-step verification of somebody who lost their phone: every session of the account ends, its paired devices are unpaired unless revoke_devices is false, the member gets a notice. The caller's own password (400 wrong_password, counted like a sign-in); 403 second_factor_session_required when the caller has two-step verification but signed in without it; 404 second_factor_not_set when the account has none. A server admin may do this for anyone else; a workspace admin only for a member whose only workspace is theirs and who is no server admin (403 server_admin_only). 403 own_account for the caller's own account; 404 user_not_found for an unknown account or one outside the caller's workspaces.",
+        "operationId": "clearUserSecondFactor",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClearSecondFactorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClearSecondFactorOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          }
+        },
+        "security": [
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Clear User Second Factor",
         "tags": [
           "accounts"
         ]
@@ -8015,7 +9994,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/documents": {
       "get": {
-        "description": "The newest 200 documents. `inbox_state` (`new`, `review` or `unassigned`), `person_id`, `label_id` and `automatic` narrow the list; together they all apply. `automatic=true` keeps the documents the AI confirmed itself or put a label or addressee on (see `confirmed_by_ai`, `auto_label_ids`, `auto_addressee_ids`). `addressed_to_me=true` keeps \"Mijn post\": the letters on the caller's own persons (their own and those they manage), with `include_departments=true` also on their departments; empty for a member without a person. `unread_only=true` keeps the letters the caller has not read (`unread`).",
+        "description": "The newest 200 documents. `inbox_state` (`new`, `review` or `unassigned`), `person_id`, `label_id` and `automatic` narrow the list; together they all apply. `automatic=true` keeps the documents the AI confirmed itself or put a label or addressee on (see `confirmed_by_ai`, `auto_label_ids`, `auto_addressee_ids`). `addressed_to_me=true` keeps \"Mijn post\": the letters on the caller's own persons (their own and those they manage), with `include_departments=true` also on their departments; empty for a member without a person. `unread_only=true` keeps the letters the caller has not read (`unread`). `letter_status` (`new`, `open`, `waiting` or `handled`; 422 for another) and `overdue=true` keep the letters in that status, with the marker \"Te laat\"; `new` here is the letter not checked yet, not `unread`.",
         "operationId": "listDocuments",
         "parameters": [
           {
@@ -8101,6 +10080,26 @@
             "schema": {
               "default": false,
               "title": "Unread Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "letter_status",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Letter Status",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "overdue",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Overdue",
               "type": "boolean"
             }
           }
@@ -8593,6 +10592,81 @@
           }
         ],
         "summary": "Search Documents",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/documents/status-counts": {
+      "get": {
+        "description": "How many letters the caller sees per status (`new`, `open`, `waiting`, `handled`) and how many are late (`overdue`), of all post or, with `person_id`, of one person's. Only letters the caller may read are counted; an unknown or archived person gives zeros.",
+        "operationId": "countLetterStatuses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "person_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "title": "Person Id",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LetterStatusCountsOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Count Letter Statuses",
         "tags": [
           "documents"
         ]
@@ -9196,6 +11270,148 @@
           }
         ],
         "summary": "Undo Document Event",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/documents/{document_id}/handle": {
+      "post": {
+        "description": "\"Brief afhandelen\": ticks off every open task of a checked letter after the confirmation. `task_ids` must be exactly the letter's open tasks (waiting ones included): 409 `tasks_changed` otherwise, nothing is completed. With a payment among them `payments_confirmed` must be true (409 `payment_not_confirmed`). 409 `document_not_reviewed` for a letter not checked yet. An already handled letter with no ids changes nothing. Writes one `task_completed` line per task with the caller and one `letter_handled` line.",
+        "operationId": "handleDocument",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HandleDocumentIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Handle Document",
         "tags": [
           "documents"
         ]
@@ -13015,7 +15231,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/my-tasks": {
       "get": {
-        "description": "\"Mijn taken\": the caller's tasks, derived from the post they may read. `part` is `mine` (default: given to them, or on their post), `to_pick_up` (an organisation's department and unnamed post; empty at home) or `all` (every task they see). `status` is `open` (default; by deadline, undated last, at most 500) or `done` (completed in the last 30 days, newest first, at most 200). 422 `validation_error` for another part or status.",
+        "description": "\"Mijn taken\": the caller's tasks, derived from the post they may read. `part` is `mine` (default: given to them, or on their post), `to_pick_up` (an organisation's department and unnamed post; empty at home) or `all` (every task they see). `status` is `open` (default; by deadline, undated last, at most 500) or `done` (completed in the last 30 days, newest first, at most 200). 422 `validation_error` for another part or status. Tasks that wait for a reply (`waiting_until` after today) and the caller's own snoozed tasks are left out of the open list; with `include_waiting=true` they follow with `group` `waiting` and `snoozed` (default false: callers that do not know these groups never meet them).",
         "operationId": "listMyTasks",
         "parameters": [
           {
@@ -13046,6 +15262,16 @@
               "default": "open",
               "title": "Status",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_waiting",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Waiting",
+              "type": "boolean"
             }
           }
         ],
@@ -13107,7 +15333,7 @@
     },
     "/api/v1/workspaces/{workspace_id}/my-tasks/counts": {
       "get": {
-        "description": "The numbers of \"Mijn taken\" for the navigation: open tasks only.",
+        "description": "The numbers of \"Mijn taken\" for the navigation: open tasks only, without those that wait for a reply and the caller's own snoozed ones (counted in `waiting` and `snoozed`).",
         "operationId": "countMyTasks",
         "parameters": [
           {
@@ -16190,6 +18416,290 @@
           }
         ],
         "summary": "Reopen Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/snooze": {
+      "post": {
+        "description": "\"Uitgesteld tot\": the task leaves the caller's own lists until `until` (after today, within a year, and not after the task's own date: 422 `validation_error` or `snooze_after_deadline`), `until` null ends it. Personal: nobody else sees it, the letter's status does not change, nothing is written to the history. Any role; not through emergency access. 409 `task_done` for a task that is done.",
+        "operationId": "snoozeTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SnoozeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Snooze Task",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/api/v1/workspaces/{workspace_id}/tasks/{task_id}/waiting": {
+      "post": {
+        "description": "\"Wacht op reactie tot\": the task waits for a reply until `until` (after today, within a year; 422 `validation_error` otherwise), `until` null stops waiting. Shared: everyone who sees the letter sees it, and when every open task waits the letter is \"waiting\". May pass the task's own deadline. 409 `task_done` for a task that is done. The same day again changes nothing. Writes a `task_waiting` or `task_waiting_ended` line. Role member or higher; not through emergency access.",
+        "operationId": "setTaskWaiting",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Task Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WaitingIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskItemOut"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorOut"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        },
+        "security": [
+          {
+            "DeviceTokenAuth": []
+          },
+          {
+            "SessionAuth": []
+          }
+        ],
+        "summary": "Set Task Waiting",
         "tags": [
           "tasks"
         ]

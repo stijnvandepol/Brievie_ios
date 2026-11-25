@@ -52,6 +52,11 @@ enum PairingStrings {
         defaultValue: "Deze server en de app passen niet bij elkaar. Werk de app of de server bij.",
         bundle: .module
     )
+    static let pairAtHome = String(
+        localized: "pairing.error.pairAtHome",
+        defaultValue: "Koppelen kan alleen thuis of via VPN. Probeer het opnieuw als je thuis bent of VPN aan hebt.",
+        bundle: .module
+    )
     static let generic = String(
         localized: "error.generic",
         defaultValue: "Er ging iets mis. Probeer het opnieuw.",
@@ -107,6 +112,7 @@ enum PairingStrings {
         "pairing.error.connectionLost": connectionLost,
         "pairing.error.tooManyAttempts": tooManyAttempts,
         "pairing.error.incompatible": incompatible,
+        "pairing.error.pairAtHome": pairAtHome,
         "error.generic": generic,
         "pairing.link.error.invalid": linkInvalid,
         "pairing.link.error.unsupportedVersion": linkUnsupportedVersion,
