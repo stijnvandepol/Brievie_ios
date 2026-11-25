@@ -43,6 +43,13 @@ struct HandleLetterSheet: View {
                 if let error {
                     Section { ErrorBanner(error) }
                 }
+                // The question stands here in full: in the bar beside two buttons it was cut off ("Mark this l…").
+                Section {
+                    Text(DocumentStrings.handleTitle)
+                        .font(.headline)
+                        .accessibilityAddTraits(.isHeader)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Section {
                     if sheet.taskTitles.isEmpty {
                         Text(DocumentStrings.handleNoTasks).foregroundStyle(.secondary)
@@ -59,7 +66,6 @@ struct HandleLetterSheet: View {
                     }
                 }
             }
-            .navigationTitle(DocumentStrings.handleTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
