@@ -50,6 +50,13 @@ filter:
     - markDocumentUnread
     - markDocumentsRead
     - listLingeringLetters
+    # Letter status (host PR #50)
+    - countLetterStatuses
+    - handleDocument
+    - setTaskWaiting
+    - snoozeTask
+    # External access (host PR #53)
+    - getServerAddresses
   # The JSON inside the `metadata` field of the multipart upload (createDocument), which the
   # app sends through a background URLSession, not through the generated client.
   schemas:
